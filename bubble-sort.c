@@ -33,10 +33,9 @@ int * newIntVector(size_t size) {
  *
  * @return int *
  */
-int * IntVector__generateInRange(size_t length, size_t min, size_t max) {
-	size_t
-		i = 0,
-		range = max - min;
+int * IntVector__generateInRange(size_t length, int min, int max) {
+	size_t i = 0;
+	int range = max - min;
 	int * ret = newIntVector(length);
 
 	for ( ; i < length; i++ ) {
@@ -133,11 +132,14 @@ int * bubbleSort(int * vector, size_t length) {
  * @param size_t max
  *
  */
-void testBubbleSortWith(size_t length, size_t min, size_t max) {
+void testBubbleSortWith(size_t length, int min, int max) {
 	int * vector = IntVector__generateInRange(length, min, max);
 	int * sorted;
 
 	sorted = bubbleSort(vector, length);
+
+	free(vector);
+	free(sorted);
 }
 
 void test1() {
@@ -160,11 +162,11 @@ int main() {
 	printf("End\n");
 
 	printf("Test 2: \n");
-	test(test2, 5, 10000);
+	test(test2, 5, 20);
 	printf("End\n");
 
 	printf("Test 3: \n");
-	test(test3, 5, 10000);
+	test(test3, 5, 20);
 	printf("End\n");
 
 	return 0;
