@@ -74,14 +74,14 @@ int * IntVector_clone(int * vector, size_t length) {
 void test(void (*func)(void), size_t _max_time, size_t min_repetitions) {
 	size_t repetitions = 0;
 	clock_t
-		max_time = _max_time * CLOCKS_PER_SEC / 1000,
+		max_time = _max_time * CLOCKS_PER_SEC,
 		initial_time,
 		end_time;
 	double total;
 
 	end_time = initial_time = clock();
 
-	while( (end_time - initial_time) < max_time && repetitions < min_repetitions ) {
+	while( (end_time - initial_time) < max_time || repetitions < min_repetitions ) {
 		repetitions++;
 		func();
 		end_time = clock();
@@ -156,15 +156,15 @@ int main() {
 	srand(time(NULL));
 	// Test test 1 during 2 seconds or 1000 repetitions
 	printf("Test 1: \n");
-	test(test1, 2000, 1000);
+	test(test1, 2, 1000);
 	printf("End\n");
 
 	printf("Test 2: \n");
-	test(test2, 5000, 10000);
+	test(test2, 5, 10000);
 	printf("End\n");
 
 	printf("Test 3: \n");
-	test(test3, 5000, 10000);
+	test(test3, 5, 10000);
 	printf("End\n");
 
 	return 0;
