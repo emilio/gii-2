@@ -6,6 +6,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> // memcpy
 #include <time.h>
 
 // #define SWAP(x, y, T) do { T temp##x##y = x; x = y; y = temp##x##y; } while (0)
@@ -26,19 +27,19 @@ int * newIntVector(size_t size) {
 /**
  * Generates a vector of size `size` and fills it with random numbers between `min` and `max`
  *
- * @param size_t size
+ * @param size_t length
  * @param size_t min
  * @param size_t max
  *
  * @return int *
  */
-int * IntVector__generateInRange(size_t size, size_t min, size_t max) {
+int * IntVector__generateInRange(size_t length, size_t min, size_t max) {
 	size_t
 		i = 0,
 		range = max - min;
-	int * ret = newIntVector(size);
+	int * ret = newIntVector(length);
 
-	for ( ; i < range; i++ ) {
+	for ( ; i < length; i++ ) {
 		ret[i] = min + (rand() % range);
 	}
 
@@ -86,10 +87,10 @@ void test(void (*func)(void), size_t _max_time, size_t min_repetitions) {
 		end_time = clock();
 	}
 
-	total = end_time - initial_time / (double) CLOCKS_PER_SEC;
+	total = (end_time - initial_time) / (double) CLOCKS_PER_SEC;
 
 	// Todo: handle results
-	printf("Repetitions: %u, Total: %ld, Average: %ld", 
+	printf("Repetitions: %u, Total: %g, Average: %g\n", 
 		repetitions,
 		total,
 		total / repetitions
@@ -136,9 +137,7 @@ void testBubbleSortWith(size_t length, size_t min, size_t max) {
 	int * vector = IntVector__generateInRange(length, min, max);
 	int * sorted;
 
-	printf("Testing bubble sort with length %u, and range %u... ", length, max - min);
 	sorted = bubbleSort(vector, length);
-	printf("End\n", );
 }
 
 void test1() {
@@ -156,11 +155,17 @@ void test3() {
 int main() {
 	srand(time(NULL));
 	// Test test 1 during 2 seconds or 1000 repetitions
+	printf("Test 1: \n");
 	test(test1, 2000, 1000);
+	printf("End\n");
 
+	printf("Test 2: \n");
 	test(test2, 5000, 10000);
+	printf("End\n");
 
+	printf("Test 3: \n");
 	test(test3, 5000, 10000);
+	printf("End\n");
 
 	return 0;
 }
