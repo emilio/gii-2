@@ -46,18 +46,13 @@ typedef struct AlgorithmTesterBenchmark {
 AlgorithmTesterConfig * newAlgorithmTesterConfig(size_t min_repetitions, size_t max_execution_time);
 
 /**
- * AlgorithmTester constructor
- *
- * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
- * @param AlgorithmTesterConfig * config
- *
- * @see newAlgorithmTesterConfig
+ * AlgorithmTesterConfig constructor without params, more legible. Defaults all params to 0
  *
  * @constructor
  *
- * @return AlgoritmTesterConfig *
+ * @return AlgorithmTesterConfig *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t), AlgorithmTesterConfig * config);
+AlgorithmTesterConfig * newAlgorithmTesterEmptyConfig();
 
 /**
  * AlgorithmTesterBenchmark constructor
@@ -74,6 +69,13 @@ AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t), AlgorithmTesterC
 AlgorithmTesterBenchmark * newAlgorithmTesterBenchmark(AlgorithmTester * tester, size_t repetitions, size_t collection_size, clock_t clocks_used);
 
 /**
+ * Default handle for benchmarks
+ *
+ * @param AlgorithmTesterBenchmark * self
+ */
+void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self);
+
+/**
  * Test a function at least `min_repetitions` times, and during `_max_time` at most
  *
  * @param AlgorithmTester * self tester to use
@@ -83,4 +85,17 @@ AlgorithmTesterBenchmark * newAlgorithmTesterBenchmark(AlgorithmTester * tester,
  */
 AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, size_t collection_size);
 
+/**
+ * AlgorithmTester constructor
+ *
+ * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
+ * @param AlgorithmTesterConfig * config
+ *
+ * @see newAlgorithmTesterConfig
+ *
+ * @constructor
+ *
+ * @return AlgoritmTesterConfig *
+ */
+AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t), AlgorithmTesterConfig * config);
 #endif
