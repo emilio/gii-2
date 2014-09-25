@@ -22,31 +22,14 @@ AlgorithmTesterConfig * newAlgorithmTesterConfig(size_t min_repetitions, size_t 
 }
 
 /**
- * AlgorithmTester constructor
- *
- * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
- * @param AlgorithmTesterConfig * config
- *
- * @see newAlgorithmTesterConfig
+ * AlgorithmTesterConfig constructor without params, more legible. Defaults all params to 0
  *
  * @constructor
  *
- * @return AlgoritmTesterConfig *
+ * @return AlgorithmTesterConfig *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t), AlgorithmTesterConfig * config) {
-	AlgorithmTester * tester;
-
-	// return_null_if(config == NULL)
-	// return_null_if(algorithm == NULL);
-
-	tester = (AlgorithmTester *) malloc(sizeof(AlgorithmTester));
-
-	// return_null_if(tester == NULL);
-
-	tester->algorithm = algorithm;
-	tester->config = config;
-
-	return tester;
+AlgorithmTesterConfig * newAlgorithmTesterEmptyConfig() {
+	return newAlgorithmTesterConfig(0, 0);
 }
 
 /**
@@ -81,6 +64,46 @@ AlgorithmTesterBenchmark * newAlgorithmTesterBenchmark(AlgorithmTester * tester,
 	return benchmark;
 }
 
+/**
+ * Default handle for benchmarks
+ *
+ * @param AlgorithmTesterBenchmark * self
+ */
+void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self) {
+	printf("Collection size: %u, Repetitions: %u, Total: %g, Average: %g\n",
+		self->collection_size,
+		self->repetitions,
+		self->time_used,
+		self->average_time_used);
+}
+
+/**
+ * AlgorithmTester constructor
+ *
+ * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
+ * @param AlgorithmTesterConfig * config
+ *
+ * @see newAlgorithmTesterConfig
+ *
+ * @constructor
+ *
+ * @return AlgoritmTesterConfig *
+ */
+AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t), AlgorithmTesterConfig * config) {
+	AlgorithmTester * tester;
+
+	// return_null_if(config == NULL)
+	// return_null_if(algorithm == NULL);
+
+	tester = (AlgorithmTester *) malloc(sizeof(AlgorithmTester));
+
+	// return_null_if(tester == NULL);
+
+	tester->algorithm = algorithm;
+	tester->config = config;
+
+	return tester;
+}
 
 /**
  * Test an algorithm for an specific collection_size
