@@ -5,10 +5,44 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifndef is_null
+#define is_null(a) ((a) == NULL)
+#endif
+
+#ifndef return_val_if
+#define return_if(expr) return_val_if(expr,)
+#define return_if_fail(expr) return_val_if_fail(expr,)
+#define return_null_if(expr) return_val_if(expr, NULL)
+#define return_null_if_fail(expr) return_val_if_fail(expr, NULL)
+
+#define return_val_if(expr, val) if(expr) { \
+	fprintf(stderr, "[WARNING] [%s:%d:%s] "#expr" passed\n", __FILE__, __LINE__, __FUNCTION__); \
+	return val;                            \
+}
+
+#define return_val_if_fail(expr, val) if(!(expr)) { \
+	fprintf(stderr, "[WARNING] [%s:%d:%s] "#expr" failed\n", __FILE__, __LINE__, __FUNCTION__); \
+	return val;                                 \
+}
+#endif
+
+#ifndef ALGORITHM_TESTER_CONFIG_DEFAULT_COLLECTION_SIZE
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_COLLECTION_SIZE 1
+#endif
+
+#ifndef ALGORITHM_TESTER_CONFIG_DEFAULT_MIN_REPETITIONS
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_MIN_REPETITIONS 0
+#endif
+
+#ifndef ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME 0
+#endif
+
 /**
  * Configuration for AlgorithmTester
  */
 typedef struct AlgorithmTesterConfig {
+	size_t collection_size; // <- Collection size
 	size_t min_repetitions; // <- Minimum number of repetitions to test. Set to 0 to depend only of repetitions
 	size_t max_execution_time; // <- Max time to test in seconds per collection_size. Set to 0 to depend only of repetitions
 } AlgorithmTesterConfig;
@@ -18,7 +52,6 @@ typedef struct AlgorithmTesterConfig {
  */
 typedef struct AlgorithmTester {
 	void (*algorithm)(size_t); // <- Algorithm to test receiving a collection size as parameter
-	AlgorithmTesterConfig * config; // <- Configuration (@see AlgorithmTesterConfig)
 } AlgorithmTester;
 
 /**
@@ -29,13 +62,12 @@ typedef struct AlgorithmTesterBenchmark {
 	size_t collection_size; // <- Collection size
 	size_t repetitions; // <- Number of repetitions
 	clock_t clocks_used; // <- Time used in clocks
-	double time_used; // <- Time used in seconds
-	double average_time_used; // <- Average time used in seconds
 } AlgorithmTesterBenchmark;
 
 /**
  * AlgorithmTesterConfig constructor
  *
+ * @param size_t collection_size
  * @param size_t min_repetitions
  * @param size_t max_execution_time
  *
@@ -43,7 +75,7 @@ typedef struct AlgorithmTesterBenchmark {
  *
  * @return AlgorithmTesterConfig *
  */
-AlgorithmTesterConfig * newAlgorithmTesterConfig(size_t min_repetitions, size_t max_execution_time);
+AlgorithmTesterConfig * newAlgorithmTesterConfig(size_t collection_size, size_t min_repetitions, size_t max_execution_time);
 
 /**
  * AlgorithmTesterConfig constructor without params, more legible. Defaults all params to 0
@@ -52,7 +84,28 @@ AlgorithmTesterConfig * newAlgorithmTesterConfig(size_t min_repetitions, size_t 
  *
  * @return AlgorithmTesterConfig *
  */
-AlgorithmTesterConfig * newAlgorithmTesterEmptyConfig();
+AlgorithmTesterConfig * AlgorithmTesterConfig__empty();
+
+/**
+ * Gets config from array of strings. Recommended use: argc and argv
+ * If not present defaults to default
+ *
+ * @constructor
+ *
+ * @param char ** argv arguments: collection_size min_repetitions max_execution_time
+ * @param size_t argc argument count
+ *
+ */
+AlgorithmTesterConfig * AlgorithmTesterConfig__fromArgs(char ** argv, size_t argc);
+
+/**
+ * Get default config
+ *
+ * @constructor
+ *
+ * @return AlgorithmTesterConfig *
+ */
+AlgorithmTesterConfig * AlgorithmTesterConfig__default();
 
 /**
  * AlgorithmTesterBenchmark constructor
@@ -69,6 +122,20 @@ AlgorithmTesterConfig * newAlgorithmTesterEmptyConfig();
 AlgorithmTesterBenchmark * newAlgorithmTesterBenchmark(AlgorithmTester * tester, size_t repetitions, size_t collection_size, clock_t clocks_used);
 
 /**
+ * Returns benchmark used time in seconds
+ *
+ * @param AlgorithmTesterBenchmark * self
+ */
+double AlgorithmTesterBenchmark_totalTime(AlgorithmTesterBenchmark * self);
+
+/**
+ * Returns benchmark used time per repetition in seconds
+ *
+ * @param AlgorithmTesterBenchmark * self
+ */
+double AlgorithmTesterBenchmark_averageTime(AlgorithmTesterBenchmark * self);
+
+/**
  * Default handle for benchmarks
  *
  * @param AlgorithmTesterBenchmark * self
@@ -76,26 +143,32 @@ AlgorithmTesterBenchmark * newAlgorithmTesterBenchmark(AlgorithmTester * tester,
 void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self);
 
 /**
- * Test a function at least `min_repetitions` times, and during `_max_time` at most
+ * Print benchmark data to stream delimited by `sep`
  *
- * @param AlgorithmTester * self tester to use
- * @param size_t collection_size size of the collection
- * 
- * @return AlgorithmTesterBenchmark *
+ * @param AlgorithmTesterBenchmark * self
+ * @param FILE * stream
+ * @param char sep
  */
-AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, size_t collection_size);
+void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self, FILE * stream, char sep);
 
 /**
  * AlgorithmTester constructor
  *
  * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
- * @param AlgorithmTesterConfig * config
- *
- * @see newAlgorithmTesterConfig
  *
  * @constructor
  *
- * @return AlgoritmTesterConfig *
+ * @return AlgoritmTester *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t), AlgorithmTesterConfig * config);
+AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t));
+
+/**
+ * Test an algorithm for an specific collection_size
+ *
+ * @param AlgorithmTester * self tester to use
+ * @param AlgorithmTesterConfig * config
+ * 
+ * @return AlgorithmTesterBenchmark *
+ */
+AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config);
 #endif
