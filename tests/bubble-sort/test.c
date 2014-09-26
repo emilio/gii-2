@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_COLLECTION_SIZE 100
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_MIN_REPETITIONS 10
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME 5
+
+
 #include "../../AlgorithmTester.h"
 #include "./utils/IntVector.h"
 
@@ -53,18 +59,14 @@ void testBubbleSort(size_t length) {
 	free(sorted);
 }
 
-int main() {
+int main(int argc, char ** argv) {
 	AlgorithmTester * tester;
 	AlgorithmTesterConfig * config;
 	AlgorithmTesterBenchmark * benchmark;
 
 	srand(time(NULL));
 
-	config = AlgorithmTesterConfig__empty();
-
-	config->collection_size = 10000;
-	config->min_repetitions = 10;
-	config->max_execution_time = 2;
+	config = AlgorithmTesterConfig__fromShellArgs(argc, argv);
 
 	tester = newAlgorithmTester(testBubbleSort);
 
