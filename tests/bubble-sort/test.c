@@ -4,7 +4,8 @@
 #include "../../AlgorithmTester.h"
 #include "./utils/IntVector.h"
 
-#include "../../AlgorithmTester.c" // Just for quick compilation
+// Just for quick compilation
+#include "../../AlgorithmTester.c"
 #include "./utils/IntVector.c"
 
 #define BUBBLE_SORT_TEST_RANGE 10000
@@ -59,13 +60,15 @@ int main() {
 
 	srand(time(NULL));
 
-	config = newAlgorithmTesterEmptyConfig();
-	config->min_repetitions = 1000;
+	config = AlgorithmTesterConfig__empty();
+
+	config->collection_size = 10000;
+	config->min_repetitions = 10;
 	config->max_execution_time = 2;
 
-	tester = newAlgorithmTester(testBubbleSort, config)
+	tester = newAlgorithmTester(testBubbleSort);
 
-	benchmark = AlgorithmTester_test(tester, 100);
+	benchmark = AlgorithmTester_test(tester, config);
 	AlgorithmTesterBenchmark_toConsole(benchmark);
 
 	free(benchmark);
