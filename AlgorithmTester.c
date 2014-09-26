@@ -46,8 +46,8 @@ AlgorithmTesterConfig * AlgorithmTesterConfig__default() {
 }
 
 /**
- * Gets config from array of strings. Recommended use: argc and argv
- * If not present defaults to default
+ * Gets config from array of strings.
+ * If not present fallback to default
  *
  * @constructor
  *
@@ -67,6 +67,20 @@ AlgorithmTesterConfig * AlgorithmTesterConfig__fromArgs(char ** argv, size_t arg
 	ret->max_execution_time = (argc > 2) ? strtoul(argv[2], NULL, 10) : ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME;
 
 	return ret;
+}
+
+/**
+ * Get config from shell args
+ *
+ * @param int argc
+ * @param char ** argv
+ *
+ * @see AlgorithmTesterConfig__fromArgs()
+ *
+ * @return AlgorithmTesterConfig *
+ */
+AlgorithmTesterConfig * AlgorithmTesterConfig__fromShellArgs(int argc, char ** argv) {
+	return AlgorithmTesterConfig__fromArgs(argv + 1, argc - 1);
 }
 
 /**
