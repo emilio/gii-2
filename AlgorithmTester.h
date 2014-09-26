@@ -87,8 +87,17 @@ AlgorithmTesterConfig * newAlgorithmTesterConfig(size_t collection_size, size_t 
 AlgorithmTesterConfig * AlgorithmTesterConfig__empty();
 
 /**
- * Gets config from array of strings. Recommended use: argc and argv
- * If not present defaults to default
+ * Get default config
+ *
+ * @constructor
+ *
+ * @return AlgorithmTesterConfig *
+ */
+AlgorithmTesterConfig * AlgorithmTesterConfig__default();
+
+/**
+ * Gets config from array of strings.
+ * If not present fallback to default
  *
  * @constructor
  *
@@ -99,13 +108,16 @@ AlgorithmTesterConfig * AlgorithmTesterConfig__empty();
 AlgorithmTesterConfig * AlgorithmTesterConfig__fromArgs(char ** argv, size_t argc);
 
 /**
- * Get default config
+ * Get config from shell args
  *
- * @constructor
+ * @param int argc
+ * @param char ** argv
+ *
+ * @see AlgorithmTesterConfig__fromArgs()
  *
  * @return AlgorithmTesterConfig *
  */
-AlgorithmTesterConfig * AlgorithmTesterConfig__default();
+AlgorithmTesterConfig * AlgorithmTesterConfig__fromShellArgs(int argc, char ** argv);
 
 /**
  * AlgorithmTesterBenchmark constructor
