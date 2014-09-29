@@ -10,7 +10,7 @@ long russianMultiplication(long factor_1, long factor_2) {
 	long ret = 0;
 
 	while ( factor_1 ) {
-		if ( factor_1 & 2 ) { // Probably more performant than modulus (%)
+		if ( factor_1 % 2 ) {
 			ret += factor_2;
 		}
 
@@ -90,10 +90,10 @@ long divideMultiplication(long factor_1, long factor_2) {
  * @return long
  */
 long iterativeMultiplication(long factor_1, long factor_2) {
-	long ret = factor_1;
+	long ret = 0;
 
 	while ( factor_2-- ) {
-		ret *= factor_1;
+		ret += factor_1;
 	}
 
 	return ret;
