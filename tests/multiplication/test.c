@@ -17,7 +17,11 @@
 
 #define TESTER_FN(name, fn) void name(size_t size, AlgorithmTesterBenchmark * benchmark, void * data) { \
 	long * factors = (long *) data; \
-	ALGORITHM_TESTER_TEST(fn(factors[0], factors[1]), benchmark); \
+	long result; \
+	ALGORITHM_TESTER_TEST(result = fn(factors[0], factors[1]), benchmark); \
+	if ( benchmark->repetitions == 0 ) { \
+		printf("Result: %ld\n", result); \
+	}\
 }
 
 TESTER_FN(testClassicMultiplication, classicMultiplication)
