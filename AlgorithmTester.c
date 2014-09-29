@@ -164,13 +164,17 @@ void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self,
 /**
  * AlgorithmTester constructor
  *
- * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
+ * @param void (*)(size_t, AlgorithmTesterBenchmark *, void *) algorithm tester function to use, receiving:
+ * 	- the collection size
+ * 	- the benchmark (needed to count clocks)
+ *      - custom data passed to the `test` function
+ * 	This function needs to call the macros ALGORITHM_TESTER_START and ALGORITHM_TESTER_END(benchmark) or the helper ALGORITHM_TESTER_TEST(expr, benchmark)
  *
  * @constructor
  *
  * @return AlgoritmTester *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t)) {
+AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *)) {
 	AlgorithmTester * tester;
 
 	return_null_if(algorithm == NULL);
@@ -189,10 +193,11 @@ AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t)) {
  *
  * @param AlgorithmTester * self tester to use
  * @param AlgorithmTesterConfig * config
+ * @param void * data custom data passed to the tester function
  * 
  * @return AlgorithmTesterBenchmark *
  */
-AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config) {
+AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config, void * data) {
 	size_t repetitions = 0;
 	clock_t
 		max_clocks = config->max_execution_time * CLOCKS_PER_SEC,
@@ -203,10 +208,9 @@ AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, Algorith
 	while ( benchmark->clocks_used < max_clocks || benchmark->repetitions < config->min_repetitions ) {
 		benchmark->repetitions++;
 
-		// This way is more precise
-		initial_time = clock();
-		self->algorithm(config->collection_size);
-		benchmark->clocks_used += (clock() - initial_time);
+		// Since the tester function usually does more things, like generating the collection
+		// We must pass the benchmark, and call inside the helper macros
+		self->algorithm(config->collection_size, benchmark, data);
 	}
 
 	return benchmark;
