@@ -32,11 +32,16 @@ long russianMultiplication(long factor_1, long factor_2) {
 long classicMultiplication(long factor_1, long factor_2) {
 	long ret = 0,
 		temp;
-	int digits = DIGITS(factor_2);
+	int digits;
 
+	if ( factor_1 == 0 || factor_2 == 0 ) {
+		return 0; // With previous implementation of DIGITS() when 0 was given we had troubles (log(0) doesn't exists)
+	}
+
+	digits = DIGITS(factor_2);
 	while ( digits-- ) {
-		temp = factor_1 * (factor_2 % (int) pow(10, digits));
-		ret += pow(10, digits) * temp;
+		temp = factor_1 * (factor_2 / (long) pow(10, digits) % 10);
+		ret += ((long) pow(10, digits)) * temp;
 	}
 
 	return ret;
@@ -53,8 +58,8 @@ long classicMultiplication(long factor_1, long factor_2) {
 long divideMultiplication(long factor_1, long factor_2) {
 	int digits_1 = DIGITS(factor_1),
 		digits_2 = DIGITS(factor_2),
-		max_digits = MAX(digits_1, digits_2),
-		a,b,c,d,
+		max_digits = MAX(digits_1, digits_2);
+	long a,b,c,d,
 		exp;
 
 	if ( max_digits < 2 ) {
@@ -62,7 +67,7 @@ long divideMultiplication(long factor_1, long factor_2) {
 	}
 
 	max_digits /= 2;
-	exp = pow(10, max_digits);
+	exp = (long) pow(10, max_digits);
 
 	a = factor_1 / exp;
 	b = factor_1 % exp;
