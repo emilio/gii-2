@@ -58,7 +58,7 @@ AlgorithmTesterConfig * AlgorithmTesterConfig__default() {
 AlgorithmTesterConfig * AlgorithmTesterConfig__fromArgs(char ** argv, size_t argc) {
 	AlgorithmTesterConfig * ret;
 
-	return_null_if(argc > 3);
+	// return_null_if(argc > 3); Nah, we pass it
 
 	ret = AlgorithmTesterConfig__empty();
 
