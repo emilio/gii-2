@@ -38,6 +38,18 @@
 #define ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME 0
 #endif
 
+#define ALGORITHM_TESTER_START do { \
+	clock_t __initial_time = clock();
+
+#define ALGORITHM_TESTER_END(benchmark) \
+	benchmark->clocks_used += (clock() - __initial_time); \
+} while(0)
+
+#define ALGORITHM_TESTER_TEST(expr, benchmark) \
+	ALGORITHM_TESTER_START \
+	expr; \
+	ALGORITHM_TESTER_END(benchmark);
+
 /**
  * Configuration for AlgorithmTester
  */
@@ -47,22 +59,25 @@ typedef struct AlgorithmTesterConfig {
 	size_t max_execution_time; // <- Max time to test in seconds per collection_size. Set to 0 to depend only of repetitions
 } AlgorithmTesterConfig;
 
-/**
- * AlgorithmTester struct
- */
-typedef struct AlgorithmTester {
-	void (*algorithm)(size_t); // <- Algorithm to test receiving a collection size as parameter
-} AlgorithmTester;
+/** Type declaration to allow cross reference */
+struct AlgorithmTester;
 
 /**
  * Test result
  */
 typedef struct AlgorithmTesterBenchmark {
-	AlgorithmTester * tester; // <- Original tester, just for reference
+	struct AlgorithmTester * tester; // <- Original tester, just for reference
 	size_t collection_size; // <- Collection size
 	size_t repetitions; // <- Number of repetitions
 	clock_t clocks_used; // <- Time used in clocks
 } AlgorithmTesterBenchmark;
+
+/**
+ * AlgorithmTester struct
+ */
+typedef struct AlgorithmTester {
+	void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *); // <- Algorithm to test receiving a collection size, benchmark, and data as parameters
+} AlgorithmTester;
 
 /**
  * AlgorithmTesterConfig constructor
@@ -166,21 +181,26 @@ void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self,
 /**
  * AlgorithmTester constructor
  *
- * @param void (*)(size_t) algorithm algorithm tester function to use, receiving the collection size
+ * @param void (*)(size_t, AlgorithmTesterBenchmark *, void *) algorithm tester function to use, receiving:
+ * 	- the collection size
+ * 	- the benchmark (needed to count clocks)
+ *      - custom data passed to the `test` function
+ * 	This function needs to call the macros ALGORITHM_TESTER_START and ALGORITHM_TESTER_END(benchmark) or the helper ALGORITHM_TESTER_TEST(expr, benchmark)
  *
  * @constructor
  *
  * @return AlgoritmTester *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t));
+AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *));
 
 /**
  * Test an algorithm for an specific collection_size
  *
  * @param AlgorithmTester * self tester to use
  * @param AlgorithmTesterConfig * config
+ * @param void * data custom data passed to the tester function
  * 
  * @return AlgorithmTesterBenchmark *
  */
-AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config);
+AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config, void * data);
 #endif
