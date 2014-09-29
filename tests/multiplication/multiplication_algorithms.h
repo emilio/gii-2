@@ -6,8 +6,12 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
+#ifndef ABS
+#define ABS(a) (((a) > 0) ? (a) : (-(a)))
+#endif
+
 #ifndef DIGITS
-#define DIGITS(num) (((int) log10(num)) + 1)
+#define DIGITS(num) ((num == 0) ? (1) : (((int) log10(ABS(num))) + 1))
 #endif
 
 /**
