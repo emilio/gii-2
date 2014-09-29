@@ -164,17 +164,13 @@ void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self,
 /**
  * AlgorithmTester constructor
  *
- * @param void (*)(size_t, AlgorithmTesterBenchmark *, void *) algorithm tester function to use, receiving:
- * 	- the collection size
- * 	- the benchmark (needed to count clocks)
- *      - custom data passed to the `test` function
- * 	This function needs to call the macros ALGORITHM_TESTER_START and ALGORITHM_TESTER_END(benchmark) or the helper ALGORITHM_TESTER_TEST(expr, benchmark)
+ * @param AlgorithmTesterFunction algorithm
  *
  * @constructor
  *
  * @return AlgoritmTester *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *)) {
+AlgorithmTester * newAlgorithmTester(AlgorithmTesterFunction algorithm) {
 	AlgorithmTester * tester;
 
 	// We allow null values here, and test on the `test` function
