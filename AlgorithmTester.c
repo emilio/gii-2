@@ -177,7 +177,8 @@ void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self,
 AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *)) {
 	AlgorithmTester * tester;
 
-	return_null_if(algorithm == NULL);
+	// We allow null values here, and test on the `test` function
+	// return_null_if(algorithm == NULL);
 
 	tester = (AlgorithmTester *) malloc(sizeof(AlgorithmTester));
 
@@ -203,7 +204,11 @@ AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, Algorith
 		max_clocks = config->max_execution_time * CLOCKS_PER_SEC,
 		initial_time;
 	
-	AlgorithmTesterBenchmark * benchmark = newAlgorithmTesterBenchmark(self, 0, config->collection_size, 0); // tester, repetitions, collection_size, clocks_used
+	AlgorithmTesterBenchmark * benchmark;
+
+	return_null_if(self->algorithm == NULL);
+
+	benchmark = newAlgorithmTesterBenchmark(self, 0, config->collection_size, 0); // tester, repetitions, collection_size, clocks_used
 
 	while ( benchmark->clocks_used < max_clocks || benchmark->repetitions < config->min_repetitions ) {
 		benchmark->repetitions++;
