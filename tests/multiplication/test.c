@@ -40,6 +40,7 @@ int main(int argc, char ** argv) {
 
 	// Helper macro to avoid code repetition
 	#define TEST(testerFunc) do { \
+		printf("Testing: "#testerFunc"\n"); \
 		tester->algorithm = testerFunc; \
 		benchmark = AlgorithmTester_test(tester, config, factors); \
 		AlgorithmTesterBenchmark_toConsole(benchmark); \
