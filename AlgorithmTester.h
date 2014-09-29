@@ -50,6 +50,7 @@
 	expr; \
 	ALGORITHM_TESTER_END(benchmark);
 
+
 /**
  * Configuration for AlgorithmTester
  */
@@ -72,11 +73,21 @@ typedef struct AlgorithmTesterBenchmark {
 	clock_t clocks_used; // <- Time used in clocks
 } AlgorithmTesterBenchmark;
 
+
+/*
+ * Tester function to use, receiving:
+ * 	- the collection size
+ *	- the benchmark (needed to count clocks)
+ * 	- custom data passed to the `test` function
+ * 	This function needs to call the macros ALGORITHM_TESTER_START and ALGORITHM_TESTER_END(benchmark) or the helper ALGORITHM_TESTER_TEST(expr, benchmark)
+*/
+typedef void (*AlgorithmTesterFunction)(size_t, AlgorithmTesterBenchmark *, void *);
+
 /**
  * AlgorithmTester struct
  */
 typedef struct AlgorithmTester {
-	void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *); // <- Algorithm to test receiving a collection size, benchmark, and data as parameters
+	AlgorithmTesterFunction algorithm; // <- Algorithm to test receiving a collection size, benchmark, and data as parameters
 } AlgorithmTester;
 
 /**
@@ -181,17 +192,13 @@ void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self,
 /**
  * AlgorithmTester constructor
  *
- * @param void (*)(size_t, AlgorithmTesterBenchmark *, void *) algorithm tester function to use, receiving:
- * 	- the collection size
- * 	- the benchmark (needed to count clocks)
- *      - custom data passed to the `test` function
- * 	This function needs to call the macros ALGORITHM_TESTER_START and ALGORITHM_TESTER_END(benchmark) or the helper ALGORITHM_TESTER_TEST(expr, benchmark)
+ * @param AlgorithmTesterFunction algorithm
  *
  * @constructor
  *
  * @return AlgoritmTester *
  */
-AlgorithmTester * newAlgorithmTester(void (*algorithm)(size_t, AlgorithmTesterBenchmark *, void *));
+AlgorithmTester * newAlgorithmTester(AlgorithmTesterFunction algorithm);
 
 /**
  * Test an algorithm for an specific collection_size
