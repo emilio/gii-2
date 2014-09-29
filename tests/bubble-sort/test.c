@@ -47,13 +47,15 @@ int * bubbleSort(int * vector, size_t length) {
  * Test bubble sort
  *
  * @param size_t collection_size
+ * @param AlgorithmTesterBenchmark * benchmark
+ * @param void * data
  *
  */
-void testBubbleSort(size_t length) {
+void testBubbleSort(size_t length, AlgorithmTesterBenchmark * benchmark, void * data) {
 	int * vector = IntVector__generateInRange(length, 0, BUBBLE_SORT_TEST_RANGE);
 	int * sorted;
 
-	sorted = bubbleSort(vector, length);
+	ALGORITHM_TESTER_TEST(sorted = bubbleSort(vector, length), benchmark);
 
 	free(vector);
 	free(sorted);
@@ -70,7 +72,7 @@ int main(int argc, char ** argv) {
 
 	tester = newAlgorithmTester(testBubbleSort);
 
-	benchmark = AlgorithmTester_test(tester, config);
+	benchmark = AlgorithmTester_test(tester, config, NULL);
 	AlgorithmTesterBenchmark_toConsole(benchmark);
 
 	free(benchmark);
