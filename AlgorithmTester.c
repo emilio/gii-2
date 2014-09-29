@@ -195,10 +195,7 @@ AlgorithmTester * newAlgorithmTester(AlgorithmTesterFunction algorithm) {
  * @return AlgorithmTesterBenchmark *
  */
 AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config, void * data) {
-	size_t repetitions = 0;
-	clock_t
-		max_clocks = config->max_execution_time * CLOCKS_PER_SEC,
-		initial_time;
+	clock_t max_clocks = config->max_execution_time * CLOCKS_PER_SEC;
 	
 	AlgorithmTesterBenchmark * benchmark;
 
@@ -207,11 +204,10 @@ AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, Algorith
 	benchmark = newAlgorithmTesterBenchmark(self, 0, config->collection_size, 0); // tester, repetitions, collection_size, clocks_used
 
 	while ( benchmark->clocks_used < max_clocks || benchmark->repetitions < config->min_repetitions ) {
-		benchmark->repetitions++;
-
 		// Since the tester function usually does more things, like generating the collection
 		// We must pass the benchmark, and call inside the helper macros
 		self->algorithm(config->collection_size, benchmark, data);
+		benchmark->repetitions++;
 	}
 
 	return benchmark;
