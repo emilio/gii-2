@@ -1,0 +1,95 @@
+/**
+ * Multiply by the russian method
+ *
+ * @param long
+ * @param long
+ *
+ * @return long
+ */
+long russianMultiplication(long factor_1, long factor_2) {
+	long ret = 0;
+
+	while ( factor_1 ) {
+		if ( factor_1 & 2 ) { // Probably more performant than modulus (%)
+			ret += factor_2;
+		}
+
+		factor_1 /= 2;
+		factor_2 *= 2;
+	}
+
+	return ret;
+}
+
+/**
+ * Multiply by the classic method
+ *
+ * @param long
+ * @param long
+ *
+ * @return long
+ */
+long classicMultiplication(long factor_1, long factor_2) {
+	long ret = 0,
+		temp;
+	int digits = DIGITS(factor_2);
+
+	while ( digits-- ) {
+		temp = factor_1 * (factor_2 % (int) pow(10, digits));
+		ret += pow(10, digits) * temp;
+	}
+
+	return ret;
+}
+
+/**
+ * Multiply by the divide method
+ *
+ * @param long
+ * @param long
+ *
+ * @return long
+ */
+long divideMultiplication(long factor_1, long factor_2) {
+	int digits_1 = DIGITS(factor_1),
+		digits_2 = DIGITS(factor_2),
+		max_digits = MAX(digits_1, digits_2),
+		a,b,c,d,
+		exp;
+
+	if ( max_digits < 2 ) {
+		return classicMultiplication(factor_1, factor_2);
+	}
+
+	max_digits /= 2;
+	exp = pow(10, max_digits);
+
+	a = factor_1 / exp;
+	b = factor_1 % exp;
+	c = factor_2 / exp;
+	d = factor_2 % exp;
+
+	return	divideMultiplication(a, c) +
+			divideMultiplication(a, d) +
+			divideMultiplication(b, c) +
+			divideMultiplication(b, d);
+	
+}
+
+/**
+ * Multiply by the iterative method
+ *
+ * @param long
+ * @param long
+ *
+ * @return long
+ */
+long iterativeMultiplication(long factor_1, long factor_2) {
+	long ret = factor_1;
+
+	while ( factor_2-- ) {
+		ret *= factor_1;
+	}
+
+	return ret;
+}
