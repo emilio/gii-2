@@ -4,7 +4,7 @@
 
 #define ALGORITHM_TESTER_CONFIG_DEFAULT_COLLECTION_SIZE 100
 #define ALGORITHM_TESTER_CONFIG_DEFAULT_MIN_REPETITIONS 10
-#define ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME 5
+#define ALGORITHM_TESTER_CONFIG_DEFAULT_MAX_EXECUTION_TIME 2
 
 
 #include "../../AlgorithmTester.h"
@@ -63,19 +63,34 @@ void testBubbleSort(size_t length, AlgorithmTesterBenchmark * benchmark, void * 
 
 int main(int argc, char ** argv) {
 	AlgorithmTester * tester;
-	AlgorithmTesterConfig * config;
 	AlgorithmTesterBenchmark * benchmark;
+	AlgorithmTesterConfig * config;
+	FILE * results;
+
+	int i;
+	size_t current_size;
 
 	srand(time(NULL));
 
-	config = AlgorithmTesterConfig__fromShellArgs(argc, argv);
+	if ( argc < 2 ) {
+		printf("Use: %s collection_size_1 [collection_size_2] [collection_size_3] ...\n", argv[0]);
+		return EXIT_FAILURE;
+	}
 
 	tester = newAlgorithmTester(testBubbleSort);
+	results = fopen("results.txt", "w");
 
-	benchmark = AlgorithmTester_test(tester, config, NULL);
-	AlgorithmTesterBenchmark_toConsole(benchmark);
+	config = AlgorithmTesterConfig__default();
 
-	free(benchmark);
+	for ( i = 1; i < argc; i++ ) {
+		config->collection_size = strtoul(argv[i], NULL, 10);
+		benchmark = AlgorithmTester_test(tester, config, NULL);
+		AlgorithmTesterBenchmark_toConsole(benchmark);
+		AlgorithmTesterBenchmark_toStreamDelimited(benchmark, results, ';');
+		free(benchmark);
+	}
+	
+	fclose(results);
 	free(config);
 	free(tester);
 
