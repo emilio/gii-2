@@ -43,6 +43,7 @@
 
 #define ALGORITHM_TESTER_END(benchmark) \
 	benchmark->clocks_used += (clock() - __initial_time); \
+	benchmark->repetitions++; \
 } while(0)
 
 #define ALGORITHM_TESTER_TEST(expr, benchmark) \
@@ -50,6 +51,13 @@
 	expr; \
 	ALGORITHM_TESTER_END(benchmark);
 
+#define ALGORITHM_TESTER_TEST_TO_CONSOLE(algo, config, data) do { \
+	AlgorithmTester * __##algo##_tester = newAlgorithmTester(algo); \
+	AlgorithmTesterBenchmark * __##algo##_benchmark = AlgorithmTester_test(__##algo##_tester, config, data); \
+	AlgorithmTesterBenchmark_toConsole(__##algo##_benchmark); \
+	free(__##algo##_benchmark); \
+	free(__##algo##_tester); \
+} while(0)
 
 /**
  * Configuration for AlgorithmTester
@@ -74,13 +82,13 @@ typedef struct AlgorithmTesterBenchmark {
 } AlgorithmTesterBenchmark;
 
 
-/*
+/**
  * Tester function to use, receiving:
  * 	- the collection size
  *	- the benchmark (needed to count clocks)
  * 	- custom data passed to the `test` function
  * 	This function needs to call the macros ALGORITHM_TESTER_START and ALGORITHM_TESTER_END(benchmark) or the helper ALGORITHM_TESTER_TEST(expr, benchmark)
-*/
+ */
 typedef void (*AlgorithmTesterFunction)(size_t, AlgorithmTesterBenchmark *, void *);
 
 /**
@@ -185,9 +193,9 @@ void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self);
  *
  * @param AlgorithmTesterBenchmark * self
  * @param FILE * stream
- * @param char sep
+ * @param const char sep
  */
-void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self, FILE * stream, char sep);
+void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self, FILE * stream, const char sep);
 
 /**
  * AlgorithmTester constructor
