@@ -148,10 +148,10 @@ void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self) {
  *
  * @param AlgorithmTesterBenchmark * self
  * @param FILE * stream
- * @param char sep
+ * @param const char sep
  */
-void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self, FILE * stream, char sep) {
-	fprintf(stream, "%u%c%u%c%f%c%f\n",
+void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self, FILE * stream, const char sep) {
+	fprintf(stream, "%u%c%u%c%f%c%g\n",
 		self->collection_size,
 		sep,
 		self->repetitions,
@@ -207,7 +207,6 @@ AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, Algorith
 		// Since the tester function usually does more things, like generating the collection
 		// We must pass the benchmark, and call inside the helper macros
 		self->algorithm(config->collection_size, benchmark, data);
-		benchmark->repetitions++;
 	}
 
 	return benchmark;
