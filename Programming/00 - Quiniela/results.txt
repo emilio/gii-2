@@ -1,31 +1,31 @@
 +-----------------------+
-| Leganés - Betis: 1 |
+| Leganés - Betis: x |
 +-----------------------+
-| Sabadell - Girona: 1 |
+| Sabadell - Girona: x |
 +-----------------------+
-| Osasuna - Tenerife: 1 |
+| Osasuna - Tenerife: x |
 +-----------------------+
-| Zaragoza - Racing: 1 |
+| Zaragoza - Racing: x |
 +-----------------------+
-| Elche - Sevilla: 1 |
+| Elche - Sevilla: x |
 +-----------------------+
-| Athletic Club - Celta de Vigo: 1 |
+| Athletic Club - Celta de Vigo: x |
 +-----------------------+
-| Alavés - Lugo: 1 |
+| Alavés - Lugo: x |
 +-----------------------+
-| At. Madrid - Espanyol: 1 |
+| At. Madrid - Espanyol: 2 |
 +-----------------------+
-| Valladolid - Ponferradina: 1 |
+| Valladolid - Ponferradina: x |
 +-----------------------+
 | Córdoba - Málaga: 1 |
 +-----------------------+
-| Barcelona - Eibar: 1 |
+| Barcelona - Eibar: x |
 +-----------------------+
-| Deportivo - Valencia: 1 |
+| Deportivo - Valencia: x |
 +-----------------------+
-| Mirandés - Albacete: 1 |
+| Mirandés - Albacete: x |
 +-----------------------+
-| Villareal - Almería: 1 |
+| Villareal - Almería: x |
 +-----------------------+
-| Levante - Real Madrid: 1 |
+| Levante - Real Madrid: x |
 +-----------------------+

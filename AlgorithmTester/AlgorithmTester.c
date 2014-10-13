@@ -136,7 +136,7 @@ double AlgorithmTesterBenchmark_averageTime(AlgorithmTesterBenchmark * self) {
  * @param AlgorithmTesterBenchmark * self
  */
 void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self) {
-	printf("Collection size: %u, Repetitions: %u, Total time (s): %g, Average time (s): %g\n",
+	printf("Collection size: %zu, Repetitions: %zu, Total time (s): %g, Average time (s): %g\n",
 		self->collection_size,
 		self->repetitions,
 		AlgorithmTesterBenchmark_totalTime(self),
@@ -151,7 +151,7 @@ void AlgorithmTesterBenchmark_toConsole(AlgorithmTesterBenchmark * self) {
  * @param const char sep
  */
 void AlgorithmTesterBenchmark_toStreamDelimited(AlgorithmTesterBenchmark * self, FILE * stream, const char sep) {
-	fprintf(stream, "%u%c%u%c%f%c%g\n",
+	fprintf(stream, "%zu%c%zu%c%f%c%g\n",
 		self->collection_size,
 		sep,
 		self->repetitions,
@@ -191,12 +191,12 @@ AlgorithmTester * newAlgorithmTester(AlgorithmTesterFunction algorithm) {
  * @param AlgorithmTester * self tester to use
  * @param AlgorithmTesterConfig * config
  * @param void * data custom data passed to the tester function
- * 
+ *
  * @return AlgorithmTesterBenchmark *
  */
 AlgorithmTesterBenchmark * AlgorithmTester_test(AlgorithmTester * self, AlgorithmTesterConfig * config, void * data) {
 	clock_t max_clocks = config->max_execution_time * CLOCKS_PER_SEC;
-	
+
 	AlgorithmTesterBenchmark * benchmark;
 
 	return_null_if(self->algorithm == NULL);
