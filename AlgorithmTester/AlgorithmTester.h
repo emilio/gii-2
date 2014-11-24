@@ -26,6 +26,10 @@
 }
 #endif
 
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
 #ifndef ALGORITHM_TESTER_CONFIG_DEFAULT_COLLECTION_SIZE
 #define ALGORITHM_TESTER_CONFIG_DEFAULT_COLLECTION_SIZE 1
 #endif
