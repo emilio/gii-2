@@ -1,3 +1,5 @@
+#include "AlgorithmTester.h"
+
 /**
  * AlgorithmTesterConfig constructor
  *
