@@ -1,4 +1,9 @@
-package matrixexample;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package library;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -45,21 +50,21 @@ public class Menu {
 		description = desc;
 		target = this.getClass();
 		isStatic = true;
-		options = new ArrayList<MenuOption>();
+		options = new ArrayList<>();
 	}
 
 	public Menu( Class c, String desc) {
 		description = desc;
 		target = c;
 		isStatic = true;
-		options = new ArrayList<MenuOption>();
+		options = new ArrayList<>();
 	}
 
 	public Menu( Object o, String desc ) {
 		description = desc;
 		target = o;
 		isStatic = false;
-		options = new ArrayList<MenuOption>();
+		options = new ArrayList<>();
 	}
 
 	/**
@@ -74,6 +79,10 @@ public class Menu {
 	 *
 	 * @param methodName the method name to invoke
 	 * @param description the description used in render
+         * 
+         * @throws java.lang.NoSuchMethodException
+         * 
+         * @return self
 	 */
 	public final Menu addEntry(String methodName, String description) throws NoSuchMethodException {
 		options.add(new MenuOption(getTargetClass().getMethod(methodName), description));
@@ -82,6 +91,8 @@ public class Menu {
 
 	/**
 	 * Render menu
+         * 
+         * @return self
 	 */
 	public final Menu render() {
 		int i = 0;
@@ -100,7 +111,7 @@ public class Menu {
 		int max = options.size();
 		Scanner sc = new Scanner(System.in);
 		while ( ! (response > 0 && response <= max) ) {
-			System.out.println("Introduce una opción: ");
+			System.out.println("Write an option: ");
 			response = sc.nextInt();
 		}
 
