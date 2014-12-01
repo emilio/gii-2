@@ -1,3 +1,10 @@
+/**
+ * Pistolo.c
+ *
+ * http://avellano.usal.es/~ssooi/pract115.htm
+ *
+ * @author Emilio Cobos Álvarez <emiliocobos@usal.es>
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -9,19 +16,34 @@
 #include <sys/shm.h>
 #include <string.h>
 #include <time.h>
-#define PROC_COUNT 25
-// #define DEBUG 1
+#define PROC_COUNT 50
+// #define DEBUG
 
+/** Shared memory */
 pid_t *PIDS;
 
-volatile sig_atomic_t sigterm_exit = 1;
+/** Boolean to disallow exiting in SIGTERM if we have shooted */
+char sigterm_exit = 1;
 
+/** Display pids alive */
 void show_pids();
+
+/** Catch SIGUSR1 signal (shoot to a brother) */
 void child_sigusr_catch(int);
+
+/** Catch SIGTERM signal (die, probably) */
 void child_sigterm_catch(int);
+
+/** Get a random brother PID */
 pid_t child_rand_pid();
-int child_proc();
+
+/** Get a shared block of memory */
 void *get_shared_mem(size_t);
+
+/** Child process logic, mostly setting signal handlers and wait for them */
+int child_proc();
+
+/** Parent process logic */
 int parent_proc();
 
 /** Display pids */
@@ -221,7 +243,10 @@ int parent_proc() {
 
 		printf("----------------------\n");
 		printf("Round #%zu\n", rounds);
-		printf("Total dead: %zu\nLast round: %zu\n", total_dead, total_dead - already_dead);
+		printf("Total: %zu\n", ( size_t ) PROC_COUNT);
+		printf("Dead: %zu\n", total_dead);
+		printf("Last round: %zu\n", total_dead - already_dead);
+		printf("Alive (%zu):\n", PROC_COUNT - total_dead);
 		show_pids();
 		printf("----------------------\n");
 
