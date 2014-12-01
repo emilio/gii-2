@@ -1,6 +1,8 @@
 #ifndef __VECTOR_H
 #define __VECTOR_H
 
+#include <string.h>
+
 /** Allow external changes */
 #ifndef VECTOR_ITEM_TYPE
 #define VECTOR_ITEM_TYPE void *
