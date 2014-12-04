@@ -1,0 +1,13 @@
+class PenView implements IView<Pen> {
+	void render(Pen pen, Properties params) {
+		String message;
+		if ( message = params.getProperty("message") ) {
+			System.out.println(message)
+		}
+
+		if ( pen == null ) {
+			return;
+		}
+
+	}
+}

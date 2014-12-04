@@ -116,7 +116,53 @@ ostream& operator<<(ostream& os, const Object& obj) {
 }
 
 Value parse_object(char *src) {
-	// TODO
+	Object obj;
+	char is_value = 0;
+	char expecting_colon = 0;
+	char is_value = 0;
+	char *key;
+	char *value;
+	Value val;
+
+	if ( *str != '{' )
+		throw runtime_error("Bad JSON object");
+
+	++str;
+	while ( *str ) {
+		if ( ! is_key && ! is_value && isspace(*str) ) {
+			str++;
+			continue;
+		}
+		if ( ! is_key && ! is_value && *str == '"' ) {
+			is_key = 1;
+			key = ++str;
+			continue;
+		}
+
+		if ( (is_key || is_value) && *str == '\\' ) {
+			++str;
+			continue;
+		}
+
+
+		if ( is_key && *str == '"' ) {
+			*str = '\0'; // end
+			is_key = 0;
+			str++;
+			char colon_found = 0;
+
+			while ( *str ) {
+				if ( *str == ':' )
+					colon_found = 1;
+				if ( colon_found && ! isspace(*str) )
+					break;
+				str++;
+			}
+			value = str;
+			is_value = 1;
+		}
+		++str;
+	}
 }
 
 Value parse_array(char *src) {
