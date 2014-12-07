@@ -42,7 +42,6 @@ typedef enum DataActionType {
 typedef enum PidStatusType {
 	PID_STATUS_READY = 0x01,
 	PID_STATUS_SHOT = 0x02,
-	PID_STATUS_TOUCHED = 0x04,
 	PID_STATUS_DEAD = 0x08
 } PidStatusType;
 
@@ -61,7 +60,7 @@ typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
 	/* const */ pid_t parent_id; /** The parent process id */
 	size_t rounds; /** The round count */
-	sig_atomic_t die_allowed; /** If actually dying is allowed */
+	// sig_atomic_t die_allowed; /** If actually dying is allowed */
 	sig_atomic_t not_ready_yet; /** Number of processes not ready yet.
 									It starts being the process_count and decrements to zero
 									while child processes are loaded */
@@ -69,6 +68,8 @@ typedef struct GameData {
 	PidStatusType *pid_status; /** The pid status array, dinamically allocated too.
 									If pid is alive it gets updated to PID_STATUS_READY
 									at the beginning of each round */
+	sig_atomic_t *pid_target; /** An array of target INDEXES of each process
+								    When a target index isn't dead the round isn't over yet */
 } GameData;
 
 /** Get the main game data struct, create if non-zero value is passed as a second argument */
@@ -78,6 +79,9 @@ GameData * manage_data(DataActionType, size_t);
 #define get_data() manage_data(DATA_GET, 0)
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
+
+/** Dump data */
+void __dump();
 
 /** Check if current round is over */
 int round_over();
@@ -107,14 +111,17 @@ void child_sigterm_catch(int);
 /** Catch sigusr signal, empty more than probably */
 void parent_sigusr_catch(int);
 
+/** Catch sigterm signal, kill everything */
+void parent_sigterm_catch(int);
+
 /** Bind signals to parent proc so they will be bound to children */
 void bind_children_signals_and_lock();
 
 /** Bind signals to parent proc only*/
 void bind_parent_signals();
 
-/** Get a random brother PID */
-pid_t child_rand_pid();
+/** Get a random brother PID. Receives the index by reference */
+pid_t child_rand_pid(size_t *);
 
 /** Get current child index */
 size_t current_index();
@@ -124,6 +131,17 @@ int child_proc();
 
 /** Parent process logic */
 int parent_proc();
+
+/** Dump data */
+void __dump() {
+	GameData *data = get_data();
+
+	printf("\nDump:\n");
+	printf(" * Pids: \n");
+	print( (int *) data->pids, data->process_count);
+	printf(" * Status: \n");
+	print( (int *) data->pid_status, data->process_count);
+}
 
 
 /** Get a shared block of memory */
@@ -168,14 +186,14 @@ GameData * manage_data(DataActionType action, size_t count) {
 	static int memid;
 
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
-		data = (GameData *) get_shared_mem(sizeof(GameData) + sizeof(pid_t) * count + sizeof(PidStatusType) * count, &memid);
+		data = (GameData *) get_shared_mem(sizeof(GameData) + sizeof(pid_t) * count + sizeof(PidStatusType) * count + sizeof(sig_atomic_t) * count, &memid);
 		data->process_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
 		data->not_ready_yet = count;
-		data->die_allowed = 0;
 		data->pids =  (pid_t *) (data + 1);
 		data->pid_status = (PidStatusType *) (data->pids + count);
+		data->pid_target = (sig_atomic_t *) (data->pid_status + count);
 	}
 
 	if ( action == DATA_RELEASE ) {
@@ -190,7 +208,7 @@ GameData * manage_data(DataActionType action, size_t count) {
 void print(int *list, size_t length) {
 	size_t i = 0;
 
-	for ( ; i < length; i++ )
+	for ( ; i < length; ++i )
 		printf("%d\t", list[i]);
 
 	printf("\n");
@@ -200,11 +218,12 @@ void print(int *list, size_t length) {
 void show_pids() {
 	GameData *data = get_data();
 	pid_t *pids = data->pids;
+	PidStatusType *pid_status = data->pid_status;
 	size_t i = 0,
 		count = data->process_count;
 
 	for ( ; i < count; ++i )
-		if ( pids[i] )
+		if ( ~pid_status[i] & PID_STATUS_DEAD )
 			printf("%d\t", pids[i]);
 
 	printf("\n");
@@ -225,22 +244,25 @@ void kill_all() {
 void child_sigusr_catch( int sig ) {
 	pid_t random_pid,
 		current_pid = getpid();
+	size_t random_pid_index;
 	GameData *data = get_data();
 
 #ifdef DEBUG
 	printf("Child SIGUSR catch\n");
 #endif
 
-	random_pid = child_rand_pid();
+	random_pid = child_rand_pid(&random_pid_index);
 
 
-	if ( random_pid == -1 || // no available pid
-		data->pid_status[current_index()] & PID_STATUS_DEAD ) // or we are already dead
+	if ( random_pid == -1 ) // or we are already dead
 		return;
 
-	kill(random_pid, SIGTERM);
 	printf("%d->%d\n", current_pid, random_pid);
+	kill(random_pid, SIGTERM);
+
+	data->pid_target[current_index()] = (sig_atomic_t) random_pid_index;
 	data->pid_status[current_index()] |= PID_STATUS_SHOT;
+
 	// advise parent
 	kill(data->parent_id, SIGUSR2);
 
@@ -255,12 +277,6 @@ void child_sigterm_catch( int sig ) {
 	printf("Status: %d\n", data->pid_status[current_index()]);
 #endif
 
-	if ( ! data->die_allowed ) {
-		data->pid_status[current_index()] |= PID_STATUS_TOUCHED;
-		return;
-	}
-
-	data->pids[current_index()] = 0;
 	data->pid_status[current_index()] |= PID_STATUS_DEAD;
 	// Tell parent we're done
 	kill(data->parent_id, SIGUSR2);
@@ -272,6 +288,13 @@ void parent_sigusr_catch( int sig ) {
 #ifdef DEBUG
 	printf("Parent received %s\n", sig == SIGUSR2 ? "SIGUSR2" : "SIGALRM");
 #endif
+}
+
+void parent_sigterm_catch(int sig) {
+	__dump();
+	kill_all();
+	release_data();
+	exit(1);
 }
 
 /** Bind signals to parent proc so children */
@@ -296,19 +319,20 @@ void bind_parent_signals() {
 	// Unlock SIGTERM for parent
 	sigemptyset(&set);
 	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGINT);
 	sigaddset(&set, SIGUSR1);
 	sigaddset(&set, SIGUSR2);
 	sigprocmask(SIG_UNBLOCK, &set, NULL);
 
 	signal(SIGUSR1, SIG_DFL);
-	signal(SIGTERM, SIG_DFL);
+	signal(SIGTERM, parent_sigterm_catch);
+	signal(SIGINT, parent_sigterm_catch);
 	signal(SIGUSR2, parent_sigusr_catch);
 	signal(SIGALRM, parent_sigusr_catch); // Since it's just a fallback...
-
 }
 
 /** Get a random pid */
-pid_t child_rand_pid() {
+pid_t child_rand_pid(size_t *index) {
 	pid_t current_pid = getpid();
 
 	size_t i = 0,
@@ -318,6 +342,7 @@ pid_t child_rand_pid() {
 
 	GameData *data = get_data();
 	pid_t *pids = data->pids;
+	PidStatusType *pid_status = data->pid_status;
 
 	count = data->process_count;
 
@@ -325,19 +350,22 @@ pid_t child_rand_pid() {
 	// Get a random between them an iterate again...
 	// I know this is far from optimal
 	// The other way was the function commented above
-	for ( ; i < count; i++ )
-		if ( pids[i] != 0 && pids[i] != current_pid )
-			shootable_count++;
+	for ( ; i < count; ++i )
+		if ( ~pid_status[i] & PID_STATUS_DEAD && pids[i] != current_pid )
+			++shootable_count;
 
 	if ( shootable_count == 0 )
 		return -1;
 
 	random = rand() % shootable_count;
 
-	for ( i = 0;  i < count; i++ ) {
-		if ( pids[i] && pids[i] != current_pid ) {
-			if ( random == 0 )
+	for ( i = 0;  i < count; ++i ) {
+		if ( ~pid_status[i] & PID_STATUS_DEAD && pids[i] != current_pid ) {
+			if ( random == 0 ) {
+				if ( index != NULL )
+					*index = i;
 				return pids[i];
+			}
 			random--;
 		}
 	}
@@ -354,9 +382,10 @@ int child_proc() {
 	srand(time(NULL) + getpid());
 
 
-	// Only allow to catch SIGUSR1, SIGUSR2 and SIGTERM
+	// Only allow to catch SIGUSR1, SIGINT and SIGTERM
 	sigfillset(&set);
 	sigdelset(&set, SIGUSR1);
+	sigdelset(&set, SIGINT);
 	sigdelset(&set, SIGTERM);
 
 #ifdef DEBUG
@@ -381,18 +410,17 @@ int child_proc() {
 int round_over() {
 	GameData *data = get_data();
 	PidStatusType *pid_status = data->pid_status;
-	pid_t *pids = data->pids;
+	sig_atomic_t *pid_target = data->pid_target;
 	size_t count = data->process_count,
 		i = 0;
-
-	// If someone is still ready the round isn't still over
-	for ( ; i < count; ++i )
-#ifdef DEBUG
-		if ( data->pids[i] )
-			printf("%zu (%d): %d\n", i, data->pids[i], pid_status[i]);
-#endif
-		if ( pids[i] && pid_status[i] == PID_STATUS_READY )
+	for ( ; i < count; ++i ) {
+		// If someone hasn't shooted yet and isn't dead
+		if ( pid_status[i] == PID_STATUS_READY )
 			return 0;
+		// If someone has shooted but it's target isn't dead
+		else if ( pid_status[i] & PID_STATUS_SHOT && ~pid_status[pid_target[i]] & PID_STATUS_DEAD )
+			return 0;
+	}
 
 	return 1;
 }
@@ -429,21 +457,15 @@ int parent_proc() {
 		total_dead = 0;
 
 		for ( i = 0; i < count; ++i ) {
-			// update dead pids (done in the sigterm catch, but we ensure sync here)
-			if ( pids[i] && waitpid(pids[i], NULL, WNOHANG) == pids[i] )
-				pids[i] = 0;
-
 			// check for deads in the last round
-			if ( pids[i] == 0 )
+			if ( pid_status[i] & PID_STATUS_DEAD )
 				++total_dead;
 			else
 				pid_status[i] = PID_STATUS_READY;
 		}
 
-		if ( total_dead == count || total_dead == count - 1 ) {
-			data->die_allowed = 0;
+		if ( total_dead == count || total_dead == count - 1 )
 			break;
-		}
 
 		++data->rounds;
 
@@ -459,18 +481,15 @@ int parent_proc() {
 		fflush(stdout);
 
 
-		data->die_allowed = 1;
-
 		// Let them shoot
 		for ( i = 0; i < count; ++i )
-			if ( pids[i] )
+			if ( ~pid_status[i] & PID_STATUS_DEAD )
 				kill(pids[i], SIGUSR1);
 
 		do {
 			alarm(1); // Needed because signal syncing sucks
 			sigsuspend(&set);
-		} while( ! ( round_over() ) );
-		data->die_allowed = 0;
+		} while ( ! round_over() );
 		alarm(0); // cancel alarms
 	}
 
