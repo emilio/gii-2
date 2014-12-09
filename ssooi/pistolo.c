@@ -27,6 +27,10 @@
  */
 #define __CONFORMING 1
 
+#define __MAX_SYSTEM_CALLS 1
+
+
+#if __MAX_SYSTEM_CALLS
 /**
  * Easy printf with system calls
  */
@@ -36,6 +40,9 @@ char BUFF[BUFF_MAX];
 	snprintf(BUFF, BUFF_MAX, str, ## __VA_ARGS__); \
 	write(1, BUFF, strlen(BUFF)); \
 } while (0)
+#else
+#define PRINTF printf
+#endif
 
 /**
  * The GameData struct is the main data wrapper for our game
@@ -298,8 +305,8 @@ void kill_all() {
 
 
 #if __CONFORMING
-char CHILD_EXIT = 0;
-size_t SIGUSR_COUNT = 0;
+volatile sig_atomic_t CHILD_EXIT = 0;
+volatile sig_atomic_t SIGUSR_COUNT = 0;
 #endif
 
 /** Get a pid and shoot */
@@ -421,11 +428,11 @@ int child_proc() {
 	/** We start listening */
 #if __CONFORMING
 	/** Until child received sigterm and one sigusr per round */
-	while ( ! ( CHILD_EXIT && SIGUSR_COUNT == data->rounds ) )
+	WAIT_WITH_SET_UNTIL(set, CHILD_EXIT && SIGUSR_COUNT == data->rounds);
 #else
 	while(1)
-#endif
 		sigsuspend(&set);
+#endif
 
 	return 0;
 }
