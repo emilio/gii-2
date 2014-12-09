@@ -13,17 +13,19 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <sys/shm.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <string.h>
 #include <time.h>
 #define DEFAULT_PROC_COUNT 7
+#define DATA_PATH "/tmp/__pistolo_data"
 // #define DEBUG
 
 
 #define BUFF_MAX 128
 char BUFF[BUFF_MAX];
 #define PRINTF(str, ...) do { \
-	sprintf(BUFF, str, ## __VA_ARGS__); \
+	snprintf(BUFF, BUFF_MAX, str, ## __VA_ARGS__); \
 	write(1, BUFF, strlen(BUFF)); \
 } while (0)
 
@@ -36,6 +38,7 @@ char BUFF[BUFF_MAX];
 /** The  action type passed to manage_data */
 typedef enum DataActionType {
 	DATA_CREATE,
+	DATA_REFRESH,
 	DATA_GET,
 	DATA_RELEASE
 } DataActionType;
@@ -46,11 +49,13 @@ typedef enum DataActionType {
  * This is a binary mask meaning that:
  *  - A process has shot if his pid_status & PID_STATUS_SHOT gives a non-zero value
  *  - A process is dead if his pid_status & PID_STATUS_DEAD gives a non-zero value
+ *  - Touched means that the process received SIGUSR1, but found no pid to shoot at
  */
 typedef enum PidStatusType {
 	PID_STATUS_READY = 0x01,
-	PID_STATUS_SHOT = 0x02,
-	PID_STATUS_DEAD = 0x04
+	PID_STATUS_TOUCHED = 0x02,
+	PID_STATUS_SHOT = 0x04,
+	PID_STATUS_DEAD = 0x08
 } PidStatusType;
 
 /**
@@ -83,8 +88,11 @@ typedef struct GameData {
 /** Get the main game data struct, create if non-zero value is passed as a second argument */
 GameData * manage_data(DataActionType, size_t);
 
+#define DATA_SIZE_FOR(count) (sizeof(GameData) + sizeof(pid_t) * count + sizeof(PidStatusType) * count + sizeof(sig_atomic_t) * count)
+
 /** Wrapper macros for GameData actions */
 #define get_data() manage_data(DATA_GET, 0)
+#define refresh_data() manage_data(DATA_REFRESH, 0)
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
 
@@ -93,13 +101,6 @@ void __dump();
 
 /** Check if current round is over */
 int round_over();
-
-/**
- * Get a shared block of memory
- * The first argument is the size
- * The second one is a reference where the id of the block will be stored
- */
-void * get_shared_mem(size_t, int *);
 
 /** Display an integer list */
 void print(int *, size_t);
@@ -152,20 +153,6 @@ void __dump() {
 }
 
 
-/** Get a shared block of memory */
-void * get_shared_mem( size_t size, int *id ) {
-	int shmid = shmget(time(NULL), size, IPC_CREAT | 0777);
-	void *ret = shmat(shmid, NULL, 0);
-
-	if ( ret == (void *) -1 )
-		perror("Failed getting memory");
-
-	if ( id != NULL )
-		*id = shmid;
-
-	return ret;
-}
-
 /** Get current child index */
 size_t current_index() {
 	static size_t index = (size_t) -1;
@@ -191,10 +178,21 @@ size_t current_index() {
 /** Manage game data */
 GameData * manage_data(DataActionType action, size_t count) {
 	static GameData *data = NULL;
-	static int memid;
+	static int fd = -1;
+	static size_t size = 0;
 
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
-		data = (GameData *) get_shared_mem(sizeof(GameData) + sizeof(pid_t) * count + sizeof(PidStatusType) * count + sizeof(sig_atomic_t) * count, &memid);
+		GameData *_data; // Temporary var to write to file
+		size = DATA_SIZE_FOR(count);
+		fd = open(DATA_PATH, O_RDWR | O_CREAT | O_TRUNC);
+		if ( fd == -1 ) {
+			perror("File could not be created"); exit(1);
+		}
+
+		_data = (GameData *) malloc(size);
+		write(fd, _data, size);
+		free(_data); // erase temporary variable
+		data = (GameData *) mmap(NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
 		data->process_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
@@ -205,7 +203,9 @@ GameData * manage_data(DataActionType action, size_t count) {
 	}
 
 	if ( action == DATA_RELEASE ) {
-		shmctl(memid, IPC_RMID, NULL);
+		munmap(data, size);
+		close(fd);
+		unlink(DATA_PATH);
 		data = NULL;
 	}
 
@@ -261,14 +261,15 @@ void child_sigusr_catch( int sig ) {
 
 	random_pid = child_rand_pid(&random_pid_index);
 
+	if ( random_pid == -1 ) { // No pid found for shooting
+		data->pid_status[current_index()] |= PID_STATUS_TOUCHED;
+	} else { // Shoot and update status
+		PRINTF("%d->%d\n", current_pid, random_pid);
+		kill(random_pid, SIGTERM);
 
-	if ( random_pid == -1 ) // or we are already dead
-		return;
-	PRINTF("%d->%d\n", current_pid, random_pid);
-	kill(random_pid, SIGTERM);
-
-	data->pid_target[current_index()] = (sig_atomic_t) random_pid_index;
-	data->pid_status[current_index()] |= PID_STATUS_SHOT;
+		data->pid_target[current_index()] = (sig_atomic_t) random_pid_index;
+		data->pid_status[current_index()] |= PID_STATUS_SHOT;
+	}
 
 	// advise parent
 	kill(data->parent_id, SIGUSR2);
@@ -343,10 +344,9 @@ void bind_parent_signals() {
 	signal(SIGALRM, parent_sigusr_catch); // Alarm is used just as fallback...
 }
 
-/** Get a random pid */
+/** Get a random pid. TODO: improve it. Maybe create a pid_t array with round alive pids? */
 pid_t child_rand_pid(size_t *index) {
 	pid_t current_pid = getpid();
-
 	size_t i = 0,
 		shootable_count = 0,
 		random,
