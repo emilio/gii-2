@@ -523,7 +523,7 @@ int parent_proc() {
 
 		PRINTF("\n----------------------\n");
 		PRINTF("Round #%zu\n", data->rounds);
-		PRINTF("Total: %zu\n", ( size_t ) count);
+		PRINTF("Total: %zu\n", count);
 		PRINTF("Dead: %zu\n", total_dead);
 		PRINTF("Last round: %zu\n", total_dead - already_dead);
 		PRINTF("Alive (%zu):\n", count - total_dead);
