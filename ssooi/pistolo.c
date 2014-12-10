@@ -7,18 +7,16 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <string.h>
-#include <time.h>
+#include <string.h> /* strlen */
+#include <time.h> /* time */
+#include <unistd.h> /* getpid, write, close, unlink, fork */
+#include <signal.h> /* sigset_t, sigsuspend, sigprocmask, sigdelset, sigaddset */
+#include <fcntl.h> /* open */
+#include <sys/mman.h> /* mmap, munmap */
+
+#define DEBUG
 #define DEFAULT_PROC_COUNT 7
-#define DATA_PATH "/tmp/__pistolo_data"
+#define DATA_PATH "__pistolo_data.tmp"
 
 /**
  * The description says that every alive process MUST shoot each round
@@ -29,6 +27,13 @@
 
 #define __MAX_SYSTEM_CALLS 1
 
+/**
+ * Since we use dynamic memory we don't need to check for size limitations
+ * I provide this option though
+ */
+#define LIMIT_MIN 3
+#define LIMIT_MAX 128
+#define CHECK_LIMITS 0
 
 #if __MAX_SYSTEM_CALLS
 /**
@@ -72,41 +77,62 @@ typedef enum PidStatusType {
 	PID_STATUS_DEAD = 0x08
 } PidStatusType;
 
+
+
+/**
+ * Process struct
+ * Each process has an id (its PID), an status, and a target,
+ * which is an index to the `children` array in `GameData`
+ */
+typedef struct Process {
+	pid_t id; /** PID */
+	PidStatusType status; /** Current status, if pid is alive it gets updated to PID_STATUS_READY */
+	struct Process *target; /** Current target */
+} Process;
+
 /**
  * The struct itself,
  * See the comment on each member for a quick description
  *
  * IMPORTANT (non-written) rules:
  *  - The parent pid can modify anything in the struct
- *  - A child pid can't modify anything in the struct except:
- *       + His index in the pids array
- *       + His index in the pid_status array
- *  - A dead pid takes the pid_t value of zero and an index status type with PID_STATUS_DEAD
+ *  - A process can't modify anything in the struct except
+ *    its corresponding `Process` struct
  */
-typedef size_t target_t;
 typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
 	/* const */ pid_t parent_id; /** The parent process id */
 	size_t rounds; /** The round count */
 	size_t alive_count; /** Current round alive pids count */
-	pid_t *pids; /** The pid array, dinamically allocated */
-	PidStatusType *pid_status; /** The pid status array, dinamically allocated too.
-									If pid is alive it gets updated to PID_STATUS_READY
-									at the beginning of each round */
-	target_t *pid_target; /** An array of target INDEXES of each process
-						     When a target index isn't dead the round isn't over yet */
+	Process *children; /** The children processes */
 } GameData;
 
 /** Get the main game data struct, create if non-zero value is passed as a second argument */
 GameData * manage_data(DataActionType, size_t);
 
-#define DATA_SIZE_FOR(count) (sizeof(GameData) + sizeof(pid_t) * count + sizeof(PidStatusType) * count + sizeof(target_t) * count)
+#define DATA_SIZE_FOR(count) (sizeof(GameData) + sizeof(Process) * count)
 
 /** Wrapper macros for GameData actions */
 #define get_data() manage_data(DATA_GET, 0)
 #define refresh_data() manage_data(DATA_REFRESH, 0)
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
+
+/** Loop helper. item is a reference */
+#define EACH(arr, length, item, ...) do { \
+	size_t __i; \
+	for ( __i = 0; __i < length; ++__i ) { \
+		item = &arr[__i]; \
+		__VA_ARGS__ \
+	} \
+} while (0)
+
+#define EACH_WITH_INDEX(arr, length, item, index, ...) do { \
+	for ( index = 0; index < length; ++index ) { \
+		item = &arr[index]; \
+		__VA_ARGS__ \
+	} \
+} while (0)
 
 /** Little helper macro: suspend with a set until some condition is false */
 #define WAIT_WITH_SET_UNTIL(set, cond) do { \
@@ -116,6 +142,16 @@ GameData * manage_data(DataActionType, size_t);
 	} while ( ! (cond) ); \
 	alarm(0); \
 } while (0)
+
+#define BIND_TO(signal, handler) do { \
+	struct sigaction action; \
+	/** block everything during execution */ \
+	sigfillset(&action.sa_mask); \
+	action.sa_flags = SA_ONSTACK; \
+	action.sa_handler = handler; \
+	sigaction(signal, &action, NULL); \
+} while (0)
+
 
 /** Signal handler for resuming (empty) */
 void resume(int s) {};
@@ -128,12 +164,6 @@ int all_ready();
 
 /** Check if current round is over */
 int round_over();
-
-/** Display an integer list */
-void print(int *, size_t);
-
-/** Display an size_t list */
-void print_sz(size_t *, size_t);
 
 /** Show pids */
 void show_pids();
@@ -156,11 +186,11 @@ void bind_parent_signals();
 /** Bind signals to children proc */
 void bind_children_signals();
 
-/** Get a random brother PID. Receives the index by reference */
-pid_t child_rand_pid(size_t *);
+/** Get a random brother Process. Receives the index by reference */
+Process * child_rand_proc();
 
-/** Get current child index */
-size_t current_index();
+/** Get current proc */
+Process * current_proc();
 
 /** Child process logic, mostly wait for signals */
 int child_proc();
@@ -171,36 +201,34 @@ int parent_proc();
 /** Dump data */
 void __dump() {
 	GameData *data = get_data();
+	size_t i;
+	Process *p;
 
 	PRINTF("\nDump:\n");
-	PRINTF(" * Pids: \n");
-	print( (int *) data->pids, data->process_count);
-	PRINTF(" * Status: \n");
-	print( (int *) data->pid_status, data->process_count);
-	PRINTF(" * Targets: \n");
-	print_sz( data->pid_target, data->process_count);
+	EACH_WITH_INDEX(data->children, data->process_count, p, i,
+		PRINTF("{ %d, %d, %d }", p->id, p->status, p->target->id);
+		if ( i % 5 == 0 )
+			PRINTF("\n");
+	);
 }
 
 /** Get current child index */
-size_t current_index() {
-	static size_t index = (size_t) -1;
+Process * current_proc() {
+	static Process *me = NULL;
 
-	if ( index == (size_t) -1 ) {
+	if ( me == NULL ) {
 		GameData *data = get_data();
+		Process *p;
 		pid_t current_pid = getpid();
-		pid_t *pids = data->pids;
-		size_t count = data->process_count,
-			i = 0;
-
-		for ( ; i < count; ++i ) {
-			if ( pids[i] == current_pid ) {
-				index = i;
+		EACH(data->children, data->process_count, p,
+			if ( p->id == current_pid ) {
+				me = p;
 				break;
 			}
-		}
+		);
 	}
 
-	return index;
+	return me;
 }
 
 /** Manage game data */
@@ -236,14 +264,12 @@ GameData * manage_data(DataActionType action, size_t count) {
 		data->alive_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
-		data->pids =  (pid_t *) (data + 1);
-		data->pid_status = (PidStatusType *) (data->pids + count);
-		data->pid_target = (target_t *) (data->pid_status + count);
+		data->children = (Process *) (data + 1);
 	}
 
 	/** Release data */
 	if ( action == DATA_RELEASE ) {
-		munmap(data, size);
+		munmap( (void *) data, size);
 		close(fd);
 		unlink(DATA_PATH);
 		data = NULL;
@@ -252,55 +278,25 @@ GameData * manage_data(DataActionType action, size_t count) {
 	return data;
 }
 
-/** Print an integer list */
-void print(int *list, size_t length) {
-	size_t i = 0;
-
-	for ( ; i < length; ++i ) {
-		if ( i && i % 10 == 0 )
-			PRINTF("\n");
-		PRINTF("%d\t", list[i]);
-	}
-
-	PRINTF("\n");
-}
-
-void print_sz(size_t *list, size_t length) {
-	size_t i = 0;
-
-	for ( ; i < length; ++i ) {
-		if ( i && i % 10 == 0 )
-			PRINTF("\n");
-		PRINTF("%zu\t", list[i]);
-	}
-
-	PRINTF("\n");
-}
-
 /** Show list of procs */
 void show_pids() {
 	GameData *data = get_data();
-	pid_t *pids = data->pids;
-	PidStatusType *pid_status = data->pid_status;
-	size_t i = 0,
-		count = data->process_count;
-
-	for ( ; i < count; ++i )
-		if ( ~pid_status[i] & PID_STATUS_DEAD )
-			PRINTF("%d\t", pids[i]);
-
+	Process *p;
+	EACH(data->children, data->process_count, p,
+		if ( ~p->status & PID_STATUS_DEAD )
+			PRINTF("%d\t", p->id);
+	);
 	PRINTF("\n");
 }
 
 /** Kill all pending processes */
 void kill_all() {
 	GameData *data = get_data();
-	pid_t *pids = data->pids;
-	size_t count = data->process_count;
+	Process *p;
 
-	while ( count-- )
-		if ( pids[count] )
-			kill(pids[count], SIGKILL);
+	EACH(data->children, data->process_count, p,
+		kill(p->id, SIGKILL);
+	);
 }
 
 
@@ -311,19 +307,18 @@ volatile sig_atomic_t SIGUSR_COUNT = 0;
 
 /** Get a pid and shoot */
 void child_sigusr_catch( int sig ) {
-	pid_t random_pid,
-		current_pid = getpid();
-	size_t random_pid_index;
 	GameData *data = get_data();
+	Process *me = current_proc(),
+		*target;
 
 	/** Get our target */
-	random_pid = child_rand_pid(&random_pid_index);
+	target = child_rand_proc();
 
-	PRINTF("%d->%d\n", current_pid, random_pid);
-	kill(random_pid, SIGTERM);
+	PRINTF("%d->%d\n", me->id, target->id);
+	kill(target->id, SIGTERM);
 
-	data->pid_target[current_index()] = random_pid_index;
-	data->pid_status[current_index()] |= PID_STATUS_SHOT;
+	me->target = target;
+	me->status |= PID_STATUS_SHOT;
 
 	/** Tell the parent we're done */
 	kill(data->parent_id, SIGUSR2);
@@ -337,7 +332,7 @@ void child_sigusr_catch( int sig ) {
 void child_sigterm_catch( int sig ) {
 	GameData *data = get_data();
 
-	data->pid_status[current_index()] |= PID_STATUS_DEAD_THIS_ROUND;
+	current_proc()->status |= PID_STATUS_DEAD_THIS_ROUND;
 
 	/** Tell parent we're done and exit */
 	kill(data->parent_id, SIGUSR2);
@@ -361,48 +356,43 @@ void parent_sigterm_catch(int sig) {
 /** Bind signals to parent proc so children */
 void bind_children_signals() {
 	/** Shoot */
-	signal(SIGUSR1, child_sigusr_catch);
+	BIND_TO(SIGUSR1, child_sigusr_catch);
 
 	/** Receive shoot */
-	signal(SIGTERM, child_sigterm_catch);
+	BIND_TO(SIGTERM, child_sigterm_catch);
 }
 
 void bind_parent_signals() {
 	/** Ending signals */
-	signal(SIGTERM, parent_sigterm_catch);
-	signal(SIGINT, parent_sigterm_catch);
+	BIND_TO(SIGTERM, parent_sigterm_catch);
+	BIND_TO(SIGINT, parent_sigterm_catch);
 
 	/** Children signals: ignore, just continue execution. Alarm is just used as a fallback. */
-	signal(SIGUSR2, resume);
-	signal(SIGALRM, resume);
+	BIND_TO(SIGUSR2, resume);
+	BIND_TO(SIGALRM, resume);
 }
 
-/** Get a random pid. TODO: improve it. Maybe create a pid_t array with round alive pids? */
-pid_t child_rand_pid(size_t *index) {
+/** Get a random Process. TODO: improve it. Maybe create a pid_t array with round alive pids? */
+Process * child_rand_proc() {
 	pid_t current_pid = getpid();
 	GameData *data = get_data();
-	size_t count = data->process_count,
-		i = 0,
-		random;
-	pid_t *pids = data->pids;
-	PidStatusType *pid_status = data->pid_status;
+	Process *p;
+	size_t random;
 
 	/** All alives except us */
 	random = rand() % (data->alive_count - 1);
 
-	for ( i = 0;  i < count; ++i ) {
+	EACH(data->children, data->process_count, p,
 		/** If not dead in previous rounds and not self */
-		if ( ~pid_status[i] & PID_STATUS_DEAD && pids[i] != current_pid ) {
-			if ( random == 0 ) {
-				if ( index != NULL )
-					*index = i;
-				return pids[i];
-			}
+		if ( ~p->status & PID_STATUS_DEAD && p->id != current_pid ) {
+			if ( random == 0 )
+				return p;
+
 			random--;
 		}
-	}
+	);
 
-	return -1;
+	return NULL;
 }
 
 /** Child process subroutine */
@@ -415,14 +405,17 @@ int child_proc() {
 	/** seed the PRNG with getpid() to get different values for different procs */
 	srand(time(NULL) + getpid());
 
-
 	/** Only allow to catch SIGUSR1 and SIGTERM */
 	sigfillset(&set);
 	sigdelset(&set, SIGUSR1);
 	sigdelset(&set, SIGTERM);
 
+#ifdef DEBUG
+	PRINTF("(%d) ready\n", getpid());
+#endif
+
 	/** We update our status, and send a signal to the parent */
-	data->pid_status[current_index()] = PID_STATUS_READY;
+	current_proc()->status = PID_STATUS_READY;
 	kill(data->parent_id, SIGUSR2);
 
 	/** We start listening */
@@ -440,13 +433,12 @@ int child_proc() {
 /** Check if all children are ready */
 int all_ready() {
 	GameData *data = get_data();
-	PidStatusType *pid_status = data->pid_status;
-	size_t count = data->process_count,
-		i = 0;
+	Process *p;
 
-	for ( ; i < count; ++i )
-		if ( pid_status[i] != PID_STATUS_READY )
+	EACH(data->children, data->process_count, p,
+		if ( p->status != PID_STATUS_READY )
 			return 0;
+	);
 
 	return 1;
 }
@@ -457,37 +449,32 @@ int all_ready() {
  */
 int round_over() {
 	GameData *data = get_data();
-	PidStatusType *pid_status = data->pid_status;
-	target_t *pid_target = data->pid_target;
-	size_t count = data->process_count,
-		i = 0;
-	for ( ; i < count; ++i ) {
+	Process *p;
+
+	EACH(data->children, data->process_count, p,
 		/* If someone hasn't shooted yet and isn't dead */
-		if ( pid_status[i] == PID_STATUS_READY )
+		if ( p->status == PID_STATUS_READY )
 			return 0;
 #if __CONFORMING
 		/* Everyone must shoot */
-		else if ( ~pid_status[i] & PID_STATUS_SHOT )
+		else if ( ~p->status & PID_STATUS_SHOT )
 			return 0;
 #endif
 		/* If someone has shooted but it's target isn't dead */
-		else if ( pid_status[i] & PID_STATUS_SHOT && ~pid_status[pid_target[i]] & PID_STATUS_DEAD_THIS_ROUND )
+		else if ( p->status & PID_STATUS_SHOT && ~p->target->status & PID_STATUS_DEAD_THIS_ROUND )
 			return 0;
-	}
+	);
 
 	return 1;
 }
 
 /** Parent process subroutine */
 int parent_proc() {
-	size_t
-		i,
-		already_dead,
+	size_t already_dead,
 		total_dead = 0;
 	GameData *data = get_data();
+	Process *p;
 	size_t count = data->process_count;
-	pid_t *pids = data->pids;
-	PidStatusType *pid_status = data->pid_status;
 	sigset_t set;
 
 	sigfillset(&set);
@@ -500,26 +487,28 @@ int parent_proc() {
 	sigdelset(&set, SIGTERM);
 	sigdelset(&set, SIGINT);
 
+	PRINTF("Waiting for ready state... ");
+
 	/** Wait until all processes are ready */
 	WAIT_WITH_SET_UNTIL(set, all_ready());
 
-	PRINTF("All ready to start\n");
+	PRINTF("done\n");
 
 	/** Main loop */
 	while ( 1 ) {
 		already_dead = total_dead;
 		total_dead = 0;
 
-		/** Check for deads in the last round, and set ready if not dead */
-		for ( i = 0; i < count; ++i ) {
-			if ( pid_status[i] & PID_STATUS_DEAD_THIS_ROUND )
-				pid_status[i] |= PID_STATUS_DEAD;
+		EACH(data->children, data->process_count, p,
+			/** Check for deads in the last round, and set ready if not dead */
+			if ( p->status & PID_STATUS_DEAD_THIS_ROUND )
+				p->status |= PID_STATUS_DEAD;
 
-			if ( pid_status[i] & PID_STATUS_DEAD )
+			if ( p->status & PID_STATUS_DEAD )
 				++total_dead;
 			else
-				pid_status[i] = PID_STATUS_READY;
-		}
+				p->status = PID_STATUS_READY;
+		);
 
 		/** If game is over (all dead or all minus one) */
 		if ( total_dead == count || total_dead == count - 1 )
@@ -538,9 +527,10 @@ int parent_proc() {
 		PRINTF("----------------------\n");
 
 		/** Let them shoot */
-		for ( i = 0; i < count; ++i )
-			if ( ~pid_status[i] & PID_STATUS_DEAD )
-				kill(pids[i], SIGUSR1);
+		EACH(data->children, data->process_count, p,
+			if ( ~p->status & PID_STATUS_DEAD )
+				kill(p->id, SIGUSR1);
+		);
 
 		/** Wait until round is over */
 		WAIT_WITH_SET_UNTIL(set, round_over());
@@ -571,6 +561,15 @@ int main(int argc, char **argv) {
 	if ( argc > 1 )
 		count = strtoul(argv[1], NULL, 10);
 
+#if CHECK_LIMITS
+	if ( count < LIMIT_MIN || count > LIMIT_MAX ) {
+		PRINTF("Number of processes must be between %d and %d\n", LIMIT_MIN, LIMIT_MAX);
+		return 1;
+	}
+#endif
+
+	PRINTF("Starting %s with %zu processes\n", argv[0], count);
+
 	/** Create shared data structure */
 	data = create_data(count);
 
@@ -581,15 +580,20 @@ int main(int argc, char **argv) {
 	/** Process creation */
 	while ( count-- ) {
 		/** All processes start as dead */
-		data->pid_status[count] = PID_STATUS_DEAD;
+		data->children[count].status = PID_STATUS_DEAD;
 		current_pid = fork();
-		if ( current_pid == 0 ) {
-			/** We must ensure current_index is ok in child_proc */
-			data->pids[count] = getpid();
-			return child_proc();
+		switch ( current_pid ) {
+			case -1:
+				perror("fork");
+				__dump();
+				kill_all();
+				release_data();
+				exit(1);
+			case 0:
+				/** We must ensure current_index is ok in child_proc */
+				data->children[count].id = getpid();
+				return child_proc();
 		}
-
-		data->pids[count] = current_pid;
 	}
 
 
