@@ -31,24 +31,15 @@
 #define DEFAULT_PROC_COUNT 7
 #define DATA_PATH "__pistolo_data.tmp"
 
-/**
- * The description says that every alive process MUST shoot each round
- * From my point of view this behaviour is unwanted, so I allow disabling
- * this functionality
- */
-#define __CONFORMING 1
+/** Maximize the use of system calls */
+#define __MAX_SYSTEM_CALLS
 
-#define __MAX_SYSTEM_CALLS 1
-
-/**
- * Since we use dynamic memory we don't need to check for size limitations
- * I provide this option though
- */
+/** We use dynamic memory so we don't need to check for size limitations. I provide this option though */
 #define LIMIT_MIN 3
 #define LIMIT_MAX 128
 #define CHECK_LIMITS 0
 
-#if __MAX_SYSTEM_CALLS
+#ifdef __MAX_SYSTEM_CALLS
 /**
  * Easy printf with system calls
  */
@@ -60,13 +51,7 @@ char BUFF[BUFF_MAX];
 } while (0)
 #else
 #define PRINTF printf
-#endif
-
-/**
- * The GameData struct is the main data wrapper for our game
- *
- * With the function manage_data() and three helper macros we can manage it
- */
+#endif /* __MAX_SYSTEM_CALLS */
 
 /** The  action type passed to manage_data */
 typedef enum DataActionType {
@@ -90,13 +75,7 @@ typedef enum PidStatusType {
 	PID_STATUS_DEAD = 0x08
 } PidStatusType;
 
-
-
-/**
- * Process struct
- * Each process has an id (its PID), an status, and a target,
- * which is an index to the `children` array in `GameData`
- */
+/** Process struct */
 typedef struct Process {
 	pid_t id; /** PID */
 	PidStatusType status; /** Current status, if pid is alive it gets updated to PID_STATUS_READY */
@@ -104,7 +83,7 @@ typedef struct Process {
 } Process;
 
 /**
- * The struct itself,
+ * The main struct
  * See the comment on each member for a quick description
  *
  * IMPORTANT (non-written) rules:
@@ -131,7 +110,7 @@ GameData * manage_data(DataActionType, size_t);
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
 
-/** Loop helper. item is a reference */
+/** Loop helper. item is a pointer */
 #define EACH(arr, length, item, ...) do { \
 	size_t __i; \
 	for ( __i = 0; __i < length; ++__i ) { \
@@ -147,7 +126,7 @@ GameData * manage_data(DataActionType, size_t);
 	} \
 } while (0)
 
-/** Little helper macro: suspend with a set until some condition is false */
+/** Little helper macro: suspend with a set until some condition is true */
 #define WAIT_WITH_SET_UNTIL(set, cond) do { \
 	while ( ! (cond) ) { \
 		alarm(1); \
@@ -156,6 +135,7 @@ GameData * manage_data(DataActionType, size_t);
 	alarm(0); \
 } while (0)
 
+/** Another helper. Instead of signal() (implementation dependent), we use sigaction */
 #define BIND_TO(signal, handler) do { \
 	struct sigaction action; \
 	/** block everything during execution */ \
@@ -166,7 +146,7 @@ GameData * manage_data(DataActionType, size_t);
 } while (0)
 
 
-/** Signal handler for resuming (empty) */
+/** Empty signal handler for resuming (empty) */
 void resume(int s) {};
 
 /** Dump data */
@@ -226,7 +206,7 @@ void __dump() {
 	);
 }
 
-/** Get current child index */
+/** Get current child process, cached statically */
 Process * current_proc() {
 	static Process *me = NULL;
 
@@ -267,7 +247,7 @@ GameData * manage_data(DataActionType action, size_t count) {
 			exit(1);
 		}
 
-		/** Write our buffer to our file, and discard it */
+		/** Write our buffer to our file, and discard it, the content doesn't matter */
 		buff = malloc(size);
 		write(fd, buff, size);
 		free(buff);
@@ -278,6 +258,7 @@ GameData * manage_data(DataActionType action, size_t count) {
 		data->alive_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
+		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
 	}
 
@@ -313,11 +294,8 @@ void kill_all() {
 	);
 }
 
-
-#if __CONFORMING
 volatile sig_atomic_t CHILD_EXIT = 0;
 volatile sig_atomic_t SIGUSR_COUNT = 0;
-#endif
 
 /** Get a pid and shoot */
 void child_sigusr_catch( int sig ) {
@@ -337,9 +315,7 @@ void child_sigusr_catch( int sig ) {
 	/** Tell the parent we're done */
 	kill(data->parent_id, SIGUSR2);
 
-#if __CONFORMING
 	++SIGUSR_COUNT;
-#endif
 }
 
 /** Receive shoot */
@@ -351,12 +327,8 @@ void child_sigterm_catch( int sig ) {
 	/** Tell parent we're done and exit */
 	kill(data->parent_id, SIGUSR2);
 
-#if __CONFORMING
 	/** Using a flag instead of exit() allows us to terminate execution of the SIGUSR1 signal */
 	CHILD_EXIT = 1;
-#else
-	exit(0);
-#endif
 }
 
 /** Our parent was interrupted, dump data for debugging and release all */
@@ -432,14 +404,8 @@ int child_proc() {
 	current_proc()->status = PID_STATUS_READY;
 	kill(data->parent_id, SIGUSR2);
 
-	/** We start listening */
-#if __CONFORMING
 	/** Until child received sigterm and one sigusr per round */
 	WAIT_WITH_SET_UNTIL(set, CHILD_EXIT && SIGUSR_COUNT == data->rounds);
-#else
-	while(1)
-		sigsuspend(&set);
-#endif
 
 	return 0;
 }
@@ -469,11 +435,9 @@ int round_over() {
 		/* If someone hasn't shooted yet and isn't dead */
 		if ( p->status == PID_STATUS_READY )
 			return 0;
-#if __CONFORMING
 		/* Everyone must shoot */
 		else if ( ~p->status & PID_STATUS_SHOT )
 			return 0;
-#endif
 		/* If someone has shooted but it's target isn't dead */
 		else if ( p->status & PID_STATUS_SHOT && ~p->target->status & PID_STATUS_DEAD_THIS_ROUND )
 			return 0;
@@ -611,7 +575,6 @@ int main(int argc, char **argv) {
 				return child_proc();
 		}
 	}
-
 
 	return parent_proc();
 }
