@@ -126,25 +126,15 @@ GameData * manage_data(DataActionType, size_t);
 	} \
 } while (0)
 
-/** Little helper macro: suspend with a set until some condition is true */
-#define WAIT_WITH_SET_UNTIL(set, cond) do { \
-	while ( ! (cond) ) { \
-		alarm(1); \
-		sigsuspend(&set); \
-	} \
-	alarm(0); \
-} while (0)
-
 /** Another helper. Instead of signal() (implementation dependent), we use sigaction */
 #define BIND_TO(signal, handler) do { \
 	struct sigaction action; \
-	/** block everything during execution */ \
+	/** Block everything during execution */ \
 	sigfillset(&action.sa_mask); \
 	action.sa_flags = 0; \
 	action.sa_handler = handler; \
 	sigaction(signal, &action, NULL); \
 } while (0)
-
 
 /** Empty signal handler for resuming (empty) */
 void resume(int s) {};
@@ -294,8 +284,6 @@ void kill_all() {
 	);
 }
 
-volatile sig_atomic_t CHILD_EXIT = 0;
-volatile sig_atomic_t SIGUSR_COUNT = 0;
 
 /** Get a pid and shoot */
 void child_sigusr_catch( int sig ) {
@@ -314,21 +302,23 @@ void child_sigusr_catch( int sig ) {
 
 	/** Tell the parent we're done */
 	kill(data->parent_id, SIGUSR2);
-
-	++SIGUSR_COUNT;
 }
 
 /** Receive shoot */
 void child_sigterm_catch( int sig ) {
 	GameData *data = get_data();
+	Process *me = current_proc();
 
-	current_proc()->status |= PID_STATUS_DEAD_THIS_ROUND;
+	/** Fake the shot if we haven't shooted yet */
+	if ( ~me->status & PID_STATUS_SHOT )
+		child_sigusr_catch(SIGUSR1);
+
+	me->status |= PID_STATUS_DEAD_THIS_ROUND;
 
 	/** Tell parent we're done and exit */
 	kill(data->parent_id, SIGUSR2);
 
-	/** Using a flag instead of exit() allows us to terminate execution of the SIGUSR1 signal */
-	CHILD_EXIT = 1;
+	exit(0);
 }
 
 /** Our parent was interrupted, dump data for debugging and release all */
@@ -341,6 +331,14 @@ void parent_sigterm_catch(int sig) {
 
 /** Bind signals to parent proc so children */
 void bind_children_signals() {
+	sigset_t set;
+
+	/** We only want to receive SIGUSR1 and SIGTERM while we're waiting for them */
+	sigemptyset(&set);
+	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGUSR1);
+	sigprocmask(SIG_BLOCK, &set, NULL);
+
 	/** Shoot */
 	BIND_TO(SIGUSR1, child_sigusr_catch);
 
@@ -349,13 +347,19 @@ void bind_children_signals() {
 }
 
 void bind_parent_signals() {
+	sigset_t set;
+
+	/** We only want to receive SIGUSR2 while we're waiting for it */
+	sigemptyset(&set);
+	sigaddset(&set, SIGUSR2);
+	sigprocmask(SIG_BLOCK, &set, NULL);
+
 	/** Ending signals */
 	BIND_TO(SIGTERM, parent_sigterm_catch);
 	BIND_TO(SIGINT, parent_sigterm_catch);
 
 	/** Children signals: ignore, just continue execution. Alarm is just used as a fallback. */
 	BIND_TO(SIGUSR2, resume);
-	BIND_TO(SIGALRM, resume);
 }
 
 /** Get a random Process. TODO: improve it. Maybe create a pid_t array with round alive pids? */
@@ -396,16 +400,13 @@ int child_proc() {
 	sigdelset(&set, SIGUSR1);
 	sigdelset(&set, SIGTERM);
 
-#ifdef DEBUG
-	PRINTF("("PID_T_FORMAT") ready\n", getpid());
-#endif
-
 	/** We update our status, and send a signal to the parent */
 	current_proc()->status = PID_STATUS_READY;
 	kill(data->parent_id, SIGUSR2);
 
-	/** Until child received sigterm and one sigusr per round */
-	WAIT_WITH_SET_UNTIL(set, CHILD_EXIT && SIGUSR_COUNT == data->rounds);
+	/** Wait until the end */
+	while ( 1 )
+		sigsuspend(&set);
 
 	return 0;
 }
@@ -457,9 +458,8 @@ int parent_proc() {
 
 	sigfillset(&set);
 
-	/** Parent waits for sigusr2 or alarm */
+	/** Parent waits for sigusr2 */
 	sigdelset(&set, SIGUSR2);
-	sigdelset(&set, SIGALRM);
 
 	/** For debugging and stopping the program */
 	sigdelset(&set, SIGTERM);
@@ -468,7 +468,8 @@ int parent_proc() {
 	PRINTF("Waiting for ready state... ");
 
 	/** Wait until all processes are ready */
-	WAIT_WITH_SET_UNTIL(set, all_ready());
+	while ( ! all_ready() )
+		sigsuspend(&set);
 
 	PRINTF("done\n");
 
@@ -510,8 +511,9 @@ int parent_proc() {
 				kill(p->id, SIGUSR1);
 		);
 
-		/** Wait until round is over */
-		WAIT_WITH_SET_UNTIL(set, round_over());
+		/** Wait for children until round is over */
+		while ( ! round_over() )
+			sigsuspend(&set);
 	}
 
 	/** Game is over! Print results, kill all pending procs and release data */
@@ -568,8 +570,6 @@ int main(int argc, char **argv) {
 				release_data();
 				exit(1);
 			case 0:
-				/** Fix solaris bug */
-				data->children = (Process *) (data + 1);
 				/** We must ensure current_index is ok in child_proc */
 				data->children[count].id = getpid();
 				return child_proc();
