@@ -136,10 +136,10 @@ GameData * manage_data(DataActionType, size_t);
 
 /** Little helper macro: suspend with a set until some condition is false */
 #define WAIT_WITH_SET_UNTIL(set, cond) do { \
-	do { \
+	while ( ! (cond) ) { \
 		alarm(1); \
 		sigsuspend(&set); \
-	} while ( ! (cond) ); \
+	} \
 	alarm(0); \
 } while (0)
 
@@ -207,9 +207,9 @@ void __dump() {
 	PRINTF("\nDump:\n");
 	EACH_WITH_INDEX(data->children, data->process_count, p, i,
 		if ( data->rounds > 1 )
-			PRINTF("{ %d, %d, %d }\t", p->id, p->status, p->target->id);
+			PRINTF("{ %ld, %d, %ld }\t", p->id, p->status, p->target->id);
 		else
-			PRINTF("{ %d, %d }\t", p->id, p->status);
+			PRINTF("{ %ld, %d }\t", p->id, p->status);
 	);
 }
 
@@ -285,7 +285,7 @@ void show_pids() {
 	Process *p;
 	EACH(data->children, data->process_count, p,
 		if ( ~p->status & PID_STATUS_DEAD )
-			PRINTF("%d\t", p->id);
+			PRINTF("%ld\t", p->id);
 	);
 	PRINTF("\n");
 }
@@ -315,7 +315,7 @@ void child_sigusr_catch( int sig ) {
 	/** Get our target */
 	target = child_rand_proc();
 
-	PRINTF("%d->%d\n", me->id, target->id);
+	PRINTF("%ld->%ld\n", me->id, target->id);
 	kill(target->id, SIGTERM);
 
 	me->target = target;
@@ -412,7 +412,7 @@ int child_proc() {
 	sigdelset(&set, SIGTERM);
 
 #ifdef DEBUG
-	PRINTF("(%d) ready\n", getpid());
+	PRINTF("(%ld) ready\n", getpid());
 #endif
 
 	/** We update our status, and send a signal to the parent */
