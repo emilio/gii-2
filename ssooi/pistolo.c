@@ -14,6 +14,19 @@
 #include <fcntl.h> /* open */
 #include <sys/mman.h> /* mmap, munmap */
 
+#if __GNUC__
+#	if __x86_64__ || __ppc64__
+#		define PID_T_FORMAT "%d"
+#	else
+#		define PID_T_FORMAT "%ld"
+#	endif
+#else
+#	warning "Could not detect arch. Assuming 32x"
+#	define PID_T_FORMAT "%ld"
+#endif
+
+
+
 #define DEBUG
 #define DEFAULT_PROC_COUNT 7
 #define DATA_PATH "__pistolo_data.tmp"
@@ -147,7 +160,7 @@ GameData * manage_data(DataActionType, size_t);
 	struct sigaction action; \
 	/** block everything during execution */ \
 	sigfillset(&action.sa_mask); \
-	action.sa_flags = SA_ONSTACK; \
+	action.sa_flags = 0; \
 	action.sa_handler = handler; \
 	sigaction(signal, &action, NULL); \
 } while (0)
@@ -207,9 +220,9 @@ void __dump() {
 	PRINTF("\nDump:\n");
 	EACH_WITH_INDEX(data->children, data->process_count, p, i,
 		if ( data->rounds > 1 )
-			PRINTF("{ %ld, %d, %ld }\t", p->id, p->status, p->target->id);
+			PRINTF("{ "PID_T_FORMAT", %d, "PID_T_FORMAT" }\t", p->id, p->status, p->target->id);
 		else
-			PRINTF("{ %ld, %d }\t", p->id, p->status);
+			PRINTF("{ "PID_T_FORMAT", %d }\t", p->id, p->status);
 	);
 }
 
@@ -260,7 +273,7 @@ GameData * manage_data(DataActionType action, size_t count) {
 		free(buff);
 
 		/** Get our shared pointer and initialize it */
-		data = (GameData *) mmap(NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
+		data = (GameData *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		data->process_count = count;
 		data->alive_count = count;
 		data->parent_id = 0;
@@ -285,7 +298,7 @@ void show_pids() {
 	Process *p;
 	EACH(data->children, data->process_count, p,
 		if ( ~p->status & PID_STATUS_DEAD )
-			PRINTF("%ld\t", p->id);
+			PRINTF(PID_T_FORMAT"\t", p->id);
 	);
 	PRINTF("\n");
 }
@@ -315,7 +328,7 @@ void child_sigusr_catch( int sig ) {
 	/** Get our target */
 	target = child_rand_proc();
 
-	PRINTF("%ld->%ld\n", me->id, target->id);
+	PRINTF(PID_T_FORMAT"->"PID_T_FORMAT"\n", me->id, target->id);
 	kill(target->id, SIGTERM);
 
 	me->target = target;
@@ -412,7 +425,7 @@ int child_proc() {
 	sigdelset(&set, SIGTERM);
 
 #ifdef DEBUG
-	PRINTF("(%ld) ready\n", getpid());
+	PRINTF("("PID_T_FORMAT") ready\n", getpid());
 #endif
 
 	/** We update our status, and send a signal to the parent */
