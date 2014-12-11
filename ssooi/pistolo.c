@@ -206,9 +206,10 @@ void __dump() {
 
 	PRINTF("\nDump:\n");
 	EACH_WITH_INDEX(data->children, data->process_count, p, i,
-		PRINTF("{ %d, %d, %d }", p->id, p->status, p->target->id);
-		if ( i % 5 == 0 )
-			PRINTF("\n");
+		if ( data->rounds > 1 )
+			PRINTF("{ %d, %d, %d }\t", p->id, p->status, p->target->id);
+		else
+			PRINTF("{ %d, %d }\t", p->id, p->status);
 	);
 }
 
@@ -246,7 +247,7 @@ GameData * manage_data(DataActionType action, size_t count) {
 
 		/** Open our file */
 		/* fd = shm_open(DATA_PATH, O_RDWR | O_CREAT | O_TRUNC, 0666); */
-		fd = open(DATA_PATH, O_RDWR | O_CREAT | O_TRUNC);
+		fd = open(DATA_PATH, O_RDWR | O_CREAT | O_TRUNC, 0666);
 
 		if ( fd == -1 ) {
 			perror("File could not be created");
@@ -590,6 +591,8 @@ int main(int argc, char **argv) {
 				release_data();
 				exit(1);
 			case 0:
+				/** Fix solaris bug */
+				data->children = (Process *) (data + 1);
 				/** We must ensure current_index is ok in child_proc */
 				data->children[count].id = getpid();
 				return child_proc();
