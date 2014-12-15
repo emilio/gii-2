@@ -5,7 +5,7 @@
 #
 
 PWD=`pwd`;
-SELF="$PWD/practica.sh"
+SELF="$PWD/lsext.sh"
 
 
 # This vars are reinitialized in get_extensions

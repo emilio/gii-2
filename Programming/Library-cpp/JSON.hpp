@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <stdint.h>
 
 namespace JSON {
 
@@ -14,6 +15,8 @@ using std::map;
 using std::cout;
 using std::endl;
 using std::ostream;
+
+typedef JSVAL
 
 // TODO: implement
 string escape(const string& str);
@@ -32,11 +35,14 @@ class Value {
 			ARRAY_VALUE_TYPE,
 			OBJECT_VALUE_TYPE
 		};
-		value_type type;
-		double number_value;
-		string string_value;
-		array_type array_value;
-		object_type object_value;
+
+		union {
+			value_type type;
+			double number_value;
+			string string_value;
+			array_type array_value;
+			object_type object_value;
+		} u;
 
 	public:
 		bool get_boolean() const {
