@@ -9,6 +9,19 @@ package mvc;
  *
  * @author emilio
  */
-class View {
+public abstract class View {
+    private final Arguments args;
     
+    public View() {
+        this.args = new Arguments();
+    }
+    
+    public View(Arguments args) {
+        if ( args == null )
+            args = new Arguments();
+
+        this.args = args;
+    }
+    
+    public abstract void render();
 }

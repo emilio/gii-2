@@ -5,25 +5,85 @@
  */
 package mvc;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
  *
  * @author emilio
+ * @param <Model>
  */
-class ModelCollection<Model> extends ArrayList<Model> {
+public class ModelCollection<Model> extends ArrayList<Model> {
     /**
-     * This method should be overriden, probably by
-     * an interaction with some type of db connection
+     * Find elements by a field
+     * @param field
+     * @param value
+     * @return 
      */
-    public Model getElement(int id) {
-        return this.get(id);
+    public ModelCollection<Model> findBy(String field, Object value) {
+        ModelCollection<Model> ret = new ModelCollection<>();
+        String getterName = "get" + field.substring(0, 1).toUpperCase() + field.substring(1);
+        
+        if ( this.size() == 0 ) {
+            return ret;
+        }
+        Method getter;
+        try {
+            getter = this.get(0).getClass().getMethod(getterName);
+            
+            for ( Model m : this )
+                if ( getter.invoke(m) == value )
+                    ret.add(m);
+
+        } catch ( NoSuchMethodException | 
+                  SecurityException | 
+                  IllegalAccessException | IllegalArgumentException |
+                  InvocationTargetException
+                ex) {}
+        
+        return ret;
+    }
+    
+
+    /**
+     * Get first element by some field
+     * @param field
+     * @param value
+     * @return 
+     */
+    public Model findFirstBy(String field, Object value) {
+        String getterName = "get" + field.substring(0, 1).toUpperCase() + field.substring(1);
+        
+        if ( this.size() == 0 ) {
+            return null;
+        }
+
+        Method getter;
+        
+        try {
+            getter = this.get(0).getClass().getMethod(getterName);
+            
+            for ( Model m : this )
+                if ( getter.invoke(m) == value )
+                    return m;
+
+        } catch ( NoSuchMethodException | 
+                  SecurityException | 
+                  IllegalAccessException | IllegalArgumentException |
+                  InvocationTargetException
+                ex) {}
+        
+        return null;
     }
     
     /**
-     * This method should be overriden
+     * This method should be overriden, probably by
+     * an interaction with some type of db connection
+     * @param id
+     * @return 
      */
-    public boolean save() {
-        return true;
+    public Model getElement(int id) {
+        return this.get(id);
     }
 }

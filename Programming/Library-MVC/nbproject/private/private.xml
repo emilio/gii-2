@@ -11,6 +11,17 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/library/ClientsRepository.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/library/Client.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/library/MainIndexView.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/mvc/Repository.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/mvc/Model.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/library/Library.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/mvc/FileBasedRepository.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/mvc/Menu.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/mvc/Controller.java</file>
+            <file>file:/home/emilio/projects/gii-2/Programming/Library-MVC/src/library/MainController.java</file>
+        </group>
     </open-files>
 </project-private>

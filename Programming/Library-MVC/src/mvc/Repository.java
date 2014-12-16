@@ -10,7 +10,12 @@ package mvc;
  * @author emilio
  * @param <Model>
  */
-abstract class Repository<Model> {
-    public abstract ModelCollection<Model> find();
-    public abstract ModelCollection<Model> find(Arguments args);
+public abstract class Repository<Model> {
+    public abstract ModelCollection<Model> all();
+    public abstract boolean add(Model m);
+    public abstract boolean delete(Model m);
+    
+    public boolean remove(Model m) {
+        return this.delete(m);
+    }
 }

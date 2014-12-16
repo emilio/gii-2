@@ -20,6 +20,7 @@ public class Library {
      * @throws mvc.InvalidActionException
      */
     public static void main(String[] args) throws InvalidActionException, InvalidControllerException, InvalidAppPathException  {
+        Application.addRepository("clients", new ClientsRepository());
         Application app = new Application("library");
         
         app.execute("main.index", null);

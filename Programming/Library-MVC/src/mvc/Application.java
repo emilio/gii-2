@@ -7,16 +7,44 @@ package mvc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author emilio
  */
 public class Application {
+    private static Application mainInstance = null;
+
+    static Application getMainInstance() {
+        return mainInstance;
+    }
+
+    
+    private static Map<String, Repository> repositories;
+    
+    public static void addRepository(String key, Repository repo) {
+        if ( repositories == null )
+            repositories = new HashMap<>();
+        
+        repositories.put(key, repo);
+    }
+    
+    public static Repository getRepository(String key) {
+        if ( repositories == null )
+            return null;
+        
+        return repositories.get(key);
+    }
+
+    
     private final String classPath;
     
     public Application(String classPath) {
         this.classPath = classPath;
+        if ( Application.mainInstance == null )
+            Application.mainInstance = this;
     }
     
     /** 
@@ -31,8 +59,10 @@ public class Application {
         String controllerName = null;
         Class controllerClass;
         Controller controller;
+        Object ret;
         Method action;
         View view;
+        Redirection red;
         if ( parts.length != 2 )
             throw new InvalidAppPathException("Path " + path + " (length: " + parts.length + ") is invalid");
         
@@ -49,9 +79,14 @@ public class Application {
         
         try {
             action = controllerClass.getMethod(parts[1], Arguments.class);
-            view = (View) action.invoke(controller, args);
+            ret = action.invoke(controller, args);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException | SecurityException | IllegalArgumentException ex) {
             throw new InvalidActionException("Action " + parts[1] + " is not valid.");
         }
+        
+        if ( ret instanceof View )
+            ((View) ret).render();
+        else if ( ret instanceof Redirection )
+            this.execute(((Redirection) ret).getRoute(), ((Redirection) ret).getArguments());
     }
 }

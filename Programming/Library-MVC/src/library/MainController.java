@@ -7,13 +7,19 @@ package library;
 
 import mvc.Arguments;
 import mvc.Controller;
+import mvc.View;
 
 /**
  *
  * @author emilio
  */
 public class MainController extends Controller {
-    public void index(Arguments arg) {
-        System.out.println("Hola!");
+    public View index(Arguments arg) {
+        return new MainIndexView(arg);
+    }
+    
+    public View hello(Arguments arg) {
+        System.out.println("Hello!");
+        return null;
     }
 }

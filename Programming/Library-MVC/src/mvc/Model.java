@@ -5,11 +5,13 @@
  */
 package mvc;
 
+import java.io.Serializable;
+
 /**
  *
  * @author emilio
  */
-public abstract class Model {
+public abstract class Model implements Serializable {
     public boolean valid() {
         return true;
     }
