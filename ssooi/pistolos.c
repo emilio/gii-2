@@ -222,7 +222,6 @@ void __dump() {
 
 /** Program help */
 void program_help() {
-	PRINTF(SELF"\n");
 	PRINTF("Usage: "SELF" [count=%d] [-d|--debug] [-o|--output <output_file>]\n", DEFAULT_PROC_COUNT);
 	PRINTF("Options:\n");
 	PRINTF("\t-h\t--help\t\tShow this message\n");
