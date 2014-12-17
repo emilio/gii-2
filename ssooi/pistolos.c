@@ -14,6 +14,8 @@
 #include <fcntl.h> /* open */
 #include <sys/mman.h> /* mmap, munmap */
 
+#define SELF "pistolos"
+
 #if __GNUC__
 #	if __x86_64__ || __ppc64__
 #		define PID_T_FORMAT "%d"
@@ -25,33 +27,52 @@
 #	define PID_T_FORMAT "%ld"
 #endif
 
+/** Debug compilation macro */
+/* #define __DEBUG */
 
-
-#define DEBUG
+/** Default process count and output */
 #define DEFAULT_PROC_COUNT 7
 #define DATA_PATH "__pistolo_data.tmp"
 
-/** Maximize the use of system calls */
-#define __MAX_SYSTEM_CALLS
+
+int OUTPUT_FD = 1;
+
+/** Easy printf with system calls */
+#define BUFF_MAX 256
+char BUFF[BUFF_MAX];
+#define PRINTF(str, ...) do { \
+	snprintf(BUFF, BUFF_MAX, str, ## __VA_ARGS__); \
+	write(OUTPUT_FD, BUFF, strlen(BUFF)); \
+} while (0)
+
+/** Error */
+#define FATAL_ERROR(str, ...) do { \
+	snprintf(BUFF, BUFF_MAX, "(error) "str, ## __VA_ARGS__); \
+	write(2, BUFF, strlen(BUFF)); \
+	snprintf(BUFF, BUFF_MAX, "Run with --help for a list of options.\n"); \
+	write(2, BUFF, strlen(BUFF)); \
+	exit(1); \
+} while (0)
+
+/** Debug */
+#ifdef __DEBUG
+char VERBOSE_MODE = 0;
+char DEBUG_BUFFER[BUFF_MAX];
+#define DEBUG(str, ...) do { \
+	if ( VERBOSE_MODE ) { \
+		snprintf(DEBUG_BUFFER, BUFF_MAX, "(debug) "str, ## __VA_ARGS__); \
+		write(2, DEBUG_BUFFER, strlen(DEBUG_BUFFER)); \
+	} \
+} while (0)
+#else
+#define DEBUG(...)
+#endif
 
 /** We use dynamic memory so we don't need to check for size limitations. I provide this option though */
 #define LIMIT_MIN 3
 #define LIMIT_MAX 128
 #define CHECK_LIMITS 0
 
-#ifdef __MAX_SYSTEM_CALLS
-/**
- * Easy printf with system calls
- */
-#define BUFF_MAX 256
-char BUFF[BUFF_MAX];
-#define PRINTF(str, ...) do { \
-	snprintf(BUFF, BUFF_MAX, str, ## __VA_ARGS__); \
-	write(1, BUFF, strlen(BUFF)); \
-} while (0)
-#else
-#define PRINTF printf
-#endif /* __MAX_SYSTEM_CALLS */
 
 /** The  action type passed to manage_data */
 typedef enum DataActionType {
@@ -142,6 +163,9 @@ void resume(int s) {};
 /** Dump data */
 void __dump();
 
+/** Display program help */
+void program_help();
+
 /** Check if all processes are ready */
 int all_ready();
 
@@ -194,6 +218,20 @@ void __dump() {
 		else
 			PRINTF("{ "PID_T_FORMAT", %d }\t", p->id, p->status);
 	);
+}
+
+/** Program help */
+void program_help() {
+	PRINTF(SELF"\n");
+	PRINTF("Usage: "SELF" [count=%d] [-d|--debug] [-o|--output <output_file>]\n", DEFAULT_PROC_COUNT);
+	PRINTF("Options:\n");
+	PRINTF("\t-h\t--help\t\tShow this message\n");
+#ifdef __DEBUG
+	PRINTF("\t-v\t--verbose\t\tEnable debugging\n");
+#endif
+	PRINTF("\t-o\t--output\t<filename>\tChange output from console to a file.\n");
+	PRINTF("\t\tNote: this option is not reliable actually, prefer the use of `>>`\n");
+	exit(1);
 }
 
 /** Get current child process, cached statically */
@@ -291,6 +329,8 @@ void child_sigusr_catch( int sig ) {
 	Process *me = current_proc(),
 		*target;
 
+	DEBUG("(%d) SIGUSR1 catched.\n", getpid());
+
 	/** Get our target */
 	target = child_rand_proc();
 
@@ -308,6 +348,8 @@ void child_sigusr_catch( int sig ) {
 void child_sigterm_catch( int sig ) {
 	GameData *data = get_data();
 	Process *me = current_proc();
+
+	DEBUG("(%d) SIGTERM catched.\n", getpid());
 
 	/** Fake the shot if we haven't shooted yet */
 	if ( ~me->status & PID_STATUS_SHOT )
@@ -389,6 +431,8 @@ Process * child_rand_proc() {
 int child_proc() {
 	sigset_t set;
 	GameData *data = get_data();
+
+	DEBUG("(%d) Child ready\n", getpid());
 
 	bind_children_signals();
 
@@ -534,21 +578,55 @@ int parent_proc() {
 
 /** Main process logic */
 int main(int argc, char **argv) {
-	size_t count = DEFAULT_PROC_COUNT;
+	size_t i = 0,
+		count = DEFAULT_PROC_COUNT;
 	pid_t current_pid;
 	GameData *data;
+	const char *output_file_name = NULL;
+	int ret;
 
-	if ( argc > 1 )
-		count = strtoul(argv[1], NULL, 10);
+	/** check arguments */
+	for ( i = 1; i < argc; ++i ) {
+		if ( strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0 ) {
+			program_help();
+#ifdef __DEBUG
+		} else if ( strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0 ) {
+			VERBOSE_MODE = 1;
+#endif
+		} else if ( strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0 ) {
+			if ( argc == i + 1 )
+				FATAL_ERROR("No filename specified.\n");
+
+			/** delegate filename opening */
+			output_file_name = argv[++i];
+
+		/** If first char is numeric we assume its the proc count */
+		} else if ( argv[i][0] >= '0' && argv[i][0] <= '9' ) {
+			count = strtoul(argv[i], NULL, 10);
+		} else {
+			FATAL_ERROR("Option not recognized: \"%s\".\n", argv[i]);
+		}
+	}
 
 #if CHECK_LIMITS
-	if ( count < LIMIT_MIN || count > LIMIT_MAX ) {
-		PRINTF("Number of processes must be between %d and %d\n", LIMIT_MIN, LIMIT_MAX);
-		return 1;
-	}
+	if ( count < LIMIT_MIN || count > LIMIT_MAX )
+		FATAL_ERROR("Number of processes must be between %d and %d.\n", LIMIT_MIN, LIMIT_MAX);
 #endif
 
-	PRINTF("Starting %s with %zu processes\n", argv[0], count);
+	if ( count == 0 )
+		FATAL_ERROR("At least one player is required.\n");
+
+
+	if ( output_file_name != NULL ) {
+		OUTPUT_FD = open(output_file_name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+
+		if ( OUTPUT_FD == -1 )
+				FATAL_ERROR("File %s could not be opened.\n", argv[i]);
+	}
+
+	DEBUG(SELF": Verbose mode enabled.\n");
+
+	PRINTF("Starting %s with %zu processes.\n", argv[0], count);
 
 	/** Create shared data structure */
 	data = create_data(count);
@@ -576,5 +654,10 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	return parent_proc();
+	ret = parent_proc();
+
+	if ( OUTPUT_FD != 1 )
+		close(OUTPUT_FD);
+
+	return ret;
 }
