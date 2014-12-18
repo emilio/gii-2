@@ -13,6 +13,8 @@
 #include <signal.h> /* sigset_t, sigsuspend, sigprocmask, sigdelset, sigaddset */
 #include <fcntl.h> /* open */
 #include <sys/mman.h> /* mmap, munmap */
+#include <sys/types.h>
+#include <sys/wait.h> /** waitpid, WNOHANG */
 
 #define SELF "pistolos"
 
@@ -234,7 +236,7 @@ void program_help() {
 }
 
 /** Get current child process, cached statically */
-Process * current_proc() {
+Process *current_proc() {
 	static Process *me = NULL;
 
 	if ( me == NULL ) {
@@ -260,9 +262,6 @@ GameData * manage_data(DataActionType action, size_t count) {
 
 	/** Create data */
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
-		/** Temporary buffer to write to file */
-		void *buff;
-
 		size = DATA_SIZE_FOR(count);
 
 		/** Open our file */
@@ -274,10 +273,8 @@ GameData * manage_data(DataActionType action, size_t count) {
 			exit(1);
 		}
 
-		/** Write our buffer to our file, and discard it, the content doesn't matter */
-		buff = malloc(size);
-		write(fd, buff, size);
-		free(buff);
+		/** Allow at least `size` writes */
+		ftruncate(fd, size);
 
 		/** Get our shared pointer and initialize it */
 		data = (GameData *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -525,6 +522,12 @@ int parent_proc() {
 			/** Check for deads in the last round, and set ready if not dead */
 			if ( p->status & PID_STATUS_DEAD_THIS_ROUND )
 				p->status |= PID_STATUS_DEAD;
+
+
+			/** If just let them really die with waitpid. Not necessary but... */
+			if ( p->status & PID_STATUS_DEAD &&
+				 p->id != waitpid(p->id, NULL, WNOHANG) )
+				DEBUG("Child %d is still alive\n", p->id);
 
 			if ( p->status & PID_STATUS_DEAD )
 				++total_dead;
