@@ -273,7 +273,7 @@ GameData * manage_data(DataActionType action, size_t count) {
 			exit(1);
 		}
 
-		/** Allow at least `size` writes */
+		/** Allow at least `size` bytes */
 		ftruncate(fd, size);
 
 		/** Get our shared pointer and initialize it */
