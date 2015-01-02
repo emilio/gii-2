@@ -2,7 +2,6 @@
 #define __MYSQL_RESULT_HPP
 #include "mysql.hpp"
 #include "row.hpp"
-#include <iostream>
 namespace mysql {
 
 class result {

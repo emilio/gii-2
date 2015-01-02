@@ -13,6 +13,8 @@ table::table(const char *name, const mysql::field *f, unsigned int field_count)
 }
 
 table::~table() {
+	delete[] name_;
+
 	for ( std::vector<reference *>::iterator it = references_.begin(); it != references_.end(); ++it )
 		delete *it;
 
