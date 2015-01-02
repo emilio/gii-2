@@ -6,6 +6,8 @@ all: dbstructure
 dbstructure: dbstructure.cpp $(OBJECTS)
 	g++ dbstructure.cpp $(OBJECTS) -o dbstructure $(FLAGS)
 bin/%.o: lib/%.cpp lib/%.hpp
+	@mkdir -p bin
+	@mkdir -p bin/$*
 	g++ $(FLAGS) -c $< -o $@
 clean:
 	rm dbstructure
