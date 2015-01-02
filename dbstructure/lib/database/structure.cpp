@@ -1,5 +1,4 @@
 #include "structure.hpp"
-#include <iostream>
 namespace database {
 namespace {
 
@@ -40,7 +39,7 @@ table *parse_table(const mysql::database& db, const char *table_name) {
 	// std::cout << *foreign_keys;
 
 	for ( mysql::result::const_iterator it = foreign_keys->begin(); it != foreign_keys->end(); ++it )
-		t->references.push_back(
+		t->add_reference(
 			new reference((*it)[0], (*it)[1], (*it)[2], (*it)[3]));
 
 	delete foreign_keys;

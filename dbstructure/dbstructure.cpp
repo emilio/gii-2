@@ -19,21 +19,27 @@ void program_help() {
 int init(mysql::database& db) {
 	typedef std::vector<database::table *> table_vector;
 	typedef std::vector<database::reference *> reference_vector;
+	typedef std::vector<database::field *> field_vector;
 
 	database::structure structure = database::structure(db);
 	const table_vector& tables = structure.tables();
 
 	for ( table_vector::const_iterator it = tables.begin(); it != tables.end(); ++it ) {
 		const database::table *table = *it;
-		const reference_vector& references = table->references;
-		cout << table->name << " (";
+		const reference_vector& references = table->references();
+		const field_vector& fields = table->fields();
 
-		for ( unsigned int i = 0; i < table->field_count; ++i )
-			cout << table->fields[i]->name << ", ";
+		cout << table->name() << " (" << endl;
+
+		for ( field_vector::const_iterator it = fields.begin(); it != fields.end(); ++it ) {
+			const database::reference *ref = (*it)->ref();
+			cout << "\t" << (*it)->name();
+			if ( ref != NULL )
+				cout << "->" << ref->referenced_table_name() << "(" << ref->referenced_column_name() << ")";
+
+			cout << endl;
+		}
 		cout << ")" << endl;
-
-		for ( reference_vector::const_iterator it = references.begin(); it != references.end(); ++it )
-			cout << "\t" << (*it)->column_name << "->" << (*it)->referenced_table_name << "(" << (*it)->referenced_column_name << ")" << endl;
 
 		cout << endl;
 	}

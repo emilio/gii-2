@@ -49,7 +49,6 @@ result::result(MYSQL *conn, MYSQL_RES *r) {
 
 	if ( row_count_ ) {
 		rows_ = reinterpret_cast<row *>(new unsigned char[row_count_ * sizeof(row)]);
-		std::cerr << "result::result(): " << fields_[0].name << std::endl;
 		for ( i = 0; i < row_count_; ++i )
 			rows_[i] = row(mysql_fetch_row(r), fields_, field_count_);
 		end_ = rows_ + row_count_;

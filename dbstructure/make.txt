@@ -1,1 +1,0 @@
-g++ dbstructure.cpp  bin/database/structure.o  bin/mysql/database.o  bin/mysql/result.o  bin/mysql/row.o -o dbstructure -lmysqlclient -DBIG_JOINS=1 -g -DNDEBUG -Wall -pedantic -std=c++11
