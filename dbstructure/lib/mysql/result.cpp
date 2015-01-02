@@ -35,7 +35,6 @@ void display_row(std::ostream& os, const row& r, const field *fields, unsigned i
 } // anonymous namespace
 
 result::result(MYSQL *conn, MYSQL_RES *r) {
-	field *original_fields;
 	unsigned int i;
 
 	original_result_ = r;
@@ -45,19 +44,15 @@ result::result(MYSQL *conn, MYSQL_RES *r) {
 	rows_ = end_ = NULL;
 	fields_ = NULL;
 
+	if ( field_count_ )
+		fields_ = mysql_fetch_fields(r);
+
 	if ( row_count_ ) {
-		rows_ = new row[row_count_];
+		rows_ = reinterpret_cast<row *>(new unsigned char[row_count_ * sizeof(row)]);
+		std::cerr << "result::result(): " << fields_[0].name << std::endl;
 		for ( i = 0; i < row_count_; ++i )
-			rows_[i] = mysql_fetch_row(r);
+			rows_[i] = row(mysql_fetch_row(r), fields_, field_count_);
 		end_ = rows_ + row_count_;
-	}
-
-	if ( field_count_ ) {
-		fields_ = new field[field_count_];
-		original_fields = mysql_fetch_fields(r);
-
-		for ( i = 0; i < field_count_; ++i )
-			fields_[i] = original_fields[i];
 	}
 }
 
@@ -65,13 +60,14 @@ result::~result() {
 	if ( row_count_ )
 		delete[] rows_;
 
-	if ( field_count_ )
-		delete[] fields_;
 
 	mysql_free_result(original_result_);
 }
 
 void result::display(std::ostream& os) const {
+	if ( empty() )
+		return;
+
 	display_fields(os, fields_, field_count_);
 
 	for ( const_iterator it = begin(); it != end(); ++it )

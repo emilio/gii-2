@@ -3,88 +3,42 @@
 #include <cstdio>
 #include <cstring>
 #include "lib/mysql/mysql.hpp"
+#include "lib/database/structure.hpp"
 #include "macros.hpp"
 
 #define SELF "dbstructure"
 using std::cout;
 using std::endl;
-/**
-Next step:
 
-struct table_schema {
-	const char *table_name;
-	unsigned int field_count;
-	const mysql::field *fields;
-};
-
-struct reference {
-	const char *table_name;
-	const char *column_name;
-	const char *referenced_table_name;
-	const char *referenced_column_name;
-};
-
-std::map<table_name, mysql::field*> tables;
-std::vector<reference> refs;
-
-Map wit
-
-struct columninfo {
-	const char *table_name;
-	const char *column_name;
-};*/
 
 void program_help() {
 	std::cout << "Use: " SELF " <mysql_db_name> [--user user=root] [--password pass=root] [--server server=localhost]\n" << std::endl;
 	exit(1);
 }
 
-void display_table(mysql::database& db, const char *table_name) {
-	mysql::result *description;
-	mysql::result *foreign_keys;
+int init(mysql::database& db) {
+	typedef std::vector<database::table *> table_vector;
+	typedef std::vector<database::reference *> reference_vector;
 
-	/**
-	 * With this we can get all the fields via r->fields(), with types and primary + unique keys
-	 * We could use a DESCRIBE table, but it will give the results per row and we would have to create
-	 *  a custom field struct... which is not needed given the amount of info we get with fields()
-	 */
-	std::string description_query = "SELECT * FROM `";
-	description_query += table_name;
-	description_query += "` LIMIT 0";
+	database::structure structure = database::structure(db);
+	const table_vector& tables = structure.tables();
 
-	/** With this query we get all references **from** this table */
-	std::string foreign_query = "SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME "
-	                            "FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE "
-	                            "TABLE_SCHEMA = '";
-	foreign_query += db.name();
-	foreign_query += "' AND TABLE_NAME = '";
-	foreign_query += table_name;
-	foreign_query += "' AND REFERENCED_TABLE_SCHEMA = '";
-	foreign_query += db.name();
-	foreign_query += "'";
+	for ( table_vector::const_iterator it = tables.begin(); it != tables.end(); ++it ) {
+		const database::table *table = *it;
+		const reference_vector& references = table->references;
+		cout << table->name << " (";
 
-	description = db.query(description_query);
+		for ( unsigned int i = 0; i < table->field_count; ++i )
+			cout << table->fields[i]->name << ", ";
+		cout << ")" << endl;
 
-	cout << *description;
+		for ( reference_vector::const_iterator it = references.begin(); it != references.end(); ++it )
+			cout << "\t" << (*it)->column_name << "->" << (*it)->referenced_table_name << "(" << (*it)->referenced_column_name << ")" << endl;
 
-	foreign_keys = db.query(foreign_query);
-	cout << *foreign_keys;
+		cout << endl;
+	}
 
-	delete description;
-	delete foreign_keys;
-}
-
-void render_db_structure(mysql::database& db) {
-	mysql::result *r;
-	cout << "Starting rendering" << endl;
-	r = db.query("SHOW TABLES");
-
-	cout << "Field count: " << r->field_count() << endl;
-
-	for ( mysql::result::const_iterator row = r->begin(); row != r->end(); ++row )
-		display_table(db, (*row)[0]);
-
-	delete r;
+	return 0;
 }
 
 int main(int argc, const char **argv) {
@@ -129,7 +83,7 @@ int main(int argc, const char **argv) {
 
 	try {
 		db.connect(server, user, pass, name);
-		render_db_structure(db);
+		return init(db);
 	} catch ( std::runtime_error& e ) {
 		FATAL_ERROR(e.what());
 	}

@@ -1,6 +1,7 @@
 #ifndef __MYSQL_RESULT_HPP
 #define __MYSQL_RESULT_HPP
 #include "mysql.hpp"
+#include "row.hpp"
 #include <iostream>
 namespace mysql {
 
@@ -21,6 +22,7 @@ public:
 
 	const_iterator begin() const { return rows_; }
 	const_iterator end() const { return end_;	} // rows_ + row_count_
+	bool empty() const { return row_count_ == 0; }
 
 	unsigned int field_count() const { return field_count_;	}
 	unsigned int row_count() const { return row_count_;	}

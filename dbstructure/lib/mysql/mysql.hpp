@@ -16,9 +16,9 @@
 
 namespace mysql {
 typedef MYSQL_FIELD field;
-typedef MYSQL_ROW row;
 }
 
 #include "database.hpp"
+#include "row.hpp"
 #include "result.hpp"
 #endif

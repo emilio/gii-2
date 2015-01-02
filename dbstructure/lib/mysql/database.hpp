@@ -19,10 +19,10 @@ public:
 		mysql_close(conn_);
 	}
 
-	const char *server() { return server_; }
-	const char *user() { return user_; }
-	const char *pass() { return pass_; }
-	const char *name() { return name_; }
+	const char *server() const { return server_; }
+	const char *user() const { return user_; }
+	const char *pass() const { return pass_; }
+	const char *name() const { return name_; }
 
 	void connect(const char *server, const char *user, const char *pass, const char *db);
 	void connect(const char *server, const char *user, const char *pass);
