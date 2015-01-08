@@ -231,7 +231,7 @@ void program_help() {
 	PRINTF("\t-v\t--verbose\t\tEnable debugging\n");
 #endif
 	PRINTF("\t-o\t--output\t<filename>\tChange output from console to a file.\n");
-	PRINTF("\t\tNote: this option is not reliable actually, prefer the use of `>>`\n");
+
 	exit(1);
 }
 
@@ -330,7 +330,6 @@ void child_sigusr_catch( int sig ) {
 	/** Get our target */
 	target = child_rand_proc();
 
-	PRINTF(PID_T_FORMAT"->"PID_T_FORMAT"\n", me->id, target->id);
 	kill(target->id, SIGTERM);
 
 	me->target = target;
@@ -416,7 +415,7 @@ Process * child_rand_proc() {
 			if ( random == 0 )
 				return p;
 
-			random--;
+			--random;
 		}
 	);
 
@@ -464,10 +463,7 @@ int all_ready() {
 	return 1;
 }
 
-/**
- * Check if current round is over
- * Current round is over if none of pid_status is PID_STATUS_SHOT
- */
+/** Check if current round is over */
 int round_over() {
 	GameData *data = get_data();
 	Process *p;
@@ -523,7 +519,6 @@ int parent_proc() {
 			if ( p->status & PID_STATUS_DEAD_THIS_ROUND )
 				p->status |= PID_STATUS_DEAD;
 
-
 			/** If just let them really die with waitpid. Not necessary but... */
 			if ( p->status & PID_STATUS_DEAD &&
 				 p->id != waitpid(p->id, NULL, WNOHANG) )
@@ -560,6 +555,11 @@ int parent_proc() {
 		/** Wait for children until round is over */
 		while ( ! round_over() )
 			sigsuspend(&set);
+
+		EACH(data->children, data->process_count, p,
+			if ( ~p->status & PID_STATUS_DEAD )
+				PRINTF(PID_T_FORMAT"->"PID_T_FORMAT"\n", p->id, p->target->id);
+		);
 	}
 
 	/** Game is over! Print results, kill all pending procs and release data */
