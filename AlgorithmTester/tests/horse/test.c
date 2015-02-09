@@ -46,7 +46,7 @@ int valid_move(const Map *map, const Point *p) {
 
 #define TRY_MOVE(i, _x, _y) do { \
 	test.x = curr_x + _x; \
-	test.y = curr_x + _y; \
+	test.y = curr_y + _y; \
 	if ( valid_move(map, &test) ) { \
 		h->current_position = test; \
 		map->positions[test.x][test.y] = ++h->movement_count; \
