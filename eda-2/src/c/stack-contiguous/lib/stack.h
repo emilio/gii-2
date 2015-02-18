@@ -68,7 +68,7 @@ void stack_pop(stack_t* stack) {
 }
 
 /** Our top function must take a pointer... */
-void stack_top(stack_t* stack, char* val) {
+void stack_top(stack_t* stack, void* val) {
 	assert(val != NULL);
 	assert(stack->size != 0);
 	memcpy(val, stack->data + ((stack->size - 1) * stack->item_size), stack->item_size);

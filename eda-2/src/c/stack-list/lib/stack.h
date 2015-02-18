@@ -29,12 +29,8 @@ stack_value_t stack_pop(stack_t* stack);
 
 void stack_push(stack_t* stack, stack_value_t val);
 
-/**
- * We prefer inline function (C99) instead of macro
- * for type safety
- */
-inline stack_value_t stack_top(stack_t* stack) {
-	return stack->last->value;
-}
+#define stack_top(stack) (stack->last->value);
+
+void stack_destroy(stack_t* stack);
 
 #endif

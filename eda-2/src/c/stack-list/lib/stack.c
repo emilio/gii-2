@@ -43,3 +43,10 @@ void stack_push(stack_t* stack, stack_value_t val) {
 	stack->size += 1;
 
 }
+
+void stack_destroy(stack_t* stack) {
+	while ( ! stack_empty(stack) )
+		stack_pop(stack);
+
+	free(stack);
+}
