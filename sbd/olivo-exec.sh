@@ -15,7 +15,7 @@ else
 fi
 
 if [ ! -f "$SOURCE_FILE" ]; then
-	echo "ERROR: $SOURCE_FILE must exists";
+	echo "ERROR: $SOURCE_FILE must exist";
 	exit;
 fi
 
