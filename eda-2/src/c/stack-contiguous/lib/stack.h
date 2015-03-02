@@ -27,8 +27,11 @@ void stack_grow(stack_t* stack) {
 	else
 		stack->data = (char*) realloc(stack->data, dest_size * stack->item_size);
 
+	stack->capacity = dest_size;
+
 	assert(stack->data != NULL);
 }
+
 /**
  * stack_t* stack = stack_new(int);
  *

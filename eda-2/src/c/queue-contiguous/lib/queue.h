@@ -15,7 +15,6 @@
  * allocating more space.
  *
  * This implementation needs more testing than the file in test.c
- * and needs to be splitted in queue.c and queue.h files
  */
 #ifndef QUEUE_H_
 #define QUEUE_H_
@@ -44,29 +43,7 @@ typedef struct queue {
 #define queue_empty(s) (s->size == 0)
 
 /** Move to the left or grow space in the queue */
-void queue_grow(queue_t* queue) {
-	size_t dest_size;
-
-	/** Before growing we check if we have space in the left */
-	if ( queue->first_index > QUEUE_MAX_ITEMS_UNUSED ) {
-		/** Move everything to the front */
-		memcpy(queue->data, queue->data + (queue->first_index * queue->item_size), queue->size * queue->item_size);
-		queue->first_index = 0;
-		return;
-	}
-
-	dest_size = queue->capacity * 2;
-
-	if ( dest_size == 0 )
-		dest_size = QUEUE_INITIAL_SIZE;
-
-	if ( queue->data == NULL )
-		queue->data = (char*) malloc(dest_size * queue->item_size);
-	else
-		queue->data = (char*) realloc(queue->data, dest_size * queue->item_size);
-
-	assert(queue->data != NULL);
-}
+void queue_grow(queue_t* queue);
 
 
 /**
@@ -76,17 +53,7 @@ void queue_grow(queue_t* queue) {
  * Such as: queue_new(int);
  */
 #define queue_new(T) queue_new_(sizeof(T))
-queue_t* queue_new_(size_t item_size) {
-	queue_t* ret = (queue_t*) malloc(sizeof(queue_t));
-
-	assert(ret != NULL);
-
-	ret->data = NULL;
-	ret->first_index = ret->size = ret->capacity = 0;
-	ret->item_size = item_size;
-
-	return ret;
-}
+queue_t* queue_new_(size_t item_size);
 
 /**
  * To push a value we must take a pointer to that value...
@@ -97,43 +64,22 @@ queue_t* queue_new_(size_t item_size) {
  * That's the tradeoff for flexibility
  */
 #define queue_push(q, val) queue_push_(q, (void*) &val)
-void queue_push_(queue_t* queue, void* val) {
-
-	assert(val != NULL);
-
-	if ( (queue->first_index + queue->size) == queue->capacity )
-		queue_grow(queue);
-
-	memcpy(queue->data + ((queue->first_index + queue->size++) * queue->item_size), val, queue->item_size);
-}
-
+void queue_push_(queue_t* queue, void* val);
 
 /**
  * Our pop() operation is void
  * Returning the value will add complexity.
  * It's perfectly reasonable using just front+top.
  */
-void queue_pop(queue_t* queue) {
-	assert(! queue_empty(queue));
-	queue->first_index++;
-	queue->size--;
-}
+void queue_pop(queue_t* queue);
 
 /**
  * Our front function must take a pointer to store the value in.
  * That's again a tradeoff for flexibility in the queue type.
  */
-void queue_front(queue_t* queue, void* val) {
-	assert(val != NULL);
-	assert(queue->size != 0);
-	memcpy(val, queue->data + ((queue->first_index) * queue->item_size), queue->item_size);
-}
+void queue_front(queue_t* queue, void* val);
 
 /** To destroy or queue we just have to destroy the `data` field */
-void queue_destroy(queue_t* queue) {
-	if ( queue->data != NULL )
-		free(queue->data);
-	free(queue);
-}
+void queue_destroy(queue_t* queue);
 
 #endif

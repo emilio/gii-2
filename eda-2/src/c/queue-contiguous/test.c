@@ -8,10 +8,10 @@ int main() {
 
 	printf("Testing queue...\n");
 
-	for ( i = 0; i < 10; ++i )
+	for ( i = 0; i < 100; ++i )
 		queue_push(queue, i);
 
-	printf("Stack filled...\n");
+	printf("Queue filled...\n");
 
 	while ( ! queue_empty(queue) ) {
 		queue_front(queue, &i);
