@@ -25,8 +25,12 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include "queue.h"
+#include "spinlock.h"
+
+#define SEMAPHORE_RESUME_SIGNAL_NUMBER SIGUSR1
 
 typedef struct semaphore {
+	spinlock_t lock;
 	queue_t queue;
 	int count;
 } semaphore_t;
@@ -61,16 +65,16 @@ void release_shared_semaphore(semaphore_t* sem, const char* path) {
 	unlink(path);
 }
 
-
 void semaphore_init(semaphore_t* sem, int num) {
 	sigset_t set;
 	sigemptyset(&set);
-	sigaddset(&set, SIGUSR1);
+	sigaddset(&set, SEMAPHORE_RESUME_SIGNAL_NUMBER);
 
 	sigprocmask(SIG_BLOCK, &set, NULL);
 
 	sem->count = num;
 	queue_init(&sem->queue);
+	spinlock_init(&sem->lock);
 }
 
 void semaphore_lock(semaphore_t* sem) {
@@ -78,28 +82,27 @@ void semaphore_lock(semaphore_t* sem) {
 
 	/** TODO: optimize */
 	sigfillset(&set);
-	sigdelset(&set, SIGUSR1);
+	sigdelset(&set, SEMAPHORE_RESUME_SIGNAL_NUMBER);
 
-	// printf("Semaphore locked: %p\n", sem);
-
+	spinlock_acquire(&sem->lock);
 	/** If we're full */
-	if ( __sync_sub_and_fetch(&sem->count, 1) < 0 ) {
-		// printf("Adding proccess to queue: %d | Count: %d\n", getpid(), sem->count);
+	if ( --sem->count < 0 ) {
 		queue_push(&sem->queue, getpid());
+		spinlock_release(&sem->lock);
 		sigsuspend(&set);
+	} else {
+		spinlock_release(&sem->lock);
 	}
-	/** Else return inmediately */
 }
 
 void semaphore_unlock(semaphore_t* sem) {
-	printf("Semaphore unlocked: %p\n", sem);
-
 	/** If we have still some pending process */
-	if ( __sync_add_and_fetch(&sem->count, 1) <= 0 ) {
-		printf("Enabling: %d | Count: %d\n", queue_front(&sem->queue), sem->count);
-		kill(queue_front(&sem->queue), SIGUSR1);
+	spinlock_acquire(&sem->lock);
+	if ( ++sem->count <= 0 ) {
+		kill(queue_front(&sem->queue), SEMAPHORE_RESUME_SIGNAL_NUMBER);
 		queue_pop(&sem->queue);
 	}
+	spinlock_release(&sem->lock);
 }
 
 #endif
