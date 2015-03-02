@@ -2,8 +2,10 @@
 
 SSH_USER="i0912324@olivo.usal.es"
 
+USE_TRANSACTION=0
+
 if [ "$1" == "" ]; then
-	echo "Usage: $0 <sql_file> [<results_file>=<sql_file>.results]";
+	echo "Usage: $0 <sql_file> [<results_file>=<sql_file>.results] [--transaction]";
 	exit;
 fi
 
@@ -14,7 +16,11 @@ else
 	DEST_FILE="$2";
 fi
 
-if [ ! -f "$SOURCE_FILE" ]; then
+if [ "$3" == "--transaction" ]; then
+	USE_TRANSACTION=1
+fi
+
+if [ ! -f "$SOURCE_FILE" ];then
 	echo "ERROR: $SOURCE_FILE must exist";
 	exit;
 fi
@@ -22,9 +28,22 @@ fi
 # Put $SOURCE_FILE in __tmp
 scp "$SOURCE_FILE" "$SSH_USER:__tmp"
 
+BEFORE_CONTENT="";
+AFTER_CONTENT="";
+
+if [ $USE_TRANSACTION -eq 1 ];then
+	AFTER_CONTENT="COMMIT";
+else
+	BEFORE_CONTENT="SET AUTOCOMMIT ON"
+fi
+
 ssh "$SSH_USER" << EOF
+	if [ ! -f "__tmp" ]; then echo "Expected temporary file __tmp"; exit; fi
+
 	echo "SPOOL spool;" > __tmp.sql
+	echo "$BEFORE_CONTENT" >> __tmp.sql
 	cat __tmp >> __tmp.sql
+	echo "$AFTER_CONTENT" >> __tmp.sql
 	echo "SPOOL OFF;" >> __tmp.sql
 	echo "EXIT" >> __tmp.sql
 
