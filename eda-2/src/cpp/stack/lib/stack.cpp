@@ -30,6 +30,7 @@ void stack<T, Allocator>::reserve(size_type capacity) noexcept {
 		data = alloc.allocate(capacity);
 		capacity_ = capacity;
 		std::copy(tmp, tmp + size_, data);
+		alloc.deallocate(tmp);
 	}
 
 	// Else we already have enough capacity
