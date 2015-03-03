@@ -59,15 +59,19 @@ size_t b_tree_node_search_and_replace(b_tree_node_t*, b_tree_value_t,	b_tree_val
 void b_tree_node_preorder(b_tree_node_t*, b_tree_callback_t, void*);
 
 /** Postorder loop */
+#define b_tree_postorder b_tree_node_postorder
 void b_tree_node_postorder(b_tree_node_t*, b_tree_callback_t, void*);
 
 /** Order loop */
+#define b_tree_order b_tree_node_order
 void b_tree_node_order(b_tree_node_t*, b_tree_callback_t, void*);
 
 /** Iterate through given level */
+#define b_tree_level b_tree_node_level
 void b_tree_node_level(b_tree_node_t*, size_t, b_tree_callback_t, void*);
 
 /** Iterate in level order */
+#define b_tree_levelorder b_tree_node_levelorder
 void b_tree_node_levelorder(b_tree_node_t*, b_tree_callback_t, void*);
 
 
