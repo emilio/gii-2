@@ -19,6 +19,11 @@
 #include <sys/sem.h>
 #include "pist2.h"
 
+union semun {
+	int val;
+    struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
+    unsigned short  *array;  /* Array for GETALL, SETALL */
+};
 
 #define SELF "pistolos"
 
@@ -34,11 +39,15 @@
 #endif
 
 #ifdef __GNUC__
-#    define ATOMIC_DECREMENT_AND_FETCH(var) (__sync_sub_and_fetch(var, 1))
-#    define ATOMIC_INCREMENT_AND_FETCH(var) (__sync_add_and_fetch(var, 1))
+#	if __GNUC__ < 4 /** Encina... -.- */
+#       include <sys/atomic.h>
+		/** Assume it's wordsize  */
+#		define ATOMIC_DECREMENT(var) (atomic_dec_32_nv(var))
+#	else
+#		define ATOMIC_DECREMENT(var) (__sync_sub_and_fetch(var, 1))
+#	endif
 #elif _WIN32
-#    define ATOMIC_DECREMENT_AND_FETCH(var) (InterlockedDecrement(var))
-#    define ATOMIC_INCREMENT_AND_FETCH(var) (InterlockedIncrement(var))
+#   define ATOMIC_DECREMENT(var) (InterlockedDecrement(var))
 #else
 #    error "Atomic decrement is required"
 #endif
@@ -126,7 +135,7 @@ typedef enum PidStatusType {
 /** Process struct */
 typedef struct Process {
 	pid_t id; /** PID */
-	volatile PidStatusType status; /** Current status, if pid is alive it gets updated to PID_STATUS_READY */
+	PidStatusType status; /** Current status, if pid is alive it gets updated to PID_STATUS_READY */
 } Process;
 
 /**
@@ -142,7 +151,7 @@ typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
 	/* const */ pid_t parent_id; /** The parent process id */
 	size_t rounds; /** The round count */
-	size_t alive_count; /** Current round alive pids count */
+	unsigned short alive_count; /** Current round alive pids count */
 	Process *children; /** The children processes */
 	semaphore_t semaphores;
 	FILE* log;
@@ -188,7 +197,11 @@ GameData * manage_data(DataActionType, size_t);
 
 /** Main semaphore utilities */
 int semaphore_set_value(semaphore_t sem, unsigned short index, int val) {
-	int ret = semctl(sem, index, SETVAL, val);
+	union semun param;
+	int ret;
+
+	param.val = val;
+	ret = semctl(sem, index, SETVAL, param);
 
 	if ( ret == -1 )
 		FATAL_ERROR("semaphore_set_value: %s", strerror(errno));
@@ -205,34 +218,29 @@ int semaphore_get_value(semaphore_t sem, unsigned short index) {
 	return ret;
 }
 
-#define MAIN_SEMAPHORE_INDEX 1
-int semaphore_wait_zero(semaphore_t sem, unsigned short index) {
+int semaphore_change_value(semaphore_t sem, unsigned short index, unsigned value) {
 	static struct sembuf buff = { 0, 0, 0 };
 	buff.sem_num = index;
-	int ret = semop(sem, &buff, 1);
-	if ( ret == -1 )
-		FATAL_ERROR("semaphore_wait_zero: %s", strerror(errno));
-	return ret;
-}
+	buff.sem_op = value;
 
-/** Equivalent to `wait` */
-int semaphore_lock(semaphore_t sem, unsigned short index) {
-	static struct sembuf buff = { 0, -1, 0 };
-	buff.sem_num = index;
 	int ret = semop(sem, &buff, 1);
 	if ( ret == -1 )
 		FATAL_ERROR("semaphore_lock: %s", strerror(errno));
 	return ret;
 }
 
+int semaphore_wait_zero(semaphore_t sem, unsigned short index) {
+	return semaphore_change_value(sem, index, 0);
+}
+
+/** Equivalent to `wait` */
+int semaphore_lock(semaphore_t sem, unsigned short index) {
+	return semaphore_change_value(sem, index, -1);
+}
+
 /** Equivalent to `signal` */
 int semaphore_unlock(semaphore_t sem, unsigned short index) {
-	static struct sembuf buff = { 0, 1, 0 };
-	buff.sem_num = index;
-	int ret = semop(sem, &buff, 1);
-	if ( ret == -1 )
-		FATAL_ERROR("semaphore_unlock: %s", strerror(errno));
-	return ret;
+	return semaphore_change_value(sem, index, +1);
 }
 
 /** Empty signal handler for resuming (empty) */
@@ -275,6 +283,7 @@ void __dump() {
 	Process *p;
 
 	printf("\nDump:\n");
+	printf("Alive count: %hu\n", data->alive_count);
 	printf("Semaphores:\n");
 	for ( i = 0; i < TOTAL_SEMAPHORE_COUNT; ++i )
 		printf("\t%d", semaphore_get_value(data->semaphores, i));
@@ -312,11 +321,14 @@ Process *current_proc() {
 }
 
 bool is_current_proc_coordinator() {
-	Process* p;
 	GameData* data = get_data();
 	pid_t current_pid = getpid();
+	Process* p;
+	size_t i;
 
-	EACH(data->children, data->process_count, p,
+	i = data->process_count;
+	while ( i-- ) {
+		p = data->children + i;
 		/** If there's a process which is not dead */
 		if ( ~p->status & PID_STATUS_DEAD ) {
 			if ( p->id == current_pid )
@@ -324,7 +336,7 @@ bool is_current_proc_coordinator() {
 			else
 				return 0;
 		}
-	);
+	}
 
 	return 0;
 }
@@ -427,8 +439,8 @@ void bind_parent_signals() {
 
 /** Child process subroutine */
 int child_proc(char lib_id) {
-	volatile GameData* data = get_data();
-	volatile Process* me = current_proc();
+	GameData* data = get_data();
+	Process* me = current_proc();
 	char target;
 	int ret;
 	bool im_coordinator;
@@ -449,8 +461,15 @@ int child_proc(char lib_id) {
 	semaphore_wait_zero(data->semaphores, SEMAPHORE_READY);
 	LOG("Loaded");
 
-	/** Parent takes care of unlocking... */
+	/** S1 = 0; S2 = 0; */
 	while ( 1 ) {
+		/**
+		 * Wait until semaphore 2 is zero (everyone has died in the previous round)
+		 * This wait is global because we can't choose a coordinator until everyone is
+		 * dead
+		 */
+		semaphore_wait_zero(data->semaphores, 2);
+
 		/** Check if I'm the coordinator */
 		im_coordinator = is_current_proc_coordinator();
 
@@ -459,15 +478,13 @@ int child_proc(char lib_id) {
 			if ( data->alive_count == 1 )
 				exit(0);
 			data->rounds++;
-			LOG("Round: %d, alive: %d", data->rounds, data->alive_count);
-			/** Set all semaphores for everybody */
-			semaphore_set_value(data->semaphores, 1, data->alive_count); // Round shot
-			semaphore_set_value(data->semaphores, 2, data->alive_count); // Received
-			semaphore_set_value(data->semaphores, 3, data->alive_count); // Round is prepared
-		}
+			LOG("Round: %d, alive: %hu", data->rounds, data->alive_count);
 
-		/** Until round is prepared... */
-		semaphore_lock(data->semaphores, 3);
+			/** Increment semaphore 1 value two times alive_count */
+			semaphore_change_value(data->semaphores, 1, data->alive_count * 2); // Allow everyone to shoot
+		}
+		semaphore_lock(data->semaphores, 1);
+		LOG("Starting to shoot");
 
 		target = PIST_vIctima();
 
@@ -481,17 +498,21 @@ int child_proc(char lib_id) {
 		if ( PIST_disparar(target) == -1 )
 			ERROR("PIST_disparar");
 
-		/** Until everyone has shooted... */
 		semaphore_lock(data->semaphores, 1);
-		semaphore_wait_zero(data->semaphores, 1);
+		LOG("Shot to %c", target);
 
-		/** Here we know that everyone has shooted: Prevent anyone from starting the next round */
-		if ( im_coordinator )
-			semaphore_set_value(data->semaphores, 3, 0);
+		if ( im_coordinator ) {
+			/** We could wait with every process, but it's not required */
+			semaphore_wait_zero(data->semaphores, 1);
+			/** When everyone has shooted, allow to receive */
+			semaphore_change_value(data->semaphores, 2, data->alive_count * 2);
+		}
+		semaphore_lock(data->semaphores, 2);
 
+		/** If we have received a shot, mark as dead, else... we're ready */
 		if ( me->status & PID_STATUS_DEAD_THIS_ROUND ) {
 			me->status |= PID_STATUS_DEAD;
-			ATOMIC_DECREMENT_AND_FETCH(&data->alive_count);
+			ATOMIC_DECREMENT(&data->alive_count);
 			PIST_morirme();
 		} else {
 			me->status = PID_STATUS_READY;
@@ -500,7 +521,8 @@ int child_proc(char lib_id) {
 
 		/** Until everyone has received his shot */
 		semaphore_lock(data->semaphores, 2);
-		semaphore_wait_zero(data->semaphores, 2);
+
+		LOG("Semaphore 2 value: %zu", semaphore_get_value(data->semaphores, 2));
 
 		/** Die if round over */
 		if ( me->status & PID_STATUS_DEAD )
@@ -521,7 +543,7 @@ int main(int argc, char **argv) {
 	int ret;
 	char lib_id = 'A';
 
-	if ( argc < 3 || argc > 3 )
+	if ( argc < 3 || argc > 4 )
 		program_help();
 
 	if ( argv[1][0] >= '0' && argv[1][0] <= '9' )
@@ -532,13 +554,13 @@ int main(int argc, char **argv) {
 	if ( argv[2][0] >= '0' && argv[2][0] <= '9' )
 		speed = strtoul(argv[2], NULL, 10);
 	else
-		FATAL_ERROR("Option not recognized: %s", argv[1]);
+		FATAL_ERROR("Option not recognized: %s", argv[2]);
 
 	if ( argc == 4 ) {
 		if ( argv[3][0] >= '0' && argv[3][0] <= '9' )
 			 seed = strtoul(argv[3], NULL, 10);
 		else
-			FATAL_ERROR("Option not recognized: %s", argv[1]);
+			FATAL_ERROR("Option not recognized: %s", argv[3]);
 	}
 
 #if CHECK_LIMITS
@@ -573,8 +595,10 @@ int main(int argc, char **argv) {
 	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
 	/** Set the log to 1 */
 	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
+	semaphore_set_value(data->semaphores, 1, 0);
+	semaphore_set_value(data->semaphores, 2, 0);
 
-	LOG("Semaphores initialized: %d %d %d",
+	LOG("Semaphores initialized: %d %d",
 			semaphore_get_value(data->semaphores, SEMAPHORE_READY),
 			semaphore_get_value(data->semaphores, SEMAPHORE_LOG));
 
