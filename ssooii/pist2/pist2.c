@@ -19,6 +19,7 @@
 #include <sys/sem.h>
 #include "pist2.h"
 
+
 #define SELF "pistolos"
 
 #ifdef __GNUC__
@@ -32,9 +33,6 @@
 #	define PID_T_FORMAT "%ld"
 #endif
 
-/** Debug compilation macro */
-/* #define __DEBUG */
-
 #ifdef __GNUC__
 #    define ATOMIC_DECREMENT_AND_FETCH(var) (__sync_sub_and_fetch(var, 1))
 #    define ATOMIC_INCREMENT_AND_FETCH(var) (__sync_add_and_fetch(var, 1))
@@ -47,14 +45,27 @@
 
 /** Default process count and output */
 #define DEFAULT_PROC_COUNT 7
-#define DEFAULT_SPEED 1
+#define DEFAULT_SPEED 0
 
-/** One for the library, two for me */
-#define TOTAL_SEMAPHORE_COUNT 5
-
-/** Easy printf with system calls */
-#define BUFF_MAX 256
-char BUFF[BUFF_MAX];
+/**
+ * One for the library, five for me
+ *
+ * Semaphore overview:
+ *   - SEMAPHORE_READY to wait for everybody
+ *   - SEMAPHORE_ALL_SHOOTED is 0 when everyone has shooted
+ *   - SEMAPHORE_ALL_RECEIVED is 0 when everyone has received his shot
+ *   - SEMAPHORE_READY is used at the beginning and is 0 when all processes are ready
+ *        We can't use this semaphore later, since one process can lock it, and without
+ *        waiting for zero, the rest wake up
+ *   - SEMAPHORE_ROUND_PREPARED is used as condition variable: initially set to 0,
+ *	      the coordinator process sets the round up and unlocks it
+ */
+#define TOTAL_SEMAPHORE_COUNT 6
+#define SEMAPHORE_ALL_SHOOTED 1
+#define SEMAPHORE_ALL_RECEIVED 2
+#define SEMAPHORE_ROUND_PREPARED 3
+#define SEMAPHORE_READY 4
+#define SEMAPHORE_LOG 5
 
 /** Error */
 #define ERROR(str, ...) do { \
@@ -64,29 +75,27 @@ char BUFF[BUFF_MAX];
 } while ( 0 )
 /* #define ERROR(str, ...) do { \
 	fprintf(stderr, "(error) "str, ## __VA_ARGS__); \
-	fprintf(stderr, "Run with --help for a list of options.\n"); \
 } while (0) */
 
 #define FATAL_ERROR(str, ...) do { \
 	ERROR(str, ##__VA_ARGS__); \
+	fprintf(stderr, "Run with no args for a list of options.\n"); \
 	exit(1); \
 } while( 0 )
 
-/** Debug */
-#ifdef __DEBUG
-char VERBOSE_MODE = 0;
-#define DEBUG(str, ...) do { \
-	if ( VERBOSE_MODE ) \
-		fprintf(stderr, "(debug) "str, ## __VA_ARGS__); \
+#define LOG_PATH "pist2.log"
+#define LOG(msg, ...) do { \
+	GameData* data = get_data(); \
+	semaphore_lock(data->semaphores, SEMAPHORE_LOG); \
+	if ( fseek(data->log, 0, SEEK_END) > -1 ) {  \
+		fprintf(data->log, "("PID_T_FORMAT") "msg"\n", getpid(), ##__VA_ARGS__); \
+		fflush(data->log); \
+	} \
+	semaphore_unlock(data->semaphores, SEMAPHORE_LOG); \
 } while (0)
-#else
-#define DEBUG(...)
-#endif
 
-/** We use dynamic memory so we don't need to check for size limitations. I provide this option though */
 #define LIMIT_MIN 3
-#define LIMIT_MAX 128
-#define CHECK_LIMITS 1
+#define LIMIT_MAX 26
 
 /** To be a bit clearer */
 typedef int semaphore_t;
@@ -136,6 +145,7 @@ typedef struct GameData {
 	size_t alive_count; /** Current round alive pids count */
 	Process *children; /** The children processes */
 	semaphore_t semaphores;
+	FILE* log;
 	char library_data[256];
 } GameData;
 
@@ -278,14 +288,7 @@ void __dump() {
 
 /** Program help */
 void program_help() {
-	printf("Usage: "SELF" [count=%d] [-d|--debug] [-o|--output <output_file>]\n", DEFAULT_PROC_COUNT);
-	printf("Options:\n");
-	printf("\t-h\t--help\t\tShow this message\n");
-#ifdef __DEBUG
-	printf("\t-v\t--verbose\t\tEnable debugging\n");
-#endif
-	printf("\t-o\t--output\t<filename>\tChange output from console to a file.\n");
-	printf("\t\tNote: this option is not reliable actually, prefer the use of `>>`\n");
+	printf("Usage: "SELF" <count> <speed> <seed>\n");
 	exit(1);
 }
 
@@ -344,6 +347,9 @@ GameData * manage_data(DataActionType action, size_t count) {
 		data->semaphores = 0;
 		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
+		data->log = fopen(LOG_PATH, "w+");
+		if ( data->log == NULL )
+			data->log = stderr;
 	}
 
 	/** Release data */
@@ -351,6 +357,9 @@ GameData * manage_data(DataActionType action, size_t count) {
 		/** TODO: Is count ignored in semctl with RMID? */
 		if ( data->semaphores > 0 )
 			semctl(data->semaphores, 0, IPC_RMID);
+
+		if ( data->log != NULL )
+			fclose(data->log);
 
 		munmap( (void *) data, size);
 		data = NULL;
@@ -369,14 +378,30 @@ void kill_all() {
 	);
 }
 
-/** Our parent was interrupted, dump data for debugging and release all */
-void parent_sigterm_catch(int sig) {
+/** Resources handled by atexit() */
+void sig_exit(int s) {
 	__dump();
+	exit(1);
+}
+
+/** Our parent was interrupted, dump data for debugging and release all */
+void release_all_resources() {
+	GameData* data = get_data();
+	int ret;
+
+	/** Just for parent */
+	if ( data->parent_id != getpid() )
+		return;
+
 	kill_all();
 	release_data();
 	fflush(stderr);
 	fclose(stderr);
-	exit(1);
+
+	/** When game is over... */
+	ret = PIST_fin();
+	if ( ret == -1 )
+		LOG("Library termination failed\n");
 }
 
 /** Children have all signals blocked. */
@@ -396,8 +421,8 @@ void bind_parent_signals() {
 	sigdelset(&set, SIGTERM);
 	sigprocmask(SIG_BLOCK, &set, NULL);
 
-	BIND_TO(SIGTERM, parent_sigterm_catch);
-	BIND_TO(SIGINT, parent_sigterm_catch);
+	BIND_TO(SIGTERM, sig_exit);
+	BIND_TO(SIGINT, sig_exit);
 }
 
 /** Child process subroutine */
@@ -405,19 +430,24 @@ int child_proc(char lib_id) {
 	volatile GameData* data = get_data();
 	volatile Process* me = current_proc();
 	char target;
-	int i;
+	int ret;
 	bool im_coordinator;
 
 	bind_children_signals();
 
-	/** We update our status, and send a signal to the parent */
+	/** We update our status */
 	me->status = PID_STATUS_READY;
 
-	PIST_nuevoPistolero(lib_id);
+	ret = PIST_nuevoPistolero(lib_id);
+	if ( ret == -1 )
+		FATAL_ERROR("Shooter not initialized");
+
+	LOG("Ready to roll");
 	/** Ensure we're ready, and wait for everybody else */
-	semaphore_lock(data->semaphores, 1);
-	semaphore_wait_zero(data->semaphores, 1);
-	// ERROR("All ready");
+	/** NOTE: We can't reuse this semaphore later */
+	semaphore_lock(data->semaphores, SEMAPHORE_READY);
+	semaphore_wait_zero(data->semaphores, SEMAPHORE_READY);
+	LOG("Loaded");
 
 	/** Parent takes care of unlocking... */
 	while ( 1 ) {
@@ -426,18 +456,18 @@ int child_proc(char lib_id) {
 
 		/** If I am, give pass to everyone two times: one for start and one for end */
 		if ( im_coordinator ) {
-			// ERROR("Coordinator: %c", lib_id);
 			if ( data->alive_count == 1 )
 				exit(0);
 			data->rounds++;
+			LOG("Round: %d, alive: %d", data->rounds, data->alive_count);
 			/** Set all semaphores for everybody */
-			semaphore_set_value(data->semaphores, 1, data->alive_count);
-			semaphore_set_value(data->semaphores, 3, data->alive_count);
-			semaphore_set_value(data->semaphores, 2, data->alive_count); // Now everyone locked there will pass
+			semaphore_set_value(data->semaphores, 1, data->alive_count); // Round shot
+			semaphore_set_value(data->semaphores, 2, data->alive_count); // Received
+			semaphore_set_value(data->semaphores, 3, data->alive_count); // Round is prepared
 		}
 
-		/** Wait for everybody to start... Here even the coordinator passes  */
-		semaphore_lock(data->semaphores, 2);
+		/** Until round is prepared... */
+		semaphore_lock(data->semaphores, 3);
 
 		target = PIST_vIctima();
 
@@ -451,13 +481,13 @@ int child_proc(char lib_id) {
 		if ( PIST_disparar(target) == -1 )
 			ERROR("PIST_disparar");
 
-		/** LOCK */
+		/** Until everyone has shooted... */
 		semaphore_lock(data->semaphores, 1);
 		semaphore_wait_zero(data->semaphores, 1);
 
-		/** Here we know that everyone has shooted: Prevent everybody to start the next round without dying */
+		/** Here we know that everyone has shooted: Prevent anyone from starting the next round */
 		if ( im_coordinator )
-			semaphore_set_value(data->semaphores, 2, 0);
+			semaphore_set_value(data->semaphores, 3, 0);
 
 		if ( me->status & PID_STATUS_DEAD_THIS_ROUND ) {
 			me->status |= PID_STATUS_DEAD;
@@ -467,9 +497,10 @@ int child_proc(char lib_id) {
 			me->status = PID_STATUS_READY;
 		}
 
-		/** No lock required here */
-		semaphore_lock(data->semaphores, 3);
-		semaphore_wait_zero(data->semaphores, 3);
+
+		/** Until everyone has received his shot */
+		semaphore_lock(data->semaphores, 2);
+		semaphore_wait_zero(data->semaphores, 2);
 
 		/** Die if round over */
 		if ( me->status & PID_STATUS_DEAD )
@@ -483,26 +514,31 @@ int child_proc(char lib_id) {
 int main(int argc, char **argv) {
 	size_t i = 0,
 		count = DEFAULT_PROC_COUNT,
-		speed = DEFAULT_SPEED;
+		speed = DEFAULT_SPEED,
+		seed = 0;
 	pid_t current_pid;
 	GameData *data;
 	int ret;
 	char lib_id = 'A';
 
-	/** check arguments */
-	for ( i = 1; i < argc; ++i ) {
-		if ( strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0 ) {
-			program_help();
-#ifdef __DEBUG
-		} else if ( strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-v") == 0 ) {
-			VERBOSE_MODE = 1;
-#endif
-		/** If first char is numeric we assume its the proc count */
-		} else if ( argv[i][0] >= '0' && argv[i][0] <= '9' ) {
-			count = strtoul(argv[i], NULL, 10);
-		} else {
-			FATAL_ERROR("Option not recognized: \"%s\".\n", argv[i]);
-		}
+	if ( argc < 3 || argc > 3 )
+		program_help();
+
+	if ( argv[1][0] >= '0' && argv[1][0] <= '9' )
+		count = strtoul(argv[1], NULL, 10);
+	else
+		FATAL_ERROR("Option not recognized: %s", argv[1]);
+
+	if ( argv[2][0] >= '0' && argv[2][0] <= '9' )
+		speed = strtoul(argv[2], NULL, 10);
+	else
+		FATAL_ERROR("Option not recognized: %s", argv[1]);
+
+	if ( argc == 4 ) {
+		if ( argv[3][0] >= '0' && argv[3][0] <= '9' )
+			 seed = strtoul(argv[3], NULL, 10);
+		else
+			FATAL_ERROR("Option not recognized: %s", argv[1]);
 	}
 
 #if CHECK_LIMITS
@@ -513,12 +549,12 @@ int main(int argc, char **argv) {
 	if ( count == 0 )
 		FATAL_ERROR("At least one player is required.\n");
 
-	DEBUG(SELF": Verbose mode enabled.\n");
-
-	printf("Starting %s with %zu processes.\n", argv[0], count);
+	atexit(release_all_resources);
 
 	/** Create shared data structure */
 	data = create_data(count);
+
+	data->parent_id = getpid();
 
 	/** Another for us */
 	data->semaphores = semget(IPC_PRIVATE, TOTAL_SEMAPHORE_COUNT, IPC_CREAT | 0600);
@@ -526,19 +562,21 @@ int main(int argc, char **argv) {
 	if ( data->semaphores == -1 )
 		FATAL_ERROR("Semaphore creation failed: %s\n", strerror(errno));
 
-	ret = PIST_inicio(count, speed, data->semaphores, data->library_data, 0);
+	ret = PIST_inicio(count, speed, data->semaphores, data->library_data, seed);
 
 	if ( ret == -1 )
 		FATAL_ERROR("Library initialization failed\n");
 
-	data->parent_id = getpid();
-
 	bind_parent_signals();
 
-	/** Set the first semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
-	semaphore_set_value(data->semaphores, 1, count);
-	/** Set the second one to zero */
-	semaphore_set_value(data->semaphores, 2, count);
+	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
+	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
+	/** Set the log to 1 */
+	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
+
+	LOG("Semaphores initialized: %d %d %d",
+			semaphore_get_value(data->semaphores, SEMAPHORE_READY),
+			semaphore_get_value(data->semaphores, SEMAPHORE_LOG));
 
 	/** Process creation */
 	for ( i = 0; i < count; ++i ) {
@@ -549,8 +587,6 @@ int main(int argc, char **argv) {
 			case -1:
 				perror("fork");
 				__dump();
-				kill_all();
-				release_data();
 				exit(1);
 			case 0:
 				/** We must ensure current_index is ok in child_proc */
@@ -564,12 +600,5 @@ int main(int argc, char **argv) {
 	while ( count-- )
 		waitpid(0, NULL, 0);
 
-	/** When game is over... */
-	ret = PIST_fin();
-	if ( ret == -1 )
-		DEBUG("Library termination failed\n");
-
-	kill_all();
-	release_data();
 	return 0;
 }
