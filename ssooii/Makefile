@@ -1,6 +1,7 @@
 CC := gcc
-CFLAGS := -Wall -Ilib
-
+INCLUDES := -Ilib -I/usr/include/GL
+LIBS := -lpthread -lglut -lGL -lGLU -lGLEW
+CFLAGS := -Wall $(INCLUDES)
 EXECUTABLE_C_FILES := $(wildcard *.c)
 LIB_C_FILES := $(wildcard lib/**/*.c)
 
@@ -21,14 +22,14 @@ clean:
 bin/%.o: %.c
 	@mkdir -p bin
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ $(LIBS)
 
 bin/%.o: lib/%.c
 	@mkdir -p bin
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ $(LIBS)
 
 target/%: bin/%.o $(LIB_OBJECT_FILES)
 	@mkdir -p target
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)

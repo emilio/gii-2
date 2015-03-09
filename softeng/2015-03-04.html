@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<h1 id="puede-un-sistema-de-la-informacion-coincidir-con-el-sistema-de-la-informacion-automatizado">¿Puede un sistema de la información coincidir con el sistema de la información automatizado?</h1>
+<p>Sí, sí que pueden coincidir.</p>
+<p>El sistema de información automatizado es en teoría un subconjunto del sistema de información global. No obstante, puede ser que nuestro sistema de la información de interés esté completamente automatizado, por ejemplo: Un recolector de ofertas de trabajo que las procese y las almacene de una gran cantidad de sitios diferentes.</p>
+<h1 id="sistema-de-la-informacion-en-una-universidad">Sistema de la información en una universidad</h1>
+<p><strong>Identifica en una universidad a qué se corresponderían los niveles de la pirámide de una estructura de un sistema de información y qué tipo de aplicaciones software serían necesarias para soportar las tareas</strong></p>
+<ul>
+<li><strong>Sistema de transacciones</strong>: Secretaría<br /></li>
+<li><strong>Dirección operativa</strong>: Decanato, delegaciones, coordinadores de grado, departamentos, conserjería (<em>reservar clases, etc</em>), profesores.<br /></li>
+<li><strong>Dirección Táctica</strong>: Consejos de departamento, coordinadores de grado.<br /></li>
+<li><strong>Dirección Estratégica</strong>: Vicerrectorado y rectorado (<strong>alta dirección</strong>).</li>
+</ul>
+<h2 id="aplicaciones-necesarias">Aplicaciones necesarias</h2>
+<h3 id="software-de-gestion-de-datos">Software de gestión de datos</h3>
+<p>Las aplicaciones que interactúen con los datos podrían estar juntadas en una con un sistema de permisos, o modularizada. Encontramos aquí:</p>
+<ul>
+<li>Gestión de datos de los alumnos<br /></li>
+<li>Gestión de personal<br /></li>
+<li>Registro de las matriculaciones, sus pagos...<br /></li>
+<li>Registro de notas al que tendrían acceso los profesores titulares de cada asignatura.<br /></li>
+<li>Gestión de facturas<br /></li>
+<li>Gestión de inventario<br /></li>
+<li><em>Nos habremos dejado alguna</em></li>
+</ul>
+<h3 id="software-de-analisis-de-datos">Software de análisis de datos</h3>
+<ul>
+<li>Resúmenes de las calificaciones medias, aprobados/suspensos por grado, etc.<br /></li>
+<li>Análisis del presupuesto: Estado de las cuentas, gastos mensuales o incluso semanales, ingresos nuevos por subvenciones o similar... De gran utilidad para detectar gastos extra no previstos.</li>
+</ul>
+<h3 id="software-de-mejora-de-la-productividad">Software de mejora de la productividad</h3>
+<ul>
+<li>Automatización de la corrección de los exámenes<br /></li>
+<li>Detección automatizada de copias en las prácticas</li>
+</ul>
+<h3 id="software-de-retroalimentacion">Software de retroalimentación</h3>
+<ul>
+<li>Encuestas sobre la calidad del profesorado, de la gestión... Para poder obtener opiniones del alumnado</li>
+</ul>
+<h1 id="ejemplos-del-uso-de-inteligencia-de-negocio.">Ejemplos del uso de inteligencia de negocio.</h1>
+<h2 id="ejemplo-1">Ejemplo 1</h2>
+<p>La compañía ACME S.A. basa sus ingresos en un producto digital que permite al usuario controlar todos sus gastos y sus ingresos.</p>
+<p>Usando los datos de uso estadísticos se detecta que uno de los módulos que en un principio creían que iba a ser de gran utilidad (el registro de las facturas) no está teniendo la acogida que esperaban.</p>
+<p>Gracias a las opiniones de los usuarios ven que es porque es muy tedioso tener que meter el identificador de la factura, la empresa y el importe a mano.</p>
+<p>Se decide cambiar la interfaz de usuario del módulo añadiendo un lector OCR, y se comprueba tras unos meses de funcionamiento, que el uso ha aumentado en un 60%.</p>
+<h2 id="ejemplo-2">Ejemplo 2</h2>
+<p>Google inc., tras ver los catastróficos datos de uso de su red social (<em>Google+</em>), toma una estrategia de forzar a loguear al usuario con ese sistema para un gran rango de sus otros productos.</p>
+<h2 id="ejemplo-3">Ejemplo 3</h2>
+<p>Banco Santander, tras revisar su contabilidad anual y ver sus más de cinco mil millones de beneficios, decide deshauciar a familias con hijos que no consiguen pagar su hipoteca.</p>
+<p>Un claro ejemplo de efectividad en el <em>Business Intelligence</em>, mejorando la imagen de marca y obteniendo beneficios incalculables y necesarios.</p>
+<h1 id="piramide-de-inteligencia-de-negocio">Pirámide de inteligencia de negocio</h1>
+<ul>
+<li><strong>Fuentes de datos</strong>: Para poder tomar buenas decisiones, necesitamos recabar cuantos más datos relevantes mejor. Estos son dependientes del negocio, pero algunos ejemplos pueden ser desde datos de uso de una aplicación, hasta datos de personal, facturas... Resumiendo, <strong>cualquier dato que pueda ser relevante a la hora de tomar una decisión</strong>.<br /></li>
+<li><strong>Data warehouse</strong>: Es necesario un sistema que integre toda esa información obtenida de diferentes fuentes, para poder realizar diferentes análisis sobre ella. Por lo general suele coincidir con una base de datos relacional, aunque ahora con el alza del <em>Big Data</em> son más frecuentes encontrar bases de datos no relacionales que puedan almacenar cualquier tipo de información en los registros sin tener que duplicarse en el resto de tuplas (ej: <em>MongoDB</em>).<br /></li>
+<li><strong>OLAP, MDA, Análisis estadístico</strong>: Estamos hablando de cantidades de datos muy importantes, así que la capacidad de procesarlos rápidamente y poder analizarlos estadísticamente es vital (ver: <a href="http://www.r-project.org/">R lang</a>).<br /></li>
+<li><strong>Minería de Datos</strong>: Consiste en descubrir determinados patrones en conjuntos grandes de datos, para así poder utilizarlos, o detectar anomalías en esos patrones.<br /></li>
+<li><strong>Presentación de datos</strong>: Una vez hayamos completado las fases anteriores del proceso, es necesario presentar esos datos obtenidos a de una manera que los permita analizar rápidamente desde un punto de vista empresarial para tomar decisiones.<br /></li>
+<li><strong>Toma de decisiones</strong>: La parte final, en la que en base a todos los pasos anteriormente descritos se llega a una decisión de negocio.</li>
+</ul>
+</body>
+</html>

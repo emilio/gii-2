@@ -1,0 +1,172 @@
+CREATE INDEX test ON univ.lector(univ.provincia)
+                                 *
+ERROR at line 1:
+ORA-00904: "UNIV"."PROVINCIA": invalid identifier 
+
+
+CREATE VIEW active AS SELECT isbn, cod_lector FROM univ.prestamo WHERE fecha_dev IS NULL
+            *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+CREATE VIEW loaned_books AS SELECT isbn, titulo FROM univ.libro WHERE isbn IN (SELECT DISTINCT isbn FROM univ.prestamo WHERE fecha_dev IS NULL)
+            *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5023024    1984                                                                 
+5023048    ABRAZA LA OSCURIDAD                                                  
+5023096    AGUJEROS NEGROS Y PEQUENOS UNIVERSOS                                 
+5023120    AMORES ADULTEROS                                                     
+5023132    ANA KARENINA                                                         
+5023144    ANGELES Y DEMONIOS                                                   
+5023156    APOSTILLAS A EL NOMBRE DE LA ROSA                                    
+5023168    ARTE DE LAS PUTAS                                                    
+5023216    CANDIDO O EL OPTIMISMO                                               
+5023240    CLARA LA LOCA                                                        
+5023252    COBRA                                                                
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5023276    COMO AGUA PARA CHOCOLATE                                             
+5023300    CRONICA DE UN MAL AMIGO                                              
+5023312    CUENTOS COMPLETOS                                                    
+5023336    CUENTOS PARA PENSAR                                                  
+5023372    DEL AMOR Y OTROS DEMONIOS                                            
+5023384    DEMIAN                                                               
+5023396    DIAS Y NOCHE DE AMOR Y DE GUERRA                                     
+5023444    ECCE HOMO                                                            
+5023468    EL AMANTE                                                            
+5023480    EL ANATOMISTA                                                        
+5023504    EL ANTICRISTO                                                        
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5023516    EL ARTE DE AMAR                                                      
+5023540    EL CAMINO                                                            
+5023552    EL CANTO ERRANTE                                                     
+5023576    EL CODIGO DA VINCI                                                   
+5023588    EL CONVIVIO                                                          
+5023600    EL CORAZON DE LAS TINIEBLAS                                          
+5023636    EL DECAMERON                                                         
+5023648    EL DENARIO DEL SUENO                                                 
+5023660    EL DIARIO DE ANA FRANK                                               
+5023696    EL ESTUDIANTE DE SALAMANCA                                           
+5023708    EL EXTRANJERO                                                        
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5023720    EL FANTASMA DE CANTERVILLE                                           
+5023732    EL FUEGO DE CADA DIA                                                 
+5023744    EL HERRERO DE WOOTTON MAYOR                                          
+5023768    EL HOMBRE ACECHA                                                     
+5023780    EL HOMBRE BICENTENARIO                                               
+5023792    EL HOMBRE DE MARZO                                                   
+5023804    EL HOMBRE Y SU POESIA                                                
+5023828    EL INFORME DE BRODIE                                                 
+5023840    EL JARDIN DE LOS CEREZOS                                             
+5023852    EL LIBRO DE LA SELVA                                                 
+5023864    EL LIBRO DE LOS ABRAZOS                                              
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5023876    EL LOBO ESTEPARIO                                                    
+5023888    EL MAL DE LA MUERTE                                                  
+5023936    EL OJO DEL PODER                                                     
+5023972    EL PENDULO DE FOUCAULT                                               
+5023984    EL PERFUME                                                           
+5024020    EL PORVENIR DE UNA ILUSION                                           
+5024104    EL REY LEAR                                                          
+5024116    EL SENOR DE LOS ANILLOS                                              
+5024152    EL SITIO DE SEBASTOPOL                                               
+5024224    EL TIRO DE GRACIA                                                    
+5024332    ENTRE MENTIRA E IRONIA                                               
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5024356    ESTUPIDOS HOMBRES BLANCOS                                            
+5024368    ETICA A NICOMACO                                                     
+5024380    FAHRENHEIT 451                                                       
+5024428    GUERRA Y PAZ                                                         
+5024452    HAMLET                                                               
+5024548    LA CASA DE BERNARDA ALBA                                             
+5024596    LA CHICA QUE SONABA CON UNA CERILLA Y UN BIDON DE GASOLINA           
+5024620    LA CIUDAD DE LAS BESTIAS                                             
+5024632    LA COMUNIDAD DEL ANILLO                                              
+5024692    LA DOCTORA COLE                                                      
+5024704    LA ELEGANCIA DEL ERIZO                                               
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5024716    LA ENEIDA                                                            
+5024728    LA FAMILIA DEL VOURDAKAK                                             
+5024740    LA FORTALEZA DIGITAL                                                 
+5024752    LA GITANILLA Y LA ILUSTRE FREGONA                                    
+5024764    LA GUERRA DE LA CERVEZA                                              
+5024776    LA GUERRA DE TROYA                                                   
+5024872    LA ODISEA                                                            
+5024896    LA OTRA VUELTA DE TUERCA                                             
+5024908    LA PERLA                                                             
+5024920    LA PESTE                                                             
+5024932    LA REBELION DE LOS TARTAROS                                          
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5024944    LA REINA EN EL PALACIO DE LAS CORRIENTES DE AIRE                     
+5025040    LABRADOR DE MAS AIRE                                                 
+5025088    LAS LEGIONES MALDITAS                                                
+5025100    LAS LIBRETAS DE JOSE                                                 
+5025112    LAS NIEVES DEL KILIMANJARO                                           
+5025136    LAS VENAS ABIERTAS DE AMERICA LATINA                                 
+5025148    LEYENDAS                                                             
+5025208    LOS ESCRITORES IRREVERENTES                                          
+5025244    LOS PILARES DE LA TIERRA                                             
+5025256    LOS VERSOS SATANICOS                                                 
+5025268    MANUAL DE PERDEDORES                                                 
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5025292    MAS PLATON MENOS PROZAC                                              
+5025304    MEMORIAS DE ADRIANO                                                  
+5025316    MI PAIS INVENTADO                                                    
+5025340    MONSTER HIGH                                                         
+5025352    PALE DEMON                                                           
+5025364    PANDORA                                                              
+5025376    PARA SABER Y CONTAR                                                  
+5025388    PAULA                                                                
+5025436    POEMAS DE AMOR                                                       
+5025460    POEMAS SOCIALES DE GUERRA Y MUERTE                                   
+5025472    POEMAS Y ANTIPOEMAS                                                  
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5025496    POESIA COMPLETA                                                      
+5025520    POESIAS                                                              
+5025544    PRINCIPIOS ELEMENTALES                                               
+5025556    PROHIBIDO PENSAR                                                     
+5025604    RETRATO EN SEPIA                                                     
+5025616    RINCONCETE Y CORTADILLO                                              
+5025652    SAN MIGUEL BUENO, MARTIR                                             
+5025664    SEIS PERSONAJES EN BUSCA DE AUTOR                                    
+5025736    TIO VAINA                                                            
+5025748    TRABAJO ASALARIADO Y CAPITAL                                         
+5025760    UN GOLPE A LA PUERTA DEL CORTIJO                                     
+
+ISBN       TITULO                                                               
+---------- ------------------------------------------------------------         
+5025808    YO ACUSO                                                             
+5025820    YO EL SUPREMO                                                        
+
+112 rows selected.
+
+CREATE VIEW sucursal_3 AS SELECT l.titulo, l.isbn, d.num_ejemplares, d.num_disponibles FROM univ.dispone d, univ.libro l WHERE cod_suc = 3 AND d.isbn = l.isbn
+            *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# @author Emilio Cobos <emiliocobos@usal.es>
+# @license GPLv3 or greater
+#
+
 SSH_USER="i0912324@olivo.usal.es"
 
 USE_TRANSACTION=0
@@ -10,6 +15,7 @@ if [ "$1" == "" ]; then
 fi
 
 SOURCE_FILE="$1";
+
 if [ "$2" == "" ];then
 	DEST_FILE="$SOURCE_FILE.results"
 else
