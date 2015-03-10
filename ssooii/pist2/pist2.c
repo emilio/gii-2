@@ -41,8 +41,8 @@ union semun {
 #ifdef __GNUC__
 #	if __GNUC__ < 4 /** Encina... -.- */
 #       include <sys/atomic.h>
-		/** Assume it's wordsize  */
-#		define ATOMIC_DECREMENT(var) (atomic_dec_32_nv(var))
+		/** Assume it's 2 bytes (short size)  */
+#		define ATOMIC_DECREMENT(var) (atomic_dec_16_nv(var))
 #	else
 #		define ATOMIC_DECREMENT(var) (__sync_sub_and_fetch(var, 1))
 #	endif
@@ -70,8 +70,7 @@ union semun {
 #define TOTAL_SEMAPHORE_COUNT 4
 #define SEMAPHORE_ALL_SHOOTED 1
 #define SEMAPHORE_ALL_RECEIVED 2
-/** We reuse this one */
-#define SEMAPHORE_READY 2
+#define SEMAPHORE_READY 2 /** We reuse this one */
 #define SEMAPHORE_LOG 3
 
 /** Error */
@@ -176,13 +175,6 @@ GameData * manage_data(DataActionType, size_t);
 	} \
 } while (0)
 
-#define EACH_WITH_INDEX(arr, length, item, index, ...) do { \
-	for ( index = 0; index < length; ++index ) { \
-		item = &arr[index]; \
-		__VA_ARGS__ \
-	} \
-} while (0)
-
 /** Another helper. Instead of signal() (implementation dependent), we use sigaction */
 #define BIND_TO(signal, handler) do { \
 	struct sigaction action; \
@@ -216,7 +208,8 @@ int semaphore_get_value(semaphore_t sem, unsigned short index) {
 	return ret;
 }
 
-int semaphore_change_value(semaphore_t sem, unsigned short index, unsigned value) {
+/** Change the value atomically: increment or decrement */
+int semaphore_change_value(semaphore_t sem, unsigned short index, short value) {
 	static struct sembuf buff = { 0, 0, 0 };
 	buff.sem_num = index;
 	buff.sem_op = value;
@@ -227,6 +220,7 @@ int semaphore_change_value(semaphore_t sem, unsigned short index, unsigned value
 	return ret;
 }
 
+/** Wait zero */
 int semaphore_wait_zero(semaphore_t sem, unsigned short index) {
 	return semaphore_change_value(sem, index, 0);
 }
@@ -262,11 +256,11 @@ void bind_parent_signals();
 /** Bind signals to children proc */
 void bind_children_signals();
 
+/** Check if current proc is the coordinator of this round */
+bool is_current_proc_coordinator();
+
 /** Get current proc */
 Process * current_proc();
-
-/** Triggers when child is ready */
-void child_ready();
 
 /** Child process logic, mostly wait for signals */
 int child_proc(char);
@@ -287,7 +281,7 @@ void __dump() {
 		printf("\t%d", semaphore_get_value(data->semaphores, i));
 	printf("\n");
 
-	EACH_WITH_INDEX(data->children, data->process_count, p, i,
+	EACH(data->children, data->process_count, p,
 		printf("{ "PID_T_FORMAT", %d}\t", p->id, p->status);
 	);
 	printf("\n");
