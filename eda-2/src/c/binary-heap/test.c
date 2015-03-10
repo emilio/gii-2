@@ -32,6 +32,10 @@ int main(int argc, char** argv) {
 
 	print_b_heap(heap);
 
+	b_heap_heapsorted(heap);
+
+	print_b_heap(heap);
+
 	b_heap_destroy(heap);
 	return 0;
 }

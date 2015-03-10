@@ -50,8 +50,6 @@ void b_heap_insert(b_heap_t* heap, b_heap_value_t value, b_heap_priority_t prior
 	heap->elements[heap->size].priority = priority;
 
 	b_heap_heapify_to(heap, heap->size++);
-
-
 }
 
 void b_heap_heapify_to(b_heap_t* heap, size_t i) {
@@ -98,6 +96,7 @@ void b_heap_heapify_from(b_heap_t* heap, size_t i) {
 	}
 }
 
+/** Heapify: Ensure we meet the conditions */
 void b_heap_heapify(b_heap_t* heap) {
 	size_t elements = heap->size / 2;
 
@@ -105,3 +104,87 @@ void b_heap_heapify(b_heap_t* heap) {
 		b_heap_heapify_from(heap, elements);
 }
 
+/** Set priority of element at the given index */
+void b_heap_set_priority(b_heap_t* heap, size_t index, b_heap_priority_t new_priority) {
+	b_heap_priority_t old_priority;
+
+	assert(index < heap->size);
+
+	old_priority = heap->elements[index].priority;
+	heap->elements[index].priority = new_priority;
+
+	if ( new_priority < old_priority )
+		b_heap_heapify_to(heap, index);
+	else
+		b_heap_heapify_from(heap, index);
+}
+
+/** Change priority of element at the given index */
+void b_heap_change_priority(b_heap_t* heap, size_t index, b_heap_priority_t delta) {
+	return b_heap_set_priority(heap, index, b_heap_get_priority(heap, index) + delta);
+}
+
+/** Note before using this we must store heap.size! */
+b_heap_value_t* b_heap_sort(b_heap_t* heap) {
+	b_heap_value_t* ret = (b_heap_value_t*) malloc(b_heap_size(heap) * sizeof(b_heap_value_t));
+	size_t i = 0;
+
+	while ( ! b_heap_empty(heap) ) {
+		ret[i++] = b_heap_front(heap);
+		b_heap_pop(heap);
+	}
+
+	return ret;
+}
+
+/** Return the ordered heap: We extract as before, but with priority, and later reinsert */
+void b_heap_heapsorted(b_heap_t* heap) {
+	b_heap_tuple_t* temp = (b_heap_tuple_t*) malloc(b_heap_size(heap) * sizeof(b_heap_tuple_t));
+	size_t size = b_heap_size(heap),
+		   i = 0;
+
+	while ( ! b_heap_empty(heap) ) {
+		temp[i++] = b_heap_front_tuple(heap);
+		b_heap_pop(heap);
+	}
+
+	/** Reinsert so they will be in order */
+	for ( i = 0; i < size; ++i )
+		b_heap_insert(heap, temp[i].value, temp[i].priority);
+
+	if ( temp != NULL ) // Could happen if size == 0
+		free(temp);
+}
+
+/** Checks if element at the given index meets the condition with their childs */
+int b_heap_has_valid_direct_desdendants(b_heap_t* heap, size_t index) {
+	size_t left_index,
+		   right_index;
+
+	b_heap_priority_t priority = b_heap_get_priority(heap, index);
+	left_index = B_HEAP_LEFT_INDEX(index);
+	right_index = left_index + 1;
+
+	/** If we have left index and it's invalid... */
+	if ( left_index < heap->size )
+		if ( priority > b_heap_get_priority(heap, left_index)  )
+			return 0;
+
+	/** The same with right */
+	if ( right_index < heap->size )
+		if ( priority > b_heap_get_priority(heap, right_index) )
+			return 0;
+
+	return 1;
+}
+
+/** Check if heap is not ill formed */
+int b_heap_is_valid(b_heap_t* heap) {
+	size_t i;
+
+	for ( i = 0; i < heap->size; ++i )
+		if ( ! b_heap_has_valid_direct_desdendants(heap, i) )
+			return 0;
+
+	return 1;
+}
