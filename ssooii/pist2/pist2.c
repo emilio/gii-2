@@ -66,15 +66,13 @@ union semun {
  *   - SEMAPHORE_READY is used at the beginning and is 0 when all processes are ready
  *        We can't use this semaphore later, since one process can lock it, and without
  *        waiting for zero, the rest wake up
- *   - SEMAPHORE_ROUND_PREPARED is used as condition variable: initially set to 0,
- *	      the coordinator process sets the round up and unlocks it
  */
-#define TOTAL_SEMAPHORE_COUNT 6
+#define TOTAL_SEMAPHORE_COUNT 4
 #define SEMAPHORE_ALL_SHOOTED 1
 #define SEMAPHORE_ALL_RECEIVED 2
-#define SEMAPHORE_ROUND_PREPARED 3
-#define SEMAPHORE_READY 4
-#define SEMAPHORE_LOG 5
+/** We reuse this one */
+#define SEMAPHORE_READY 2
+#define SEMAPHORE_LOG 3
 
 /** Error */
 #define ERROR(str, ...) do { \
@@ -463,13 +461,6 @@ int child_proc(char lib_id) {
 
 	/** S1 = 0; S2 = 0; */
 	while ( 1 ) {
-		/**
-		 * Wait until semaphore 2 is zero (everyone has died in the previous round)
-		 * This wait is global because we can't choose a coordinator until everyone is
-		 * dead
-		 */
-		semaphore_wait_zero(data->semaphores, 2);
-
 		/** Check if I'm the coordinator */
 		im_coordinator = is_current_proc_coordinator();
 
@@ -527,6 +518,14 @@ int child_proc(char lib_id) {
 		/** Die if round over */
 		if ( me->status & PID_STATUS_DEAD )
 			exit(0);
+
+		/**
+		 * Wait until semaphore 2 is zero (everyone has died in the previous round)
+		 * This wait is global because we can't choose a coordinator until everyone is
+		 * dead
+		 */
+		semaphore_wait_zero(data->semaphores, 2);
+
 	}
 
 	return 0;
@@ -595,8 +594,6 @@ int main(int argc, char **argv) {
 	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
 	/** Set the log to 1 */
 	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
-	semaphore_set_value(data->semaphores, 1, 0);
-	semaphore_set_value(data->semaphores, 2, 0);
 
 	LOG("Semaphores initialized: %d %d",
 			semaphore_get_value(data->semaphores, SEMAPHORE_READY),
