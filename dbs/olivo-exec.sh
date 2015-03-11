@@ -38,9 +38,9 @@ BEFORE_CONTENT="";
 AFTER_CONTENT="";
 
 if [ $USE_TRANSACTION -eq 1 ];then
-	AFTER_CONTENT="COMMIT";
+	AFTER_CONTENT="COMMIT;";
 else
-	BEFORE_CONTENT="SET AUTOCOMMIT ON"
+	BEFORE_CONTENT="SET AUTOCOMMIT ON;"
 fi
 
 ssh "$SSH_USER" << EOF
@@ -51,7 +51,7 @@ ssh "$SSH_USER" << EOF
 	cat __tmp >> __tmp.sql
 	echo "$AFTER_CONTENT" >> __tmp.sql
 	echo "SPOOL OFF;" >> __tmp.sql
-	echo "EXIT" >> __tmp.sql
+	echo "EXIT;" >> __tmp.sql
 
 	rm __tmp
 	sqlplus / @__tmp.sql
