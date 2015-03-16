@@ -1,0 +1,38 @@
+<h2 id="modelo-de-proceso">Modelo de proceso</h2>
+<p>Representación abstarcta del proceso de desarrollo de software.</p>
+<p>Es una plantilla para seguir lo que se desea hacer <strong>a grandes rasgos</strong>, sin entrar en detalles.</p>
+<p>Son necesarios para poder tener definido el proceso de desarrollo.</p>
+<h2 id="ciclos-secuenciales">Ciclos secuenciales</h2>
+<p>Los ciclos secuenciales (Análisis -&gt; Diseño -&gt; Implementación -&gt; Prueba -&gt; Implantación) no son realistas para el desarrollo de software, porque no se tiene en cuenta la inestabilidad de todo producto de software: <strong>Los requisitos y las tecnologías cambian, se pierde información en el proceso de análisis de requisitos</strong>...</p>
+<p>La <strong>rigidez y secuencialidad</strong> que presentan, heredada de los procesos de fabricación de productos físicos, no se adapta de forma adecuada a un desarrollo de software: No contempla revisar requisitos, ni cambiar el diseño para implementar una nueva funcionalidad...</p>
+<p><strong>La comunicación entre las diferentes fases de desarrollo es fundamental</strong> para el buen advenimiento de un producto, y <strong>estos modelos no la contemplan</strong>.</p>
+<p>No obstante para desarrollos muy estables, con requisitos muy marcados, puede ser un modelo viable.</p>
+<h2 id="ciclos-en-cascada">Ciclos en cascada</h2>
+<h3 id="apoyo-a-los-gestores">Apoyo a los gestores</h3>
+<p>Los ciclos en cascada son muchos más beneficioso para un gestor, porque al ser secuencial la planificación es muchísimo más sencilla, facilitando su trabajo.</p>
+<h3 id="orientacion-a-la-fabricacion-y-no-a-la-resolucion-de-problemas">Orientación a la fabricación y no a la resolución de problemas</h3>
+<p>Los ciclos en cascada tienen una definición en la que lo que se ha avanzado sobre el producto ya no puede variar. Este modelo es heredado (por cuestiones temporales entre otras cosas, ya que este tipo de modelos se plantearon en los años 70) de la fabricación de productos físicos.</p>
+<p>Para los productos físicos un desarrollo lineal tiene sentido: el coste de fabricación hace que un producto ya diseñado sea difícilmente modificado durante su ciclo de vida, es más fácil reemplazarlo.</p>
+<p>En el desarrollo de software, donde el verdadero coste es el diseño, este modelo no es el ideal: El <strong>desarrollo de un producto de software</strong>, a cualquier escala, está <strong>ligado a los errores y a los cambios, ya que los problemas que soluciona puede cambiar</strong>. Un desarrollo secuencial no permite corregir fallos o cambiar el funcionamiento de forma fácil.</p>
+<h2 id="implicaciones-de-un-proceso-rigido-sobre-el-tiempo-de-ciclo">Implicaciones de un proceso rígido sobre el tiempo de ciclo</h2>
+<p>Un proceso rígido conlleva, para que el producto final sea decente, que las diferentes fases del ciclo lleven más tiempo, ya que no se va a poder volver atrás, y que <strong>la explotación del producto no se de hasta el final del desarrollo</strong>.</p>
+<p>Además de los inconvenientes provocados por la naturaleza cambiante del software: Estos procesos no tienen la capacidad de replantearse una de las fases de forma fácil, lo que hace que si algún requisito cambia conlleve una penalización de tiempo importante.</p>
+<h2 id="modelo-en-cascada">Modelo en cascada</h2>
+<p>La característica principal de los procesos lineales como el modelo en cascada es la <strong>secuencialidad de sus fases</strong>: Tras terminar una y revisar, <strong>se pasa a la siguiente irrevocablemente</strong>: No hay retroalimentación entre ellas.</p>
+<h2 id="modelo-en-v">Modelo en V</h2>
+<p>El modelo en V se caracteriza por una <strong>implementación descendente, implantación ascendente</strong></p>
+<p>La implantación ascendente del modelo en V significa que una vez has llegado una impementación base, es necesario comprobar todos los elementos <strong>del menor al mayor nivel de abstracción</strong> (<em>ascendente</em>) hasta llegar a la implantación final.</p>
+<p>Esto hace que si existe algún problema con los requisitos, que es lo de mayor abstración, lo encuentras al final del proceso, a pesar de que sea de los problemas más difíciles de solucionar. Esto puede provocar desde un alargamiento masivo del tiempo de desarrollo, o incluso peor, un desacuerdo irreversible con el cliente que pueda conllevar hasta problemas legales.</p>
+<h3 id="mejora-sobre-el-modelo-en-cascada">Mejora sobre el Modelo en cascada</h3>
+<p>El modelo en V <strong>empieza a tener en cuenta que el proceso de desarrollo no es lineal</strong>, aportando cierta iteratividad.</p>
+<p>El enfoque que le da no es realista, pero es un comienzo hacia dejar atrás el modelo en cascada.</p>
+<h2 id="prototipos-deshechables">Prototipos deshechables</h2>
+<h3 id="mejora-frente-al-modelo-en-cascada">Mejora frente al modelo en cascada</h3>
+<p>El hecho de que tengas un prototipo previo al desarrollo final, ataca el problema de la <strong>rigidez</strong>: Teniendo una previsualización del producto consigues tener unos requisitos más adecuados.</p>
+<p>De todas formas conlleva otros problemas, como el hecho de que el cliente ve mucho más fácil el desarrollo del proyecto (<strong>no entiende que el prototipo sea deshechable</strong>), o el tiempo que lleva hacer un prototipo no útil al final.</p>
+<h3 id="existe-una-mejora-del-tiempo-de-ciclo">¿Existe una mejora del tiempo de ciclo?</h3>
+<p>No mejora el problema del tiempo de ciclo de desarrollo. Al final, <strong>tras el prototipado se deriva en un ciclo lineal</strong>. No obstante previene problemas que los ciclos rígidos sí tienen, y que suelen conllevar un alargamiento del tiempo de ciclo.</p>
+<h3 id="acaban-con-el-caracter-monolitico-del-modelo-en-cascada">¿Acaban con el carácter monolítico del modelo en cascada?</h3>
+<p>Para nada, el proceso sigue siendo monolítico: <strong>El proceso sigue siendo lineal y el producto no se explota hasta el final del desarrollo</strong>.</p>
+<h3 id="el-prototipado-como-subproceso">El prototipado como subproceso</h3>
+<p>El prototipado no deja de ser parte de un proceso de desarrollo mayor. Esto hace que <strong>pueda ser considerado como un subproceso dentro del desarrollo completo</strong>.</p>
