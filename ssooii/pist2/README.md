@@ -1,25 +1,30 @@
 # Round sync model
 
 ```ruby
-S1 = S2 = 0
-rounds = 0
 n = alive count
+S1 = 0
+S2 = n
+
+set status = ready
+
+W(S2)
+W0(S2) // Wait for everyone to be ready
+
+rounds = 0
 loop do
 	set coordinator
 	if coordinator
-		INC(S1, n*2) // This instead S1 = 2 * n prevents ignore of the waits below
+		INC(S1, n) // This instead S1 = n prevents ignore of the waits below
 	end
-	// We make two waits: one for preventing early start and one to mark the end
-	W(S1)
 
 	...shoot...
 
 	W(S1)
+	W0(S1) // Ensure everyone has shooted
 	if coordinator
-		W0(S1) // Ensure everyone has shooted
 		INC(S2, n*2); // Allow everyone to receive shots
 	end
-	// Same strategy here
+	// Same strategy here, but this lock prevents them to reach the bottom before the coordinator has set the value
 	W(S2)
 
 	...check for shots...
@@ -30,7 +35,6 @@ loop do
 		die
 	end
 
-	// This W0 is global, not as the previous one
 	// We must ensure everyone has died to check for a coordinator
 	W0(S2)
 end

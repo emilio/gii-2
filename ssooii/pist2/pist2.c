@@ -57,7 +57,7 @@ union semun {
 #define DEFAULT_SPEED 0
 
 /**
- * One for the library, five for me
+ * One for the library, four for me
  *
  * Semaphore overview:
  *   - SEMAPHORE_READY to wait for everybody
@@ -67,11 +67,11 @@ union semun {
  *        We can't use this semaphore later, since one process can lock it, and without
  *        waiting for zero, the rest wake up
  */
-#define TOTAL_SEMAPHORE_COUNT 4
+#define TOTAL_SEMAPHORE_COUNT 5
 #define SEMAPHORE_ALL_SHOOTED 1
 #define SEMAPHORE_ALL_RECEIVED 2
-#define SEMAPHORE_READY 2 /** We reuse this one */
-#define SEMAPHORE_LOG 3
+#define SEMAPHORE_READY 3
+#define SEMAPHORE_LOG 4
 
 /** Error */
 #define ERROR(str, ...) do { \
@@ -465,10 +465,9 @@ int child_proc(char lib_id) {
 			data->rounds++;
 			LOG("Round: %d, alive: %hu", data->rounds, data->alive_count);
 
-			/** Increment semaphore 1 value two times alive_count */
-			semaphore_change_value(data->semaphores, 1, data->alive_count * 2); // Allow everyone to shoot
+			/** Increment semaphore 1 value alive_count times */
+			semaphore_change_value(data->semaphores, 1, data->alive_count); // Allow everyone to shoot
 		}
-		semaphore_lock(data->semaphores, 1);
 		LOG("Starting to shoot");
 
 		target = PIST_vIctima();
@@ -477,7 +476,6 @@ int child_proc(char lib_id) {
 			FATAL_ERROR("This shit blew up\n");
 
 		/** Mark the target as shot, equivalent to send the "DEAD" message */
-		// me->status |= PID_STATUS_SHOT;
 		data->children[target - 'A'].status |= PID_STATUS_DEAD_THIS_ROUND;
 
 		if ( PIST_disparar(target) == -1 )
@@ -486,12 +484,15 @@ int child_proc(char lib_id) {
 		semaphore_lock(data->semaphores, 1);
 		LOG("Shot to %c", target);
 
+		/** Wait for everyone to shoot */
+		semaphore_wait_zero(data->semaphores, 1);
+
 		if ( im_coordinator ) {
-			/** We could wait with every process, but it's not required */
-			semaphore_wait_zero(data->semaphores, 1);
-			/** When everyone has shooted, allow to receive */
+			/** When everyone has shooted, allow to receive, this has to be two times alive_count because they must be locked if everyone hasn't stopped */
 			semaphore_change_value(data->semaphores, 2, data->alive_count * 2);
 		}
+
+		/** Without this lock, someone can shoot, reach the bottom, and start shooting again, or get its status corrupted */
 		semaphore_lock(data->semaphores, 2);
 
 		/** If we have received a shot, mark as dead, else... we're ready */
@@ -509,10 +510,6 @@ int child_proc(char lib_id) {
 
 		LOG("Semaphore 2 value: %zu", semaphore_get_value(data->semaphores, 2));
 
-		/** Die if round over */
-		if ( me->status & PID_STATUS_DEAD )
-			exit(0);
-
 		/**
 		 * Wait until semaphore 2 is zero (everyone has died in the previous round)
 		 * This wait is global because we can't choose a coordinator until everyone is
@@ -520,6 +517,9 @@ int child_proc(char lib_id) {
 		 */
 		semaphore_wait_zero(data->semaphores, 2);
 
+		/** Die if round over */
+		if ( me->status & PID_STATUS_DEAD )
+			exit(0);
 	}
 
 	return 0;
