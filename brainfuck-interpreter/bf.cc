@@ -3,7 +3,7 @@
 #include <stack>
 #include <fstream>
 #define STACK_SIZE 30000
-
+#define DEAD_CODE_LIMIT 100
 typedef unsigned char byte;
 
 enum class State {
@@ -100,5 +100,11 @@ int main(int argc, char** argv) {
 		}
 
 		current_token_index++;
+
+		/** Dead code elimination */
+		if ( current_token_index > DEAD_CODE_LIMIT && entry_points.empty() ) {
+			tokens.clear();
+			current_token_index = 0;
+		}
 	}
 }
