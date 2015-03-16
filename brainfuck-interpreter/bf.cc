@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 			case ',':
 				stack[pointer] = getchar();
 				fflush(stdin);
-				std::cerr << "Read: " << static_cast<int>(stack[pointer]) << std::endl;
+				// std::cerr << "Read: " << static_cast<int>(stack[pointer]) << std::endl;
 				break;
 			case '[':
 				entry_points.push(current_token_index);
