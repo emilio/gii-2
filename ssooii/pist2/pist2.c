@@ -67,11 +67,11 @@ union semun {
  *        We can't use this semaphore later, since one process can lock it, and without
  *        waiting for zero, the rest wake up
  */
-#define TOTAL_SEMAPHORE_COUNT 5
+#define TOTAL_SEMAPHORE_COUNT 4
 #define SEMAPHORE_ALL_SHOOTED 1
 #define SEMAPHORE_ALL_RECEIVED 2
-#define SEMAPHORE_READY 3
-#define SEMAPHORE_LOG 4
+#define SEMAPHORE_READY 2 // Reused
+#define SEMAPHORE_LOG 3
 
 /** Error */
 #define ERROR(str, ...) do { \
