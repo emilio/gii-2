@@ -92,12 +92,12 @@ union semun {
 #define LOG_PATH "pist2.log"
 #define LOG(msg, ...) do { \
 	GameData* data = get_data(); \
-	semaphore_lock(data->semaphores, SEMAPHORE_LOG); \
+	semaphore_wait(data->semaphores, SEMAPHORE_LOG); \
 	if ( fseek(data->log, 0, SEEK_END) > -1 ) {  \
 		fprintf(data->log, "("PID_T_FORMAT") "msg"\n", getpid(), ##__VA_ARGS__); \
 		fflush(data->log); \
 	} \
-	semaphore_unlock(data->semaphores, SEMAPHORE_LOG); \
+	semaphore_signal(data->semaphores, SEMAPHORE_LOG); \
 } while (0)
 
 #define LIMIT_MIN 3
@@ -185,6 +185,29 @@ GameData * manage_data(DataActionType, size_t);
 	sigaction(signal, &action, NULL); \
 } while (0)
 
+
+/** Debugging and resource management */
+void __dump();
+void kill_all();
+void sig_exit(int);
+void release_all_data();
+int semaphore_set_value(semaphore_t sem, unsigned short index, int val);
+int semaphore_get_value(semaphore_t sem, unsigned short index);
+int semaphore_change_value(semaphore_t sem, unsigned short index, short value);
+int semaphore_wait_zero(semaphore_t sem, unsigned short index);
+int semaphore_wait(semaphore_t sem, unsigned short index);
+int semaphore_signal(semaphore_t sem, unsigned short index);
+
+/** Utilities */
+void program_help();
+Process * current_proc();
+
+/** Game logic */
+void bind_parent_signals();
+void bind_children_signals();
+bool is_current_proc_coordinator();
+int child_proc(char);
+
 /** Main semaphore utilities */
 int semaphore_set_value(semaphore_t sem, unsigned short index, int val) {
 	union semun param;
@@ -216,57 +239,21 @@ int semaphore_change_value(semaphore_t sem, unsigned short index, short value) {
 
 	int ret = semop(sem, &buff, 1);
 	if ( ret == -1 )
-		FATAL_ERROR("semaphore_lock: %s", strerror(errno));
+		FATAL_ERROR("semaphore_wait: %s", strerror(errno));
 	return ret;
 }
 
-/** Wait zero */
 int semaphore_wait_zero(semaphore_t sem, unsigned short index) {
 	return semaphore_change_value(sem, index, 0);
 }
 
-/** Equivalent to `wait` */
-int semaphore_lock(semaphore_t sem, unsigned short index) {
+int semaphore_wait(semaphore_t sem, unsigned short index) {
 	return semaphore_change_value(sem, index, -1);
 }
 
-/** Equivalent to `signal` */
-int semaphore_unlock(semaphore_t sem, unsigned short index) {
+int semaphore_signal(semaphore_t sem, unsigned short index) {
 	return semaphore_change_value(sem, index, +1);
 }
-
-/** Empty signal handler for resuming (empty) */
-void resume(int s) {};
-
-/** Dump data */
-void __dump();
-
-/** Display program help */
-void program_help();
-
-/** Kill all pending processes */
-void kill_all();
-
-/** Catch sigterm signal, kill everything */
-void parent_sigterm_catch(int);
-
-/** Bind signals to parent proc only*/
-void bind_parent_signals();
-
-/** Bind signals to children proc */
-void bind_children_signals();
-
-/** Check if current proc is the coordinator of this round */
-bool is_current_proc_coordinator();
-
-/** Get current proc */
-Process * current_proc();
-
-/** Child process logic, mostly wait for signals */
-int child_proc(char);
-
-/** Parent process logic */
-int parent_proc();
 
 /** Dump data */
 void __dump() {
@@ -274,22 +261,22 @@ void __dump() {
 	size_t i;
 	Process *p;
 
-	printf("\nDump:\n");
-	printf("Alive count: %hu\n", data->alive_count);
-	printf("Semaphores:\n");
+	fprintf(stderr, "\nDump:\n");
+	fprintf(stderr, "Alive count: %hu\n", data->alive_count);
+	fprintf(stderr, "Semaphores:\n");
 	for ( i = 0; i < TOTAL_SEMAPHORE_COUNT; ++i )
-		printf("\t%d", semaphore_get_value(data->semaphores, i));
-	printf("\n");
+		fprintf(stderr, "\t%d", semaphore_get_value(data->semaphores, i));
+	fprintf(stderr, "\n");
 
 	EACH(data->children, data->process_count, p,
-		printf("{ "PID_T_FORMAT", %d}\t", p->id, p->status);
+		fprintf(stderr, "{ "PID_T_FORMAT", %d}\t", p->id, p->status);
 	);
-	printf("\n");
+	fprintf(stderr, "\n");
 }
 
 /** Program help */
 void program_help() {
-	printf("Usage: "SELF" <count> <speed> <seed>\n");
+	fprintf(stderr, "Usage: "SELF" <count> <speed> <seed>\n");
 	exit(1);
 }
 
@@ -397,15 +384,16 @@ void release_all_resources() {
 	if ( data->parent_id != getpid() )
 		return;
 
+	/** When game is over... */
+	ret = PIST_fin();
+	if ( ret == -1 )
+		LOG("Library termination failed\n");
+
 	kill_all();
 	release_data();
 	fflush(stderr);
 	fclose(stderr);
 
-	/** When game is over... */
-	ret = PIST_fin();
-	if ( ret == -1 )
-		LOG("Library termination failed\n");
 }
 
 /** Children have all signals blocked. */
@@ -448,8 +436,7 @@ int child_proc(char lib_id) {
 
 	LOG("Ready to roll");
 	/** Ensure we're ready, and wait for everybody else */
-	/** NOTE: We can't reuse this semaphore later */
-	semaphore_lock(data->semaphores, SEMAPHORE_READY);
+	semaphore_wait(data->semaphores, SEMAPHORE_READY);
 	semaphore_wait_zero(data->semaphores, SEMAPHORE_READY);
 	LOG("Loaded");
 
@@ -481,7 +468,7 @@ int child_proc(char lib_id) {
 		if ( PIST_disparar(target) == -1 )
 			ERROR("PIST_disparar");
 
-		semaphore_lock(data->semaphores, 1);
+		semaphore_wait(data->semaphores, 1);
 		LOG("Shot to %c", target);
 
 		/** Wait for everyone to shoot */
@@ -493,7 +480,7 @@ int child_proc(char lib_id) {
 		}
 
 		/** Without this lock, someone can shoot, reach the bottom, and start shooting again, or get its status corrupted */
-		semaphore_lock(data->semaphores, 2);
+		semaphore_wait(data->semaphores, 2);
 
 		/** If we have received a shot, mark as dead, else... we're ready */
 		if ( me->status & PID_STATUS_DEAD_THIS_ROUND ) {
@@ -504,17 +491,12 @@ int child_proc(char lib_id) {
 			me->status = PID_STATUS_READY;
 		}
 
-
-		/** Until everyone has received his shot */
-		semaphore_lock(data->semaphores, 2);
-
-		LOG("Semaphore 2 value: %zu", semaphore_get_value(data->semaphores, 2));
-
 		/**
 		 * Wait until semaphore 2 is zero (everyone has died in the previous round)
 		 * This wait is global because we can't choose a coordinator until everyone is
 		 * dead
 		 */
+		semaphore_wait(data->semaphores, 2);
 		semaphore_wait_zero(data->semaphores, 2);
 
 		/** Die if round over */
@@ -571,7 +553,6 @@ int main(int argc, char **argv) {
 
 	data->parent_id = getpid();
 
-	/** Another for us */
 	data->semaphores = semget(IPC_PRIVATE, TOTAL_SEMAPHORE_COUNT, IPC_CREAT | 0600);
 
 	if ( data->semaphores == -1 )
@@ -586,7 +567,8 @@ int main(int argc, char **argv) {
 
 	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
 	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
-	/** Set the log to 1 */
+
+	/** Just one process logging at a time */
 	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
 
 	LOG("Semaphores initialized: %d %d",
