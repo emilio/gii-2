@@ -28,7 +28,7 @@ term_size_t term_size() {
 	return ret;
 }
 
-void term_
+// void term_
 
 void set_terminal_config() {
 	struct termios config;

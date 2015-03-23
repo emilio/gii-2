@@ -1,0 +1,1481 @@
+(18202) Manager started
+(18202) Adding child with index 0
+(18206) Walker children started with index 0
+(18206) Walker current: (0, 13), next: (1, 13)
+(18206) Moving from (0, 13) to (1, 13)
+(18206) Avanzar returned (2, 13)
+(18202) Adding child with index 1
+(18206) Moving from (1, 13) to (2, 13)
+(18206) Avanzar returned (3, 13)
+(18206) Moving from (2, 13) to (3, 13)
+(18206) Avanzar returned (4, 13)
+(18206) Moving from (3, 13) to (4, 13)
+(18206) Avanzar returned (5, 13)
+(18206) Moving from (4, 13) to (5, 13)
+(18206) Avanzar returned (6, 13)
+(18206) Moving from (5, 13) to (6, 13)
+(18206) Avanzar returned (7, 13)
+(18206) Moving from (6, 13) to (7, 13)
+(18206) Avanzar returned (8, 13)
+(18206) Moving from (7, 13) to (8, 13)
+(18206) Avanzar returned (9, 13)
+(18206) Moving from (8, 13) to (9, 13)
+(18206) Avanzar returned (10, 13)
+(18206) Moving from (9, 13) to (10, 13)
+(18206) Avanzar returned (11, 13)
+(18206) Moving from (10, 13) to (11, 13)
+(18206) Avanzar returned (12, 13)
+(18206) Moving from (11, 13) to (12, 13)
+(18206) Avanzar returned (13, 13)
+(18206) Moving from (12, 13) to (13, 13)
+(18206) Avanzar returned (14, 13)
+(18206) Moving from (13, 13) to (14, 13)
+(18206) Avanzar returned (15, 13)
+(18206) Moving from (14, 13) to (15, 13)
+(18206) Avanzar returned (16, 13)
+(18206) Moving from (15, 13) to (16, 13)
+(18206) Avanzar returned (17, 13)
+(18206) Moving from (16, 13) to (17, 13)
+(18206) Avanzar returned (18, 13)
+(18207) Walker children started with index 1
+(18207) Walker current: (12, 16), next: (12, 15)
+(18207) Moving from (12, 16) to (12, 15)
+(18207) Avanzar returned (13, 15)
+(18206) Moving from (17, 13) to (18, 13)
+(18206) Avanzar returned (19, 13)
+(18202) Adding child with index 2
+(18207) Moving from (12, 15) to (13, 15)
+(18207) Avanzar returned (13, 14)
+(18206) Moving from (18, 13) to (19, 13)
+(18206) Avanzar returned (20, 13)
+(18207) Moving from (13, 15) to (13, 14)
+(18207) Avanzar returned (13, 13)
+(18206) Moving from (19, 13) to (20, 13)
+(18206) Avanzar returned (21, 13)
+(18207) Moving from (13, 14) to (13, 13)
+(18207) Avanzar returned (13, 12)
+(18206) Moving from (20, 13) to (21, 13)
+(18206) Avanzar returned (22, 13)
+(18207) Moving from (13, 13) to (13, 12)
+(18207) Avanzar returned (14, 12)
+(18206) Moving from (21, 13) to (22, 13)
+(18206) Avanzar returned (23, 13)
+(18207) Moving from (13, 12) to (14, 12)
+(18207) Avanzar returned (15, 12)
+(18206) Moving from (22, 13) to (23, 13)
+(18206) Avanzar returned (24, 13)
+(18207) Moving from (14, 12) to (15, 12)
+(18207) Avanzar returned (16, 12)
+(18206) Moving from (23, 13) to (24, 13)
+(18206) Avanzar returned (25, 13)
+(18207) Moving from (15, 12) to (16, 12)
+(18207) Avanzar returned (17, 12)
+(18206) Moving from (24, 13) to (25, 13)
+(18206) Avanzar returned (26, 13)
+(18207) Moving from (16, 12) to (17, 12)
+(18207) Avanzar returned (18, 12)
+(18206) Moving from (25, 13) to (26, 13)
+(18206) Avanzar returned (27, 13)
+(18207) Moving from (17, 12) to (18, 12)
+(18207) Avanzar returned (19, 12)
+(18206) Moving from (26, 13) to (27, 13)
+(18206) Avanzar returned (28, 13)
+(18207) Moving from (18, 12) to (19, 12)
+(18207) Avanzar returned (20, 12)
+(18206) Moving from (27, 13) to (28, 13)
+(18206) Avanzar returned (29, 13)
+(18207) Moving from (19, 12) to (20, 12)
+(18207) Avanzar returned (21, 12)
+(18206) Moving from (28, 13) to (29, 13)
+(18206) Avanzar returned (30, 13)
+(18207) Moving from (20, 12) to (21, 12)
+(18207) Avanzar returned (22, 12)
+(18206) Moving from (29, 13) to (30, 13)
+(18206) Avanzar returned (31, 13)
+(18207) Moving from (21, 12) to (22, 12)
+(18207) Avanzar returned (23, 12)
+(18206) Moving from (30, 13) to (31, 13)
+(18206) Avanzar returned (32, 13)
+(18207) Moving from (22, 12) to (23, 12)
+(18207) Avanzar returned (24, 12)
+(18206) Moving from (31, 13) to (32, 13)
+(18206) Avanzar returned (33, 13)
+(18207) Moving from (23, 12) to (24, 12)
+(18207) Avanzar returned (25, 12)
+(18206) Moving from (32, 13) to (33, 13)
+(18206) Avanzar returned (34, 13)
+(18208) Walker children started with index 2
+(18208) Walker current: (16, 16), next: (16, 15)
+(18208) Moving from (16, 16) to (16, 15)
+(18208) Avanzar returned (16, 14)
+(18207) Moving from (24, 12) to (25, 12)
+(18207) Avanzar returned (25, 11)
+(18206) Moving from (33, 13) to (34, 13)
+(18206) Avanzar returned (35, 13)
+(18202) Adding child with index 3
+(18208) Moving from (16, 15) to (16, 14)
+(18208) Avanzar returned (16, 13)
+(18207) Moving from (25, 12) to (25, 11)
+(18207) Avanzar returned (25, 10)
+(18206) Moving from (34, 13) to (35, 13)
+(18206) Avanzar returned (36, 13)
+(18208) Moving from (16, 14) to (16, 13)
+(18208) Avanzar returned (17, 13)
+(18207) Moving from (25, 11) to (25, 10)
+(18207) Avanzar returned (25, 9)
+(18206) Moving from (35, 13) to (36, 13)
+(18206) Avanzar returned (37, 13)
+(18208) Moving from (16, 13) to (17, 13)
+(18208) Avanzar returned (17, 12)
+(18207) Moving from (25, 10) to (25, 9)
+(18207) Avanzar returned (25, 8)
+(18206) Moving from (36, 13) to (37, 13)
+(18206) Avanzar returned (38, 13)
+(18208) Moving from (17, 13) to (17, 12)
+(18208) Avanzar returned (18, 12)
+(18207) Moving from (25, 9) to (25, 8)
+(18207) Avanzar returned (25, 7)
+(18206) Moving from (37, 13) to (38, 13)
+(18206) Avanzar returned (39, 13)
+(18208) Moving from (17, 12) to (18, 12)
+(18208) Avanzar returned (19, 12)
+(18207) Moving from (25, 8) to (25, 7)
+(18207) Avanzar returned (25, 6)
+(18206) Moving from (38, 13) to (39, 13)
+(18206) Avanzar returned (40, 13)
+(18208) Moving from (18, 12) to (19, 12)
+(18208) Avanzar returned (20, 12)
+(18207) Moving from (25, 7) to (25, 6)
+(18207) Avanzar returned (25, 5)
+(18206) Moving from (39, 13) to (40, 13)
+(18206) Avanzar returned (41, 13)
+(18208) Moving from (19, 12) to (20, 12)
+(18208) Avanzar returned (21, 12)
+(18207) Moving from (25, 6) to (25, 5)
+(18207) Avanzar returned (24, 5)
+(18206) Moving from (40, 13) to (41, 13)
+(18206) Avanzar returned (41, 12)
+(18208) Moving from (20, 12) to (21, 12)
+(18208) Avanzar returned (22, 12)
+(18207) Moving from (25, 5) to (24, 5)
+(18207) Avanzar returned (24, 4)
+(18206) Moving from (41, 13) to (41, 12)
+(18206) Avanzar returned (42, 12)
+(18208) Moving from (21, 12) to (22, 12)
+(18208) Avanzar returned (23, 12)
+(18207) Moving from (24, 5) to (24, 4)
+(18207) Avanzar returned (23, 4)
+(18206) Moving from (41, 12) to (42, 12)
+(18206) Avanzar returned (42, 11)
+(18208) Moving from (22, 12) to (23, 12)
+(18208) Avanzar returned (24, 12)
+(18207) Moving from (24, 4) to (23, 4)
+(18207) Avanzar returned (23, 3)
+(18206) Moving from (42, 12) to (42, 11)
+(18206) Avanzar returned (43, 11)
+(18208) Moving from (23, 12) to (24, 12)
+(18208) Avanzar returned (25, 12)
+(18207) Moving from (23, 4) to (23, 3)
+(18207) Avanzar returned (23, 2)
+(18206) Moving from (42, 11) to (43, 11)
+(18206) Avanzar returned (44, 11)
+(18208) Moving from (24, 12) to (25, 12)
+(18208) Avanzar returned (25, 11)
+(18207) Moving from (23, 3) to (23, 2)
+(18207) Avanzar returned (23, 1)
+(18206) Moving from (43, 11) to (44, 11)
+(18206) Avanzar returned (45, 11)
+(18208) Moving from (25, 12) to (25, 11)
+(18208) Avanzar returned (25, 10)
+(18207) Moving from (23, 2) to (23, 1)
+(18207) Avanzar returned (22, 1)
+(18206) Moving from (44, 11) to (45, 11)
+(18206) Avanzar returned (46, 11)
+(18208) Moving from (25, 11) to (25, 10)
+(18208) Avanzar returned (25, 9)
+(18207) Moving from (23, 1) to (22, 1)
+(18207) Avanzar returned (22, 0)
+(18206) Moving from (45, 11) to (46, 11)
+(18206) Avanzar returned (47, 11)
+(18208) Moving from (25, 10) to (25, 9)
+(18208) Avanzar returned (25, 8)
+(18207) Moving from (22, 1) to (22, 0)
+(18207) Avanzar returned (21, 0)
+(18206) Moving from (46, 11) to (47, 11)
+(18206) Avanzar returned (48, 11)
+(18208) Moving from (25, 9) to (25, 8)
+(18208) Avanzar returned (25, 7)
+(18207) Moving from (22, 0) to (21, 0)
+(18207) Avanzar returned (20, 0)
+(18206) Moving from (47, 11) to (48, 11)
+(18206) Avanzar returned (49, 11)
+(18208) Moving from (25, 8) to (25, 7)
+(18208) Avanzar returned (25, 6)
+(18207) Moving from (21, 0) to (20, 0)
+(18207) Avanzar returned (19, 0)
+(18206) Moving from (48, 11) to (49, 11)
+(18206) Avanzar returned (50, 11)
+(18209) Car children started with index 3
+(18209) Car checking (33, 1): 0
+(18209) Car moving from (33, 1) to (33, 1)
+(18209) Car avanzar returned (33, 2)
+(18209) Car checking (33, 2): 0
+(18209) Car moving from (33, 1) to (33, 2)
+(18209) Car avanzar returned (33, 3)
+(18209) Car checking (33, 3): 0
+(18209) Car moving from (33, 2) to (33, 3)
+(18209) Car avanzar returned (33, 4)
+(18209) Car checking (33, 4): 0
+(18209) Car moving from (33, 3) to (33, 4)
+(18209) Car avanzar returned (33, 5)
+(18209) Car checking (33, 5): 0
+(18209) Car moving from (33, 4) to (33, 5)
+(18209) Car avanzar returned (33, 6)
+(18209) Car checking (33, 6): 0
+(18209) Car moving from (33, 5) to (33, 6)
+(18209) Car avanzar returned (33, 7)
+(18209) Car checking (33, 7): 0
+(18209) Car moving from (33, 6) to (33, 7)
+(18209) Car avanzar returned (33, 8)
+(18209) Car checking (33, 8): 0
+(18209) Car moving from (33, 7) to (33, 8)
+(18209) Car avanzar returned (33, 9)
+(18209) Car checking (33, 9): 0
+(18209) Car moving from (33, 8) to (33, 9)
+(18209) Car avanzar returned (33, 10)
+(18209) Car checking (33, 10): 0
+(18209) Car moving from (33, 9) to (33, 10)
+(18209) Car avanzar returned (33, 11)
+(18209) Car checking (33, 11): 0
+(18209) Car moving from (33, 10) to (33, 11)
+(18209) Car avanzar returned (33, 12)
+(18209) Car checking (33, 12): 0
+(18209) Car moving from (33, 11) to (33, 12)
+(18209) Car avanzar returned (33, 13)
+(18209) Car checking (33, 13): 0
+(18209) Car moving from (33, 12) to (33, 13)
+(18209) Car avanzar returned (33, 14)
+(18209) Car checking (33, 14): 0
+(18209) Car moving from (33, 13) to (33, 14)
+(18209) Car avanzar returned (33, 15)
+(18209) Car checking (33, 15): 0
+(18209) Car moving from (33, 14) to (33, 15)
+(18209) Car avanzar returned (33, 16)
+(18209) Car checking (33, 16): 0
+(18209) Car moving from (33, 15) to (33, 16)
+(18209) Car avanzar returned (33, 17)
+(18209) Car checking (33, 17): 0
+(18209) Car moving from (33, 16) to (33, 17)
+(18209) Car avanzar returned (33, 18)
+(18209) Car checking (33, 18): 0
+(18209) Car moving from (33, 17) to (33, 18)
+(18209) Car avanzar returned (33, 19)
+(18209) Car checking (33, 19): 0
+(18209) Car moving from (33, 18) to (33, 19)
+(18209) Car avanzar returned (33, 20)
+(18209) Car checking (33, 20): 0
+(18209) Car moving from (33, 19) to (33, 20)
+(18209) Car avanzar returned (-1, -2)
+(18209) Car exiting
+(18208) Moving from (25, 7) to (25, 6)
+(18208) Avanzar returned (24, 6)
+(18207) Moving from (20, 0) to (19, 0)
+(18207) Avanzar returned (18, 0)
+(18206) Moving from (49, 11) to (50, 11)
+(18206) Avanzar returned (-1, -2)
+(18206) Walker exiting
+(18202) Adding child with index 0
+(18208) Moving from (25, 6) to (24, 6)
+(18208) Avanzar returned (24, 5)
+(18207) Moving from (19, 0) to (18, 0)
+(18207) Avanzar returned (17, 0)
+(18208) Moving from (24, 6) to (24, 5)
+(18208) Avanzar returned (24, 4)
+(18207) Moving from (18, 0) to (17, 0)
+(18207) Avanzar returned (16, 0)
+(18208) Moving from (24, 5) to (24, 4)
+(18208) Avanzar returned (23, 4)
+(18207) Moving from (17, 0) to (16, 0)
+(18207) Avanzar returned (15, 0)
+(18208) Moving from (24, 4) to (23, 4)
+(18208) Avanzar returned (22, 4)
+(18207) Moving from (16, 0) to (15, 0)
+(18207) Avanzar returned (14, 0)
+(18208) Moving from (23, 4) to (22, 4)
+(18208) Avanzar returned (21, 4)
+(18207) Moving from (15, 0) to (14, 0)
+(18207) Avanzar returned (13, 0)
+(18208) Moving from (22, 4) to (21, 4)
+(18208) Avanzar returned (21, 3)
+(18207) Moving from (14, 0) to (13, 0)
+(18207) Avanzar returned (12, 0)
+(18208) Moving from (21, 4) to (21, 3)
+(18208) Avanzar returned (20, 3)
+(18207) Moving from (13, 0) to (12, 0)
+(18207) Avanzar returned (11, 0)
+(18208) Moving from (21, 3) to (20, 3)
+(18208) Avanzar returned (20, 2)
+(18207) Moving from (12, 0) to (11, 0)
+(18207) Avanzar returned (10, 0)
+(18208) Moving from (20, 3) to (20, 2)
+(18208) Avanzar returned (19, 2)
+(18207) Moving from (11, 0) to (10, 0)
+(18207) Avanzar returned (9, 0)
+(18208) Moving from (20, 2) to (19, 2)
+(18208) Avanzar returned (19, 1)
+(18207) Moving from (10, 0) to (9, 0)
+(18207) Avanzar returned (8, 0)
+(18208) Moving from (19, 2) to (19, 1)
+(18208) Avanzar returned (18, 1)
+(18207) Moving from (9, 0) to (8, 0)
+(18207) Avanzar returned (7, 0)
+(18208) Moving from (19, 1) to (18, 1)
+(18208) Avanzar returned (17, 1)
+(18207) Moving from (8, 0) to (7, 0)
+(18207) Avanzar returned (6, 0)
+(18208) Moving from (18, 1) to (17, 1)
+(18208) Avanzar returned (16, 1)
+(18207) Moving from (7, 0) to (6, 0)
+(18207) Avanzar returned (5, 0)
+(18208) Moving from (17, 1) to (16, 1)
+(18208) Avanzar returned (15, 1)
+(18207) Moving from (6, 0) to (5, 0)
+(18207) Avanzar returned (4, 0)
+(18208) Moving from (16, 1) to (15, 1)
+(18208) Avanzar returned (14, 1)
+(18207) Moving from (5, 0) to (4, 0)
+(18207) Avanzar returned (3, 0)
+(18210) Car children started with index 0
+(18210) Car checking (33, 1): 0
+(18210) Car moving from (33, 1) to (33, 1)
+(18210) Car avanzar returned (33, 2)
+(18208) Moving from (15, 1) to (14, 1)
+(18208) Avanzar returned (13, 1)
+(18207) Moving from (4, 0) to (3, 0)
+(18207) Avanzar returned (2, 0)
+(18210) Car checking (33, 2): 0
+(18210) Car moving from (33, 1) to (33, 2)
+(18210) Car avanzar returned (33, 3)
+(18210) Car checking (33, 3): 0
+(18210) Car moving from (33, 2) to (33, 3)
+(18210) Car avanzar returned (33, 4)
+(18202) Adding child with index 3
+(18210) Car checking (33, 4): 0
+(18210) Car moving from (33, 3) to (33, 4)
+(18210) Car avanzar returned (33, 5)
+(18208) Moving from (14, 1) to (13, 1)
+(18208) Avanzar returned (12, 1)
+(18207) Moving from (3, 0) to (2, 0)
+(18207) Avanzar returned (-1, -2)
+(18207) Walker exiting
+(18210) Car checking (33, 5): 0
+(18210) Car moving from (33, 4) to (33, 5)
+(18210) Car avanzar returned (33, 6)
+(18210) Car checking (33, 6): 0
+(18210) Car moving from (33, 5) to (33, 6)
+(18210) Car avanzar returned (33, 7)
+(18210) Car checking (33, 7): 0
+(18210) Car moving from (33, 6) to (33, 7)
+(18210) Car avanzar returned (33, 8)
+(18208) Moving from (13, 1) to (12, 1)
+(18208) Avanzar returned (11, 1)
+(18210) Car checking (33, 8): 0
+(18210) Car moving from (33, 7) to (33, 8)
+(18210) Car avanzar returned (33, 9)
+(18210) Car checking (33, 9): 0
+(18210) Car moving from (33, 8) to (33, 9)
+(18210) Car avanzar returned (33, 10)
+(18210) Car checking (33, 10): 0
+(18210) Car moving from (33, 9) to (33, 10)
+(18210) Car avanzar returned (33, 11)
+(18208) Moving from (12, 1) to (11, 1)
+(18208) Avanzar returned (10, 1)
+(18210) Car checking (33, 11): 0
+(18210) Car moving from (33, 10) to (33, 11)
+(18210) Car avanzar returned (33, 12)
+(18210) Car checking (33, 12): 0
+(18210) Car moving from (33, 11) to (33, 12)
+(18210) Car avanzar returned (33, 13)
+(18210) Car checking (33, 13): 0
+(18210) Car moving from (33, 12) to (33, 13)
+(18210) Car avanzar returned (33, 14)
+(18208) Moving from (11, 1) to (10, 1)
+(18208) Avanzar returned (9, 1)
+(18210) Car checking (33, 14): 0
+(18210) Car moving from (33, 13) to (33, 14)
+(18210) Car avanzar returned (33, 15)
+(18210) Car checking (33, 15): 0
+(18210) Car moving from (33, 14) to (33, 15)
+(18210) Car avanzar returned (33, 16)
+(18210) Car checking (33, 16): 0
+(18210) Car moving from (33, 15) to (33, 16)
+(18210) Car avanzar returned (33, 17)
+(18208) Moving from (10, 1) to (9, 1)
+(18208) Avanzar returned (8, 1)
+(18210) Car checking (33, 17): 0
+(18210) Car moving from (33, 16) to (33, 17)
+(18210) Car avanzar returned (33, 18)
+(18210) Car checking (33, 18): 0
+(18210) Car moving from (33, 17) to (33, 18)
+(18210) Car avanzar returned (33, 19)
+(18210) Car checking (33, 19): 0
+(18210) Car moving from (33, 18) to (33, 19)
+(18210) Car avanzar returned (33, 20)
+(18208) Moving from (9, 1) to (8, 1)
+(18208) Avanzar returned (7, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (8, 1) to (7, 1)
+(18208) Avanzar returned (6, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (7, 1) to (6, 1)
+(18208) Avanzar returned (5, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (6, 1) to (5, 1)
+(18208) Avanzar returned (4, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (5, 1) to (4, 1)
+(18208) Avanzar returned (3, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (4, 1) to (3, 1)
+(18208) Avanzar returned (2, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (3, 1) to (2, 1)
+(18208) Avanzar returned (1, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (2, 1) to (1, 1)
+(18208) Avanzar returned (0, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18208) Moving from (1, 1) to (0, 1)
+(18208) Avanzar returned (-1, -3)
+(18208) Walker exiting
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Walker children started with index 3
+(18211) Walker current: (17, 16), next: (18, 16)
+(18211) Moving from (17, 16) to (18, 16)
+(18211) Avanzar returned (19, 16)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 1
+(18211) Moving from (18, 16) to (19, 16)
+(18211) Avanzar returned (20, 16)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (19, 16) to (20, 16)
+(18211) Avanzar returned (20, 15)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (20, 16) to (20, 15)
+(18211) Avanzar returned (21, 15)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (20, 15) to (21, 15)
+(18211) Avanzar returned (22, 15)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (21, 15) to (22, 15)
+(18211) Avanzar returned (22, 14)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 15) to (22, 14)
+(18211) Avanzar returned (22, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 14) to (22, 13)
+(18211) Avanzar returned (22, 12)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 13) to (22, 12)
+(18211) Avanzar returned (22, 11)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 12) to (22, 11)
+(18211) Avanzar returned (22, 10)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 11) to (22, 10)
+(18211) Avanzar returned (22, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 10) to (22, 9)
+(18211) Avanzar returned (22, 8)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 9) to (22, 8)
+(18211) Avanzar returned (22, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 8) to (22, 7)
+(18211) Avanzar returned (22, 6)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 7) to (22, 6)
+(18211) Avanzar returned (22, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 6) to (22, 5)
+(18211) Avanzar returned (21, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (22, 5) to (21, 5)
+(18211) Avanzar returned (21, 4)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (21, 5) to (21, 4)
+(18211) Avanzar returned (21, 3)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (21, 4) to (21, 3)
+(18211) Avanzar returned (21, 2)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (21, 3) to (21, 2)
+(18211) Avanzar returned (21, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18211) Moving from (21, 2) to (21, 1)
+(18211) Avanzar returned (21, 0)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Walker children started with index 1
+(18212) Walker current: (0, 13), next: (1, 13)
+(18212) Moving from (0, 13) to (1, 13)
+(18212) Avanzar returned (2, 13)
+(18210) Car checking (33, 20): 1
+(18211) Moving from (21, 1) to (21, 0)
+(18211) Avanzar returned (-1, -2)
+(18211) Walker exiting
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 2
+(18212) Moving from (1, 13) to (2, 13)
+(18212) Avanzar returned (3, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (2, 13) to (3, 13)
+(18212) Avanzar returned (4, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (3, 13) to (4, 13)
+(18212) Avanzar returned (5, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (4, 13) to (5, 13)
+(18212) Avanzar returned (6, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (5, 13) to (6, 13)
+(18212) Avanzar returned (7, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (6, 13) to (7, 13)
+(18212) Avanzar returned (8, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (7, 13) to (8, 13)
+(18212) Avanzar returned (9, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (8, 13) to (9, 13)
+(18212) Avanzar returned (10, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (9, 13) to (10, 13)
+(18212) Avanzar returned (11, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (10, 13) to (11, 13)
+(18212) Avanzar returned (12, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (11, 13) to (12, 13)
+(18212) Avanzar returned (13, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (12, 13) to (13, 13)
+(18212) Avanzar returned (14, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (13, 13) to (14, 13)
+(18212) Avanzar returned (15, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (14, 13) to (15, 13)
+(18212) Avanzar returned (16, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (15, 13) to (16, 13)
+(18212) Avanzar returned (17, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (16, 13) to (17, 13)
+(18212) Avanzar returned (18, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (17, 13) to (18, 13)
+(18212) Avanzar returned (19, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (18, 13) to (19, 13)
+(18212) Avanzar returned (20, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (19, 13) to (20, 13)
+(18212) Avanzar returned (21, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18212) Moving from (20, 13) to (21, 13)
+(18212) Avanzar returned (22, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Walker children started with index 2
+(18213) Walker current: (23, 16), next: (23, 15)
+(18213) Moving from (23, 16) to (23, 15)
+(18213) Avanzar returned (24, 15)
+(18212) Moving from (21, 13) to (22, 13)
+(18212) Avanzar returned (23, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 3
+(18213) Moving from (23, 15) to (24, 15)
+(18213) Avanzar returned (25, 15)
+(18212) Moving from (22, 13) to (23, 13)
+(18212) Avanzar returned (24, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (24, 15) to (25, 15)
+(18213) Avanzar returned (26, 15)
+(18212) Moving from (23, 13) to (24, 13)
+(18212) Avanzar returned (25, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (25, 15) to (26, 15)
+(18213) Avanzar returned (26, 14)
+(18212) Moving from (24, 13) to (25, 13)
+(18212) Avanzar returned (26, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (26, 15) to (26, 14)
+(18213) Avanzar returned (27, 14)
+(18212) Moving from (25, 13) to (26, 13)
+(18212) Avanzar returned (27, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (26, 14) to (27, 14)
+(18213) Avanzar returned (28, 14)
+(18212) Moving from (26, 13) to (27, 13)
+(18212) Avanzar returned (28, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (27, 14) to (28, 14)
+(18213) Avanzar returned (29, 14)
+(18212) Moving from (27, 13) to (28, 13)
+(18212) Avanzar returned (29, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (28, 14) to (29, 14)
+(18213) Avanzar returned (30, 14)
+(18212) Moving from (28, 13) to (29, 13)
+(18212) Avanzar returned (30, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (29, 14) to (30, 14)
+(18213) Avanzar returned (31, 14)
+(18212) Moving from (29, 13) to (30, 13)
+(18212) Avanzar returned (31, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (30, 14) to (31, 14)
+(18213) Avanzar returned (32, 14)
+(18212) Moving from (30, 13) to (31, 13)
+(18212) Avanzar returned (32, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (31, 14) to (32, 14)
+(18213) Avanzar returned (33, 14)
+(18212) Moving from (31, 13) to (32, 13)
+(18212) Avanzar returned (33, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (32, 14) to (33, 14)
+(18213) Avanzar returned (34, 14)
+(18212) Moving from (32, 13) to (33, 13)
+(18212) Avanzar returned (34, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (33, 14) to (34, 14)
+(18213) Avanzar returned (35, 14)
+(18212) Moving from (33, 13) to (34, 13)
+(18212) Avanzar returned (35, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (34, 14) to (35, 14)
+(18213) Avanzar returned (36, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (34, 13) to (35, 13)
+(18212) Avanzar returned (36, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (35, 14) to (36, 14)
+(18213) Avanzar returned (37, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (35, 13) to (36, 13)
+(18212) Avanzar returned (37, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (36, 14) to (37, 14)
+(18213) Avanzar returned (38, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (36, 13) to (37, 13)
+(18212) Avanzar returned (38, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (37, 14) to (38, 14)
+(18213) Avanzar returned (39, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (37, 13) to (38, 13)
+(18212) Avanzar returned (39, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18213) Moving from (38, 14) to (39, 14)
+(18213) Avanzar returned (40, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (38, 13) to (39, 13)
+(18212) Avanzar returned (40, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Walker children started with index 3
+(18216) Walker current: (24, 16), next: (25, 16)
+(18216) Moving from (24, 16) to (25, 16)
+(18216) Avanzar returned (26, 16)
+(18213) Moving from (39, 14) to (40, 14)
+(18213) Avanzar returned (41, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (39, 13) to (40, 13)
+(18212) Avanzar returned (41, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 4
+(18216) Moving from (25, 16) to (26, 16)
+(18216) Avanzar returned (27, 16)
+(18213) Moving from (40, 14) to (41, 14)
+(18213) Avanzar returned (41, 13)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (40, 13) to (41, 13)
+(18212) Avanzar returned (41, 12)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (26, 16) to (27, 16)
+(18216) Avanzar returned (28, 16)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (41, 13) to (41, 12)
+(18212) Avanzar returned (41, 11)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (27, 16) to (28, 16)
+(18216) Avanzar returned (29, 16)
+(18213) Moving from (41, 14) to (41, 13)
+(18213) Avanzar returned (41, 12)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (41, 12) to (41, 11)
+(18212) Avanzar returned (42, 11)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (28, 16) to (29, 16)
+(18216) Avanzar returned (29, 15)
+(18213) Moving from (41, 13) to (41, 12)
+(18213) Avanzar returned (42, 12)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (41, 11) to (42, 11)
+(18212) Avanzar returned (42, 10)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (29, 16) to (29, 15)
+(18216) Avanzar returned (29, 14)
+(18213) Moving from (41, 12) to (42, 12)
+(18213) Avanzar returned (43, 12)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (42, 11) to (42, 10)
+(18212) Avanzar returned (42, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (29, 15) to (29, 14)
+(18216) Avanzar returned (30, 14)
+(18213) Moving from (42, 12) to (43, 12)
+(18213) Avanzar returned (43, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (42, 10) to (42, 9)
+(18212) Avanzar returned (42, 8)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (29, 14) to (30, 14)
+(18216) Avanzar returned (31, 14)
+(18213) Moving from (43, 12) to (43, 11)
+(18213) Avanzar returned (44, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (42, 9) to (42, 8)
+(18212) Avanzar returned (43, 8)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (30, 14) to (31, 14)
+(18216) Avanzar returned (32, 14)
+(18213) Moving from (43, 11) to (44, 11)
+(18213) Avanzar returned (45, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (42, 8) to (43, 8)
+(18212) Avanzar returned (43, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (31, 14) to (32, 14)
+(18216) Avanzar returned (33, 14)
+(18213) Moving from (44, 11) to (45, 11)
+(18213) Avanzar returned (46, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (43, 8) to (43, 7)
+(18212) Avanzar returned (44, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (32, 14) to (33, 14)
+(18216) Avanzar returned (34, 14)
+(18213) Moving from (45, 11) to (46, 11)
+(18213) Avanzar returned (47, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (43, 7) to (44, 7)
+(18212) Avanzar returned (45, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (33, 14) to (34, 14)
+(18216) Avanzar returned (35, 14)
+(18213) Moving from (46, 11) to (47, 11)
+(18213) Avanzar returned (48, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (44, 7) to (45, 7)
+(18212) Avanzar returned (46, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (34, 14) to (35, 14)
+(18216) Avanzar returned (36, 14)
+(18213) Moving from (47, 11) to (48, 11)
+(18213) Avanzar returned (49, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (45, 7) to (46, 7)
+(18212) Avanzar returned (46, 6)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (35, 14) to (36, 14)
+(18216) Avanzar returned (37, 14)
+(18213) Moving from (48, 11) to (49, 11)
+(18213) Avanzar returned (50, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (46, 7) to (46, 6)
+(18212) Avanzar returned (47, 6)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (36, 14) to (37, 14)
+(18216) Avanzar returned (38, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (46, 6) to (47, 6)
+(18212) Avanzar returned (47, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (37, 14) to (38, 14)
+(18216) Avanzar returned (39, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (47, 6) to (47, 5)
+(18212) Avanzar returned (47, 4)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18216) Moving from (38, 14) to (39, 14)
+(18216) Avanzar returned (40, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (47, 5) to (47, 4)
+(18212) Avanzar returned (47, 3)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Walker children started with index 4
+(18217) Walker current: (2, 16), next: (3, 16)
+(18217) Moving from (2, 16) to (3, 16)
+(18217) Avanzar returned (3, 15)
+(18216) Moving from (39, 14) to (40, 14)
+(18216) Avanzar returned (41, 14)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (47, 4) to (47, 3)
+(18212) Avanzar returned (47, 2)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 5
+(18217) Moving from (3, 16) to (3, 15)
+(18217) Avanzar returned (4, 15)
+(18216) Moving from (40, 14) to (41, 14)
+(18216) Avanzar returned (41, 13)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (47, 3) to (47, 2)
+(18212) Avanzar returned (47, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (3, 15) to (4, 15)
+(18217) Avanzar returned (5, 15)
+(18216) Moving from (41, 14) to (41, 13)
+(18216) Avanzar returned (41, 12)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (47, 2) to (47, 1)
+(18212) Avanzar returned (47, 0)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (4, 15) to (5, 15)
+(18217) Avanzar returned (6, 15)
+(18216) Moving from (41, 13) to (41, 12)
+(18216) Avanzar returned (41, 11)
+(18210) Car checking (33, 20): 1
+(18212) Moving from (47, 1) to (47, 0)
+(18212) Avanzar returned (-1, -2)
+(18212) Walker exiting
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (5, 15) to (6, 15)
+(18217) Avanzar returned (7, 15)
+(18216) Moving from (41, 12) to (41, 11)
+(18216) Avanzar returned (42, 11)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (6, 15) to (7, 15)
+(18217) Avanzar returned (7, 14)
+(18216) Moving from (41, 11) to (42, 11)
+(18216) Avanzar returned (42, 10)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (7, 15) to (7, 14)
+(18217) Avanzar returned (8, 14)
+(18216) Moving from (42, 11) to (42, 10)
+(18216) Avanzar returned (42, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (7, 14) to (8, 14)
+(18217) Avanzar returned (8, 13)
+(18216) Moving from (42, 10) to (42, 9)
+(18216) Avanzar returned (43, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (8, 14) to (8, 13)
+(18217) Avanzar returned (9, 13)
+(18216) Moving from (42, 9) to (43, 9)
+(18216) Avanzar returned (44, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (8, 13) to (9, 13)
+(18217) Avanzar returned (10, 13)
+(18216) Moving from (43, 9) to (44, 9)
+(18216) Avanzar returned (45, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (9, 13) to (10, 13)
+(18217) Avanzar returned (11, 13)
+(18216) Moving from (44, 9) to (45, 9)
+(18216) Avanzar returned (45, 8)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (10, 13) to (11, 13)
+(18217) Avanzar returned (12, 13)
+(18216) Moving from (45, 9) to (45, 8)
+(18216) Avanzar returned (46, 8)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (11, 13) to (12, 13)
+(18217) Avanzar returned (13, 13)
+(18216) Moving from (45, 8) to (46, 8)
+(18216) Avanzar returned (46, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (12, 13) to (13, 13)
+(18217) Avanzar returned (14, 13)
+(18216) Moving from (46, 8) to (46, 7)
+(18216) Avanzar returned (47, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (13, 13) to (14, 13)
+(18217) Avanzar returned (15, 13)
+(18216) Moving from (46, 7) to (47, 7)
+(18216) Avanzar returned (47, 6)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (14, 13) to (15, 13)
+(18217) Avanzar returned (16, 13)
+(18216) Moving from (47, 7) to (47, 6)
+(18216) Avanzar returned (47, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (15, 13) to (16, 13)
+(18217) Avanzar returned (17, 13)
+(18216) Moving from (47, 6) to (47, 5)
+(18216) Avanzar returned (48, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18217) Moving from (16, 13) to (17, 13)
+(18217) Avanzar returned (18, 13)
+(18216) Moving from (47, 5) to (48, 5)
+(18216) Avanzar returned (49, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Walker children started with index 5
+(18210) Car checking (33, 20): 1
+(18218) Walker current: (13, 16), next: (14, 16)
+(18218) Moving from (13, 16) to (14, 16)
+(18218) Avanzar returned (15, 16)
+(18217) Moving from (17, 13) to (18, 13)
+(18217) Avanzar returned (19, 13)
+(18216) Moving from (48, 5) to (49, 5)
+(18216) Avanzar returned (49, 4)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 1
+(18218) Moving from (14, 16) to (15, 16)
+(18218) Avanzar returned (15, 15)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (18, 13) to (19, 13)
+(18217) Avanzar returned (20, 13)
+(18216) Moving from (49, 5) to (49, 4)
+(18216) Avanzar returned (50, 4)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (15, 16) to (15, 15)
+(18218) Avanzar returned (16, 15)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (19, 13) to (20, 13)
+(18217) Avanzar returned (21, 13)
+(18216) Moving from (49, 4) to (50, 4)
+(18216) Avanzar returned (50, 3)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (15, 15) to (16, 15)
+(18218) Avanzar returned (16, 14)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (20, 13) to (21, 13)
+(18217) Avanzar returned (22, 13)
+(18216) Moving from (50, 4) to (50, 3)
+(18216) Avanzar returned (50, 2)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (16, 15) to (16, 14)
+(18218) Avanzar returned (17, 14)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (21, 13) to (22, 13)
+(18217) Avanzar returned (23, 13)
+(18216) Moving from (50, 3) to (50, 2)
+(18216) Avanzar returned (50, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (16, 14) to (17, 14)
+(18218) Avanzar returned (18, 14)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (22, 13) to (23, 13)
+(18217) Avanzar returned (24, 13)
+(18216) Moving from (50, 2) to (50, 1)
+(18216) Avanzar returned (50, 0)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (17, 14) to (18, 14)
+(18218) Avanzar returned (19, 14)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (23, 13) to (24, 13)
+(18217) Avanzar returned (25, 13)
+(18216) Moving from (50, 1) to (50, 0)
+(18216) Avanzar returned (-1, -2)
+(18216) Walker exiting
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (18, 14) to (19, 14)
+(18218) Avanzar returned (19, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (24, 13) to (25, 13)
+(18217) Avanzar returned (26, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (19, 14) to (19, 13)
+(18218) Avanzar returned (19, 12)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (25, 13) to (26, 13)
+(18217) Avanzar returned (27, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (19, 13) to (19, 12)
+(18218) Avanzar returned (20, 12)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (26, 13) to (27, 13)
+(18217) Avanzar returned (28, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (19, 12) to (20, 12)
+(18218) Avanzar returned (21, 12)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (27, 13) to (28, 13)
+(18217) Avanzar returned (29, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (20, 12) to (21, 12)
+(18218) Avanzar returned (22, 12)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (28, 13) to (29, 13)
+(18217) Avanzar returned (30, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (21, 12) to (22, 12)
+(18218) Avanzar returned (22, 11)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (29, 13) to (30, 13)
+(18217) Avanzar returned (31, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 12) to (22, 11)
+(18218) Avanzar returned (22, 10)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (30, 13) to (31, 13)
+(18217) Avanzar returned (32, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 11) to (22, 10)
+(18218) Avanzar returned (22, 9)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (31, 13) to (32, 13)
+(18217) Avanzar returned (33, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 10) to (22, 9)
+(18218) Avanzar returned (22, 8)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (32, 13) to (33, 13)
+(18217) Avanzar returned (34, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 9) to (22, 8)
+(18218) Avanzar returned (22, 7)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (33, 13) to (34, 13)
+(18217) Avanzar returned (35, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 8) to (22, 7)
+(18218) Avanzar returned (22, 6)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (34, 13) to (35, 13)
+(18217) Avanzar returned (36, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 7) to (22, 6)
+(18218) Avanzar returned (22, 5)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (35, 13) to (36, 13)
+(18217) Avanzar returned (37, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18218) Moving from (22, 6) to (22, 5)
+(18218) Avanzar returned (22, 4)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (36, 13) to (37, 13)
+(18217) Avanzar returned (38, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Walker children started with index 1
+(18219) Walker current: (19, 16), next: (19, 15)
+(18219) Moving from (19, 16) to (19, 15)
+(18219) Avanzar returned (19, 14)
+(18218) Moving from (22, 5) to (22, 4)
+(18218) Avanzar returned (22, 3)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (37, 13) to (38, 13)
+(18217) Avanzar returned (39, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 3
+(18219) Moving from (19, 15) to (19, 14)
+(18219) Avanzar returned (20, 14)
+(18218) Moving from (22, 4) to (22, 3)
+(18218) Avanzar returned (22, 2)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (38, 13) to (39, 13)
+(18217) Avanzar returned (40, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (19, 14) to (20, 14)
+(18219) Avanzar returned (21, 14)
+(18218) Moving from (22, 3) to (22, 2)
+(18218) Avanzar returned (21, 2)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (39, 13) to (40, 13)
+(18217) Avanzar returned (41, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (20, 14) to (21, 14)
+(18219) Avanzar returned (21, 13)
+(18218) Moving from (22, 2) to (21, 2)
+(18218) Avanzar returned (20, 2)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (40, 13) to (41, 13)
+(18217) Avanzar returned (42, 13)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (21, 14) to (21, 13)
+(18219) Avanzar returned (22, 13)
+(18218) Moving from (21, 2) to (20, 2)
+(18218) Avanzar returned (19, 2)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (41, 13) to (42, 13)
+(18217) Avanzar returned (42, 12)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (21, 13) to (22, 13)
+(18219) Avanzar returned (23, 13)
+(18218) Moving from (20, 2) to (19, 2)
+(18218) Avanzar returned (19, 1)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 13) to (42, 12)
+(18217) Avanzar returned (42, 11)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (22, 13) to (23, 13)
+(18219) Avanzar returned (24, 13)
+(18218) Moving from (19, 2) to (19, 1)
+(18218) Avanzar returned (18, 1)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 12) to (42, 11)
+(18217) Avanzar returned (42, 10)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (23, 13) to (24, 13)
+(18219) Avanzar returned (25, 13)
+(18218) Moving from (19, 1) to (18, 1)
+(18218) Avanzar returned (18, 0)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 11) to (42, 10)
+(18217) Avanzar returned (42, 9)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (24, 13) to (25, 13)
+(18219) Avanzar returned (26, 13)
+(18218) Moving from (18, 1) to (18, 0)
+(18218) Avanzar returned (17, 0)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 10) to (42, 9)
+(18217) Avanzar returned (42, 8)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (25, 13) to (26, 13)
+(18219) Avanzar returned (27, 13)
+(18218) Moving from (18, 0) to (17, 0)
+(18218) Avanzar returned (-1, -2)
+(18218) Walker exiting
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 9) to (42, 8)
+(18217) Avanzar returned (42, 7)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (26, 13) to (27, 13)
+(18219) Avanzar returned (28, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 8) to (42, 7)
+(18217) Avanzar returned (42, 6)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (27, 13) to (28, 13)
+(18219) Avanzar returned (29, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 7) to (42, 6)
+(18217) Avanzar returned (42, 5)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (28, 13) to (29, 13)
+(18219) Avanzar returned (30, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 6) to (42, 5)
+(18217) Avanzar returned (42, 4)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (29, 13) to (30, 13)
+(18219) Avanzar returned (31, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 5) to (42, 4)
+(18217) Avanzar returned (42, 3)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (30, 13) to (31, 13)
+(18219) Avanzar returned (32, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 4) to (42, 3)
+(18217) Avanzar returned (42, 2)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (31, 13) to (32, 13)
+(18219) Avanzar returned (33, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 3) to (42, 2)
+(18217) Avanzar returned (42, 1)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18219) Moving from (32, 13) to (33, 13)
+(18219) Avanzar returned (34, 13)
+(18210) Car checking (33, 20): 1
+(18217) Moving from (42, 2) to (42, 1)
+(18217) Avanzar returned (42, 0)
+(18210) Car checking (33, 20): 1
+(18210) Car checking (33, 20): 1
+(18220) Car children started with index 3
+(18220) Car checking (33, 1): 0
+(18220) Car moving from (33, 1) to (33, 1)
+(18220) Car avanzar returned (33, 2)
+(18219) Moving from (33, 13) to (34, 13)
+(18219) Avanzar returned (35, 13)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 2): 0
+(18220) Car moving from (33, 1) to (33, 2)
+(18220) Car avanzar returned (33, 3)
+(18217) Moving from (42, 1) to (42, 0)
+(18217) Avanzar returned (-1, -2)
+(18217) Walker exiting
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 3): 0
+(18220) Car moving from (33, 2) to (33, 3)
+(18220) Car avanzar returned (33, 4)
+(18210) Car checking (33, 20): 1
+(18202) Adding child with index 4
+(18220) Car checking (33, 4): 0
+(18220) Car moving from (33, 3) to (33, 4)
+(18220) Car avanzar returned (33, 5)
+(18219) Moving from (34, 13) to (35, 13)
+(18219) Avanzar returned (36, 13)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 5): 0
+(18220) Car moving from (33, 4) to (33, 5)
+(18220) Car avanzar returned (33, 6)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 6): 0
+(18220) Car moving from (33, 5) to (33, 6)
+(18220) Car avanzar returned (33, 7)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 7): 0
+(18220) Car moving from (33, 6) to (33, 7)
+(18220) Car avanzar returned (33, 8)
+(18219) Moving from (35, 13) to (36, 13)
+(18219) Avanzar returned (37, 13)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 8): 0
+(18220) Car moving from (33, 7) to (33, 8)
+(18220) Car avanzar returned (33, 9)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 9): 0
+(18220) Car moving from (33, 8) to (33, 9)
+(18220) Car avanzar returned (33, 10)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 10): 0
+(18220) Car moving from (33, 9) to (33, 10)
+(18220) Car avanzar returned (33, 11)
+(18219) Moving from (36, 13) to (37, 13)
+(18219) Avanzar returned (38, 13)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 11): 0
+(18220) Car moving from (33, 10) to (33, 11)
+(18220) Car avanzar returned (33, 12)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 12): 0
+(18220) Car moving from (33, 11) to (33, 12)
+(18220) Car avanzar returned (33, 13)
+(18210) Car checking (33, 20): 1
+(18220) Car checking (33, 13): 0
+(18220) Car moving from (33, 12) to (33, 13)
+(18221) Walker children started with index 4
+(18202) Adding child with index 5
+(18222) Walker children started with index 5
+(18202) Adding child with index 6
+(18223) Car children started with index 6
+(18202) Adding child with index 7
+(18220) Car avanzar returned (-1, -1)
+(18220) Car exiting
+(18219) Moving from (37, 13) to (38, 13)
+(18221) Walker current: (0, 14), next: (0, 13)
+(18222) Walker current: (7, 16), next: (7, 15)
+(18224) Walker children started with index 7

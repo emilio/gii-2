@@ -1,0 +1,18 @@
+
+Sequence dropped.
+
+
+Sequence created.
+
+	id INTEGER NOT NULL DEFAULT log_id_seq.NEXTVAL,
+	                    *
+ERROR at line 2:
+ORA-00907: missing right parenthesis 
+
+
+CREATE TRIGGER update_log_on_author AFTER UPDATE ON autor
+                                                    *
+ERROR at line 1:
+ORA-01031: insufficient privileges 
+
+

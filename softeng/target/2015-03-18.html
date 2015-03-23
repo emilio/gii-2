@@ -1,0 +1,34 @@
+<h2 id="modelos-evolutivos-vs.-modelos-en-cascada">Modelos evolutivos vs. modelos en cascada</h2>
+<p>Los modelos evolutivos tratan de atacar los problemas de rigidez, de los ciclos monolíticos y de la linearidad, y de la velocidad lenta de implementación.</p>
+<p>Introduce además la evaluación de riesgos.</p>
+<h2 id="modelos-evolutivos-y-prototipos-deshechables">Modelos evolutivos y prototipos deshechables</h2>
+<p>Es <strong>inviable usar prototipos deshechables en un modelo evolutivo</strong>.</p>
+<p>El hecho de que el prototipo sea deshechable, implica que no tenga la calidad suficiente para evolucionar.</p>
+<h2 id="relacion-entre-incrementalidad-e-iteratividad">Relación entre incrementalidad e iteratividad</h2>
+<p>Que un ciclo sea incremental es que el producto que se explota se va mejorando, y que sea iterativo significa que se pasa varias veces por el ciclo de desarrollo.</p>
+<p>Obviamente <strong>una característica no tiene sentido sin la otra</strong>, tienen que coexistir y están intrínsecamente ligadas.</p>
+<p>Por ejemplo: <strong>Si elimináramos la incremenentalidad</strong>, tendríamos que <strong>rehacer el producto cada iteración</strong>. Ese enfoque hacia el desarrollo de nuestro producto no es ni eficiente, ni por supuesto realista.</p>
+<h2 id="modelo-en-espiral-como-meta-modelo">Modelo en espiral como meta-modelo</h2>
+<p>Se considera al modelo en espiral un meta-modelo, ya que <strong>es un &quot;patrón&quot;</strong>, un enfoque que no fuerza todo el proceso, sólo indica algunas características básicas.</p>
+<h2 id="mantenimiento-dentro-del-modelo-en-espiral">Mantenimiento dentro del modelo en espiral</h2>
+<p>El modelo en espiral contempla el mantenimiento como parte intrínseca del proceso.</p>
+<p>Una vez se ha llegado al producto final, <strong>el mantenimiento serían los ciclos de espiral sucesivos tras el lanzamiento del producto</strong> (más cortos o más largos dependiendo del producto y del tipo de mantenimiento que requiera).</p>
+<h2 id="el-analisis-de-riesgos-al-modelo-en-espiral">El análisis de riesgos al modelo en espiral</h2>
+<p>El análisis de riesgos no sólo <strong>da una posible salida de la espiral</strong> antes de que se realice una mayor inversión, sino que se manifiesta como el <strong>elemento de fusión entre la gestión y la ingeniería</strong> que otros modelos no contemplaban: Permite <em>sincronizar</em> las fases de gestión y de desarrollo.</p>
+<h2 id="enfoque-clasico-vs-modelo-en-espiral">Enfoque clásico vs modelo en espiral</h2>
+<p>El modelo en espiral aporta tanto la <strong>iteratividad</strong>, que contempla de manera más realista el desarrollo de software.</p>
+<p>Además consigue no dejar tan de lado la gestión poniendo el elemento de fusión que comentábamos antes, el <strong>análisis de riesgos</strong>.</p>
+<h2 id="desarrollo-con-reutilizacion-y-desarrollo-para-reutilizacion">Desarrollo con reutilización y desarrollo para reutilización</h2>
+<p>Cuando desarrollamos para reutilización, tratamos de crear software que realice una tarea concreta (y normalmente que preveemos que vamos a tener que realizar en un futuro) de forma lo más aislada y eficiente posible.</p>
+<p>Cuando desarrollamos con reutilización, utilizamos esa serie de <em>componentes</em> (o otros que no hayamos escrito nosotros) para desarrollar otro producto de forma más rápida.</p>
+<h3 id="un-ejemplo">Un ejemplo</h3>
+<p>Desarrollamos para reutilización una función de hash eficiente, luego la reutilizamos (<em>desarrollo con reutilización</em>) para realizar el módulo de login de una aplicación.</p>
+<p>Esto es incremental, y <strong>un desarrollo con reutilización también puede convertirse en un desarrollo para reutilización</strong>. En el ejemplo anteriorpasaría, por ejemplo, si conseguimos aislar lo suficiente ese módulo de tal manera que lo podemos usar en todas nuestras aplicaciones que lo requieran.</p>
+<h2 id="dimension-de-gestion-e-ingenieria-en-el-proceso-unificado">Dimensión de gestión e ingeniería en el Proceso Unificado</h2>
+<p>Cada ciclo se divide en <strong>cuatro fases secuenciales</strong>, lo que facilita la labor de <strong>gestión</strong>.</p>
+<p>El aspecto de la ingeniería viene en el momento en el que <strong>dentro de esas fases tenemos diversas iteraciones</strong>, y en el que <strong>el ciclo se puede repetir también múltiples veces</strong>, teniendo una entrega incremental del producto al final del ciclo.</p>
+<h2 id="diferentes-partes-dentro-del-proceso-unificado">Diferentes partes dentro del Proceso Unificado</h2>
+<p><strong>Hito</strong>: Cada uno de los logros que hay al acabar una de las fases. Un hito puede o no desembocar en una nueva versión del software. Dentro de las fases, en cada iteración, también podrían encontrarse <strong>hitos de menor grado</strong> (<em>sub-hitos</em>). Nótese que los hitos no tienen por qué ser sólo hitos de desarrollo, <strong>también pueden ser hitos de gestión</strong>.</p>
+<p><strong>Versión interna</strong>: Es una versión del producto que no se entrega al cliente y que se consigue por lo general al terminar una de las fases del incremento.</p>
+<p><strong>Versión de entrega</strong>: Es el producto que se entrega al cliente, y presumiblemente se pone en explotación, al final de cada incremento.</p>
+<p><strong>Incremento</strong>: Cada una de los pasos por el ciclo que se realizan durante el desarrollo.</p>
