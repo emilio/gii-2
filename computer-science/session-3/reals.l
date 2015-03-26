@@ -1,12 +1,5 @@
 %{
-
 #include <stdio.h>
-
-// Assume an empty file has 1 line
-static int line_count = 1;
-static int word_count = 0;
-static int char_count = 0;
-
 %}
 
 %%
@@ -32,6 +25,8 @@ int main(int argc, char** argv) {
 	yyin = in;
 
 	yylex();
+
+	fclose(in);
 
 	return 0;
 }

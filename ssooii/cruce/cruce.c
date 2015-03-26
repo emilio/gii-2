@@ -406,6 +406,9 @@ void bind_parent_signals() {
 	BIND_TO(SIGINT, sig_exit);
 }
 
+/** Helper macro to hash a location to the grid table: */
+#define GRID_VALUE_FOR(p) (data->grid[p.x + 3][p.y + 3])
+
 int child_proc_walker(size_t my_index) {
 	GameData* data = get_data();
 	Process* me = data->children + my_index;
@@ -421,37 +424,35 @@ int child_proc_walker(size_t my_index) {
 
 	LOG("Walker current: (%d, %d), next: (%d, %d)", current.x, current.y, next.x, next.y);
 
-	data->grid[current.x][current.y] = 1;
+	semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
+	GRID_VALUE_FOR(current) = 1;
+	semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
 
-	while ( 1 ) {
-		semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
-		if ( ! data->grid[next.x][next.y] ) {
-			LOG("Moving from (%d, %d) to (%d, %d)", current.x, current.y, next.x, next.y);
-			data->grid[current.x][current.y] = 0;
-			data->grid[next.x][next.y] = 1;
-
-			current = next;
-			next = CRUCE_avanzar_peatOn(next);
-			LOG("Avanzar returned (%d, %d)", next.x, next.y);
-
-			/** Sometimes it returns -2... */
-			if ( next.y  < 0 || next.x < 0 ) {
-				semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
-				break;
-			}
-		}
-		semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
-
+	while ( next.y >= 0 ) {
 		ret = pausa();
 		if ( ret == -1 ) {
 			LOG("process pause fail, dying");
 			break;
 		}
+
+		semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
+		if ( ! GRID_VALUE_FOR(next) ) {
+			LOG("Moving from (%d, %d) to (%d, %d)", current.x, current.y, next.x, next.y);
+			GRID_VALUE_FOR(current) = 0;
+			GRID_VALUE_FOR(next) = 1;
+			current = next;
+			next = CRUCE_avanzar_peatOn(next);
+			LOG("Avanzar returned (%d, %d)", next.x, next.y);
+		}
+		semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
 	}
 
+	semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
+	GRID_VALUE_FOR(current) = 0;
 	LOG("Walker exiting");
 	CRUCE_fin_peatOn();
 	me->id = 0;
+	semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
 	return 0;
 }
 
@@ -471,31 +472,30 @@ int child_proc_car(size_t my_index) {
 	/** Wait for the semaphore to be ready */
 	semaphore_wait_zero(data->semaphores, SEMAPHORE_MANAGER_READY);
 
-	while ( 1 ) {
-		semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
-		LOG("Car checking (%d, %d): %d", next.x, next.y, data->grid[next.x][next.y]);
-		if ( ! data->grid[next.x][next.y] ) {
-			LOG("Car moving from (%d, %d) to (%d, %d)", current.x, current.y, next.x, next.y);
-			data->grid[current.x][current.y] = 0;
-			data->grid[next.x][next.y] = 1;
-
-			current = next;
-			next = CRUCE_avanzar_coche(next);
-			LOG("Car avanzar returned (%d, %d)", next.x, next.y);
-			if ( next.y  < 0 || next.x < 0 ) {
-				semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
-				break;
-			}
-		}
-
-		semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
-
+	LOG("Car children loop start (%d, %d)", current.x, current.y);
+	while ( next.y >= 0 ) {
 		ret = pausa_coche();
 		if ( ret == -1 ) {
 			LOG("process pause fail, dying");
 			break;
 		}
+		semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
+		LOG("Car checking (%d, %d): %d", next.x, next.y, GRID_VALUE_FOR(next));
+		if ( ! GRID_VALUE_FOR(next) ) {
+			LOG("Car moving from (%d, %d) to (%d, %d)", current.x, current.y, next.x, next.y);
+			GRID_VALUE_FOR(current) = 0;
+			GRID_VALUE_FOR(next) = 1;
+
+			current = next;
+			next = CRUCE_avanzar_coche(next);
+			LOG("Car avanzar returned (%d, %d)", next.x, next.y);
+		}
+		semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
 	}
+
+	semaphore_lock(data->semaphores, SEMAPHORE_MAP_ACCESS);
+	GRID_VALUE_FOR(current) = 0;
+	semaphore_unlock(data->semaphores, SEMAPHORE_MAP_ACCESS);
 
 	LOG("Car exiting");
 	CRUCE_fin_coche();
@@ -503,11 +503,20 @@ int child_proc_car(size_t my_index) {
 	return 0;
 }
 
+#define INIT_RANGE(sem, p1x, p1y, p2x, p2y) do { \
+	point_t* range = data->game_semaphores[sem].range;	\
+	range[0].x = p1x; \
+	range[0].y = p1x; \
+	range[1].x = p2x; \
+	range[1].y = p2y; \
+} while (0)
 int manager_proc() {
 	GameData* data = get_data();
 	int phase = 0;
 
-	// data->game_semaphores[SEM_C1].range = {{0, 0}, {1, 1}};
+	INIT_RANGE(SEM_C1, 12, 4, 16, 7);
+
+	data->game_semaphores[SEM_C1].range = {{0, 0}, {1, 1}};
 	CRUCE_pon_semAforo(SEM_C1, VERDE);
 	CRUCE_pon_semAforo(SEM_P2, VERDE);
 
@@ -595,7 +604,7 @@ int main(int argc, char **argv) {
 	if ( data->semaphores == -1 )
 		FATAL_ERROR("Semaphore creation failed: %s\n", strerror(errno));
 
-	ret = CRUCE_inicio(speed, max_count, data->semaphores, data->library_data);
+	ret = CRUCE_inicio(speed, max_count + 2, data->semaphores, data->library_data);
 
 	if ( ret == -1 )
 		FATAL_ERROR("Library initialization failed\n");
@@ -626,7 +635,7 @@ int main(int argc, char **argv) {
 	/** Process creation */
 	while ( 1 ) {
 		if ( data->alive_count == max_count ) {
-			waitpid(0, NULL, 0);
+			waitpid(-1, NULL, 0);
 			data->alive_count--;
 		}
 

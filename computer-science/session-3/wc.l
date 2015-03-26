@@ -34,5 +34,7 @@ int main(int argc, char** argv) {
 
 	printf("%d chars forming %d words in %d lines\n", char_count, word_count, line_count);
 
+	fclose(in);
+
 	return 0;
 }

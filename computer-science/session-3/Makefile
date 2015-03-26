@@ -5,7 +5,7 @@ all: $(TARGETS)
 	@echo > /dev/null
 
 %: %.yy.c
-	$(CC) $< -o $@ -ll
+	$(CC) -Wall $< -o $@ -ll
 
 %.yy.c: %.l
 	lex -o $@ $<
