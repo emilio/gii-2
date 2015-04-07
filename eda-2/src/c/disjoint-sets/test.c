@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "lib/disjoint-set.h"
+#include "lib/disjoint-sets.h"
 
 #define TEST_SIZE 1000
 

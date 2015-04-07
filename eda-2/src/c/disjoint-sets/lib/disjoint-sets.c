@@ -1,4 +1,4 @@
-#include "disjoint-set.h"
+#include "disjoint-sets.h"
 
 disjoint_sets_t* disjoint_sets_new() {
 	return disjoint_sets_new_with_capacity(0);
