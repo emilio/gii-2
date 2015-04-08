@@ -83,10 +83,12 @@ union semun {
 	fprintf(stderr, "(error) "str, ## __VA_ARGS__); \
 } while (0) */
 
+#define ERROR_EXIT() exit(100)
+
 #define FATAL_ERROR(str, ...) do { \
 	ERROR(str, ##__VA_ARGS__); \
 	fprintf(stderr, "Run with no args for a list of options.\n"); \
-	exit(1); \
+	ERROR_EXIT(); \
 } while( 0 )
 
 #define LOG_PATH "pist2.log"
@@ -277,7 +279,7 @@ void __dump() {
 /** Program help */
 void program_help() {
 	fprintf(stderr, "Usage: "SELF" <count> <speed> <seed>\n");
-	exit(1);
+	ERROR_EXIT();
 }
 
 /** Get current child process, cached statically */
@@ -372,7 +374,7 @@ void kill_all() {
 /** Resources handled by atexit() */
 void sig_exit(int s) {
 	__dump();
-	exit(1);
+	ERROR_EXIT();
 }
 
 /** Our parent was interrupted, dump data for debugging and release all */
@@ -513,7 +515,8 @@ int main(int argc, char **argv) {
 		count = DEFAULT_PROC_COUNT,
 		speed = DEFAULT_SPEED,
 		seed = 0;
-	pid_t current_pid;
+	pid_t current_pid,
+		  last_dead_process;
 	GameData *data;
 	int ret;
 	char lib_id = 'A';
@@ -584,7 +587,7 @@ int main(int argc, char **argv) {
 			case -1:
 				perror("fork");
 				__dump();
-				exit(1);
+				ERROR_EXIT();
 			case 0:
 				/** We must ensure current_index is ok in child_proc */
 				data->children[i].id = getpid();
@@ -595,7 +598,10 @@ int main(int argc, char **argv) {
 
 	/** Wait for all processes to die */
 	while ( count-- )
-		waitpid(0, NULL, 0);
+		last_dead_process = waitpid(0, NULL, 0);
+
+	if ( data->alive_count == 1 )
+		return last_dead_process;
 
 	return 0;
 }

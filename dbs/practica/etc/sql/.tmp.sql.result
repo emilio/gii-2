@@ -1,0 +1,198 @@
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+
+Table dropped.
+
+
+Table created.
+
+DROP SEQUENCE grades_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER grades_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'GRADES_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+DROP SEQUENCE teachers_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER teachers_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'TEACHERS_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+DROP SEQUENCE subjects_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER subjects_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'SUBJECTS_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+DROP SEQUENCE themes_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER themes_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'THEMES_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+DROP SEQUENCE asks_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER asks_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'ASKS_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+DROP SEQUENCE answers_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER answers_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'ANSWERS_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+DROP SEQUENCE exams_id_sequence
+              *
+ERROR at line 1:
+ORA-02289: sequence does not exist 
+
+
+
+Sequence created.
+
+DROP TRIGGER exams_insert
+*
+ERROR at line 1:
+ORA-04080: trigger 'EXAMS_INSERT' does not exist 
+
+
+
+Warning: Trigger created with compilation errors.
+
+
+Table altered.
+
+
+Trigger created.
+
+
+Warning: Trigger created with compilation errors.
+
+
+Commit complete.
+
