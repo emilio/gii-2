@@ -622,8 +622,6 @@ int main(int argc, char **argv) {
 		FATAL_ERROR("Library initialization failed\n");
 
 
-	printf("after bind_parent_signals");
-
 	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
 	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
 
