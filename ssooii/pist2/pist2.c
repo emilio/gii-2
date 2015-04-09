@@ -409,7 +409,7 @@ void release_all_resources() {
 	int ret;
 
 	/** Just for parent */
-	if ( data->parent_id != getpid() )
+	if ( data && data->parent_id != getpid() )
 		return;
 
 	/** When game is over... */
@@ -595,6 +595,8 @@ int main(int argc, char **argv) {
 	if ( count == 0 )
 		FATAL_ERROR("At least one player is required.\n");
 
+	bind_parent_signals();
+
 	atexit(release_all_resources);
 
 	/** Create shared data structure */
@@ -619,17 +621,14 @@ int main(int argc, char **argv) {
 	if ( ret == -1 )
 		FATAL_ERROR("Library initialization failed\n");
 
-	bind_parent_signals();
+
+	printf("after bind_parent_signals");
 
 	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
 	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
 
 	/** Just one process logging at a time */
 	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
-
-	LOG("Semaphores initialized: %d %d",
-			semaphore_get_value(data->semaphores, SEMAPHORE_READY),
-			semaphore_get_value(data->semaphores, SEMAPHORE_LOG));
 
 	/** Process creation */
 	for ( i = 0; i < count; ++i ) {
