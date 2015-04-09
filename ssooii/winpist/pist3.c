@@ -5,128 +5,58 @@
  *
  * @author Emilio Cobos Álvarez <emiliocobos@usal.es>
  */
+#define _UNICODE
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
 #include <string.h> /* strlen, strerror */
 #include <time.h> /* time */
-#include <assert.h>
-#include <unistd.h> /* getpid, write, close, unlink, fork */
-#include <signal.h> /* sigset_t, sigsuspend, sigprocmask, sigdelset, sigaddset */
-#include <fcntl.h> /* open */
-#include <sys/mman.h> /* mmap, munmap */
-#include <sys/ipc.h>
-#include <sys/types.h>
-#include <sys/wait.h> /** waitpid, WNOHANG */
-#include <sys/sem.h>
-
-#ifdef STATEMENT_CONFORMANT
-#	include <sys/msg.h>
-#endif
-
-#include "pist2.h"
-
-union semun {
-	int val;
-    struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
-    unsigned short  *array;  /* Array for GETALL, SETALL */
-};
-
-#define SELF "pistolos"
-
-#ifdef __GNUC__
-#	if __x86_64__ || __ppc64__
-#		define PID_T_FORMAT "%d"
-#	else
-#		define PID_T_FORMAT "%ld"
-#	endif
-#else
-#	warning "Could not detect arch. Assuming 32x"
-#	define PID_T_FORMAT "%ld"
-#endif
-
-#ifdef __GNUC__
-#	if __GNUC__ < 4 /** Encina... -.- */
-#       include <sys/atomic.h>
-		/** Assume it's 2 bytes (short size)  */
-#		define ATOMIC_DECREMENT(var) (atomic_dec_16_nv(var))
-#	else
-#		define ATOMIC_DECREMENT(var) (__sync_sub_and_fetch(var, 1))
-#	endif
-#elif _WIN32
-#   define ATOMIC_DECREMENT(var) (InterlockedDecrement(var))
-#else
-#    error "Atomic decrement is required"
-#endif
+#include <windows.h>
 
 /** Default process count and output */
 #define DEFAULT_PROC_COUNT 7
 #define DEFAULT_SPEED 0
 
-/**
- * One for the library, four for me
- *
- * Semaphore overview:
- *   - SEMAPHORE_READY to wait for everybody
- *   - SEMAPHORE_ALL_SHOOTED is 0 when everyone has shooted
- *   - SEMAPHORE_ALL_RECEIVED is 0 when everyone has received his shot
- *   - SEMAPHORE_READY is used at the beginning and is 0 when all processes are ready
- *        We can't use this semaphore later, since one process can lock it, and without
- *        waiting for zero, the rest wake up
- */
-#define TOTAL_SEMAPHORE_COUNT 4
-#define SEMAPHORE_ALL_SHOOTED 1
-#define SEMAPHORE_ALL_RECEIVED 2
-#define SEMAPHORE_READY 2 // Reused
-#define SEMAPHORE_LOG 3
-
 /** Error */
 #define ERROR(str, ...) do { \
-	char buff[512]; \
 	snprintf(buff, 512, str, ##__VA_ARGS__); \
-	pon_error(buff); \
 } while ( 0 )
-/* #define ERROR(str, ...) do { \
-	fprintf(stderr, "(error) "str, ## __VA_ARGS__); \
-} while (0) */
 
 #define ERROR_EXIT() exit(100)
 
+#define ERROR(str, ...) do { \
+	fprintf(stderr, str "\n", ##__VA_ARGS__); \
+} while (0)
+
 #define FATAL_ERROR(str, ...) do { \
+	LPVOID lpErrBuffer; \
+	DWORD dwErrCode; \
 	ERROR(str, ##__VA_ARGS__); \
-	fprintf(stderr, "Run with no args for a list of options.\n"); \
+   	dwErrCode = GetLastError(); \
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, \
+	              NULL, \
+	              dwErrCode, \
+                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), \
+	              (LPSTR) &lpBuffer, \
+	              0, NULL); \
+	_tfprintf(stderr, TEXT("Windows Error: %s\n"), lpBuffer); \
 	ERROR_EXIT(); \
 } while( 0 )
 
-#define LOG_PATH "pist2.log"
+#define LOG_PATH "pist3.log"
+HANDLE logMutex;
 #define LOG(msg, ...) do { \
 	GameData* data = get_data(); \
-	semaphore_wait(data->semaphores, SEMAPHORE_LOG); \
-	if ( fseek(data->log, 0, SEEK_END) > -1 ) {  \
-		fprintf(data->log, "("PID_T_FORMAT") "msg"\n", getpid(), ##__VA_ARGS__); \
+	DWORD dwWaitResult = WaitForSingleObject(logMutex);	\
+	if ( dwWaitResult == WAIT_OBJECT_0 ) { \
+		if ( fseek(data->log, 0, SEEK_END) > -1 ) { \
+			fprintf(data->log, "(%d) "msg"\n", GetCurrentThreadId(), ##__VA_ARGS__); \
 		fflush(data->log); \
+		ReleaseMutex(logMutex); \
 	} \
-	semaphore_signal(data->semaphores, SEMAPHORE_LOG); \
 } while (0)
 
 #define LIMIT_MIN 3
 #define LIMIT_MAX 26
-
-/** To be a bit clearer */
-typedef int semaphore_t;
-typedef unsigned char bool;
-
-#ifdef STATEMENT_CONFORMANT
-	typedef int message_queue_t;
-
-#	define MESSAGE_MAX_CONTENT_SIZE 10
-#	define MESSAGE_DEAD_CONTENT "DEAD"
-
-	typedef struct message {
-		long type;
-		char content[MESSAGE_MAX_CONTENT_SIZE];
-	} message_t;
-#endif
 
 /** The  action type passed to manage_data */
 typedef enum DataActionType {
@@ -172,9 +102,6 @@ typedef struct GameData {
 	unsigned short alive_count; /** Current round alive pids count */
 	Process *children; /** The children processes */
 	semaphore_t semaphores;
-#ifdef STATEMENT_CONFORMANT
-	message_queue_t message_queue;
-#endif
 	FILE* log;
 	char library_data[256];
 } GameData;
@@ -345,21 +272,21 @@ bool is_current_proc_coordinator() {
 }
 
 /** Manage game data */
-GameData * manage_data(DataActionType action, size_t count) {
-	static GameData *data = NULL;
+GameData* manage_data(DataActionType action, size_t count) {
+	static GameData* data = NULL;
 	static size_t size = 0;
 
 	/** Create data */
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
 		size = DATA_SIZE_FOR(count);
+		data = (GameData*) malloc(size);
 
-		/** Get our shared pointer and initialize it */
-		data = (GameData *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 		data->process_count = count;
 		data->alive_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
 		data->semaphores = 0;
+
 		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
 		data->log = fopen(LOG_PATH, "w+");
@@ -369,18 +296,14 @@ GameData * manage_data(DataActionType action, size_t count) {
 
 	/** Release data */
 	if ( action == DATA_RELEASE ) {
-		if ( data->semaphores > -1 )
+		/** TODO: Is count ignored in semctl with RMID? */
+		if ( data->semaphores > 0 )
 			semctl(data->semaphores, 0, IPC_RMID);
-
-#ifdef STATEMENT_CONFORMANT
-		if ( data->message_queue > -1 )
-			msgctl(data->message_queue, IPC_RMID, NULL);
-#endif
 
 		if ( data->log != NULL )
 			fclose(data->log);
 
-		munmap( (void *) data, size);
+		free( (void *) data);
 		data = NULL;
 	}
 
@@ -493,14 +416,6 @@ int child_proc(char lib_id) {
 		/** Mark the target as shot, equivalent to send the "DEAD" message */
 		data->children[target - 'A'].status |= PID_STATUS_DEAD_THIS_ROUND;
 
-#ifdef STATEMENT_CONFORMANT
-		message_t msg;
-		msg.type = target;
-		strncpy(msg.content, MESSAGE_DEAD_CONTENT, MESSAGE_MAX_CONTENT_SIZE);
-		if ( msgsnd(data->message_queue, &msg, MESSAGE_MAX_CONTENT_SIZE, 0) == -1 )
-			FATAL_ERROR("msgsend: %s\n", strerror(errno));
-#endif
-
 		if ( PIST_disparar(target) == -1 )
 			ERROR("PIST_disparar");
 
@@ -518,20 +433,8 @@ int child_proc(char lib_id) {
 		/** Without this lock, someone can shoot, reach the bottom, and start shooting again, or get its status corrupted */
 		semaphore_wait(data->semaphores, 2);
 
-#ifdef STATEMENT_CONFORMANT
-		message_t message;
-		/** This is far less elegant, but required given the practice statement */
-		if ( msgrcv(data->message_queue, &message, MESSAGE_MAX_CONTENT_SIZE, lib_id, IPC_NOWAIT | MSG_NOERROR) != -1 ) {
-			/** Empty the message queue */
-			while ( msgrcv(data->message_queue, &message, MESSAGE_MAX_CONTENT_SIZE, lib_id, IPC_NOWAIT | MSG_NOERROR) != -1 ) { /* noop */ };
-
-			/** Just some assertions, in case */
-			assert(strcmp(message.content, MESSAGE_DEAD_CONTENT) == 0);
-			assert(me->status & PID_STATUS_DEAD_THIS_ROUND);
-#else
 		/** If we have received a shot, mark as dead, else... we're ready */
 		if ( me->status & PID_STATUS_DEAD_THIS_ROUND ) {
-#endif
 			me->status |= PID_STATUS_DEAD;
 			ATOMIC_DECREMENT(&data->alive_count);
 			PIST_morirme();
@@ -606,13 +509,6 @@ int main(int argc, char **argv) {
 
 	if ( data->semaphores == -1 )
 		FATAL_ERROR("Semaphore creation failed: %s\n", strerror(errno));
-
-#ifdef STATEMENT_CONFORMANT
-	data->message_queue = msgget(IPC_PRIVATE, IPC_CREAT | 0600);
-
-	if ( data->message_queue == -1 )
-		FATAL_ERROR("Message queue creation failed: %s\n", strerror(errno));
-#endif
 
 	ret = PIST_inicio(count, speed, data->semaphores, data->library_data, seed);
 
