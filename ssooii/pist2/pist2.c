@@ -285,6 +285,11 @@ void __dump() {
 	size_t i;
 	Process *p;
 
+	if ( ! data ) {
+		fprintf(stderr, "No data available\n");
+		return;
+	}
+
 	fprintf(stderr, "\nDump:\n");
 	fprintf(stderr, "Alive count: %hu\n", data->alive_count);
 	fprintf(stderr, "Semaphores:\n");
@@ -399,6 +404,7 @@ void kill_all() {
 
 /** Resources handled by atexit() */
 void sig_exit(int s) {
+	LOG("Signal %d received\n", s);
 	__dump();
 	ERROR_EXIT();
 }
