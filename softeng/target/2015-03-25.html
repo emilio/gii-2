@@ -1,0 +1,41 @@
+<h2 id="el-proceso-unificado-como-marco-de-trabajo-generico">El Proceso Unificado como marco de trabajo genérico</h2>
+<p>Se puede considerar el Proceso Unificado como un marco de trabajo genérico (<em>meta-proceso</em>), ya que <strong>puede adaptarse a diferentes procesos</strong> (por ejemplo, al SCRUM, como hemos visto en la pasada sesión).</p>
+<p>El Proceso Unificado como <em>meta-proceso</em> es comparable al modelo en espiral como <em>meta-modelo</em>.</p>
+<h2 id="etapas-de-ingenieria-y-de-produccion-en-el-proceso-unificado">Etapas de Ingeniería y de Producción en el Proceso Unificado</h2>
+<p>La etapa de <strong>ingeniería se corresponde más al diseño</strong> de la estructura de la aplicación y elaboración, mientras que la de <strong>producción</strong> contiene la <strong>fase de obtención del producto</strong> (<em>teclear</em>, por lo general).</p>
+<h2 id="dimension-de-ingenieria-y-de-gestion-en-el-proceso-unificado">Dimensión de ingeniería y de gestión en el Proceso Unificado</h2>
+<p>El Proceso Unificado puede aparentar ser lineal en el exterior (dimensión de gestión): las diferentes fases de inicio, elaboración, construcción y transición son lineales al fin y al cabo.</p>
+<p>La dimensión de la <strong>ingeniería</strong> entra en los <strong>flujos de trabajo y en las iteraciones</strong>, como parte fundamental para explicar el éxito de este modelo de proceso.</p>
+<h2 id="problemas-del-ciclo-de-vida-clasico-resueltos-por-el-proceso-unificado">Problemas del ciclo de vida clásico resueltos por el Proceso Unificado</h2>
+<p>Los problemas del ciclo de vida clásico quedan <strong>superados</strong> por el Proceso unificado:</p>
+<ul>
+<li><strong>Secuencialidad</strong>: El Proceso Unificado ya no es secuencial (iteraciones).<br /></li>
+<li><strong>Rigidez</strong>: El Proceso Unificado no es rígido (disciplinas solapables dentro del flujo de trabajo).<br /></li>
+<li><strong>Ser monolítico</strong>: El Proceso Unificado no es monolítico (diferentes versiones entregables, incrementos).<br /></li>
+<li><strong>Resolución de problemas sencilla</strong>: La resolución de los problemas anteriores también implica que la detección (y por lo tanto corrección) de los errores se haga más sencilla.</li>
+</ul>
+<h2 id="concepto-de-artefacto-en-el-proceso-unificado">Concepto de artefacto en el Proceso Unificado</h2>
+<p>El concepto de artefacto es un nombre genérico para cualquier tipo de infomación creada, producida, cambiada o utilizada por los stakeholders en el desarrollo del sistema.</p>
+<p>El artefacto más importante que se usa dentro del proceso unificado es el <strong>modelo</strong>.</p>
+<h2 id="proceso-unificado-guiado-por-casos-de-uso">Proceso Unificado guiado por casos de uso</h2>
+<p>Se puede considerar que el Proceso Unificado está <strong>guiado por casos de uso</strong>.</p>
+<p>Es <strong>lógico que un proceso de desarrollo esté guiado por las características</strong> que debe tener, y que dentro de esas características, <strong>los casos de uso afecten a toda la aplicación</strong>, al fin y al cabo, representan la funcionalidad que debe tener.</p>
+<p>No obstante, en el caso del Proceso Unificado, <strong>los casos de uso cobran aún más importancia</strong>: sirven para enlazar las diferentes disciplinas, convirtiéndose en el eje central del proceso.</p>
+<h2 id="proceso-unificado-centrado-en-la-arquitectura">Proceso Unificado centrado en la arquitectura</h2>
+<p>Un buen diseño de la arquitectura de un producto (cómo están organizados diferentes módulos y cómo se relacionan entre sí) desde el principio, es imprescindible para soportar un buen ritmo de cambios e incrementos.</p>
+<h2 id="incrementalidad-e-iteratividad-del-proceso-unificado">Incrementalidad e iteratividad del Proceso Unificado</h2>
+<p>El Proceso Unificado <strong>es iterativo e incremental</strong> por diseño: El modelo de proceso consiste en una serie de <strong>iteraciones</strong> (durante diferentes fases secuenciales, eso sí), para conseguir un producto por primera vez, y luego <strong>iterar indefinidamente</strong> sobre él para mejorarlo (<strong>incrementos</strong>).</p>
+<h2 id="importancia-de-una-arquitectura-de-capas">Importancia de una arquitectura de capas</h2>
+<p>Tener una arquitectura de capas permite <strong>reutilizar</strong> una base de código existente, siendo por lo general, siguiendo el modelo de ejemplo inferior, sólo reescrita la capa específica de la aplicación.</p>
+<p>También nos permite residir en la <strong>estabilidad de las capas inferiores</strong>, lo cual es imprescindible para un desarrollo medianamente ágil. Esto fuerza a una restricción, y es que <strong>un módulo de una capa superior puede depender de uno de una capa inferior, pero lo contrario nunca puede pasar</strong>, ya que comprometería dicha estabilidad.</p>
+<p>Finalmente, si añadimos la regla de que un módulo no puede tener dependencias que no sean de una capa inferior, hacemos que las <strong>capas inferiores sean opacas</strong>, creando cierto <strong>nivel de abstracción</strong> sobre ellas.</p>
+<p>Un ejemplo de arquitectura de capas (en cuatro capas) sería:</p>
+<pre><code>+-----------------------------------------+
+|    Capa específica de la aplicación     |
+|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|
+|     Capa general de la aplicación       |
+|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|
+|     Capa intermedia (middleware)        |
+|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|
+|    Capa de software del sistema (S.O)   |
++-----------------------------------------+</code></pre>

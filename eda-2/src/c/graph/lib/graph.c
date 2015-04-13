@@ -17,7 +17,8 @@ vertex_t* vertex_new() {
 
 	assert(ret != NULL);
 
-	ret->visited = 0;
+	ret->reached = 0;
+	ret->incoming_edges_count = 0;
 	ret->adjacents_head = ret->adjacents_last = NULL;
 
 	return ret;
@@ -57,6 +58,45 @@ graph_t* graph_new_with_count(size_t vertex_count) {
 /** Create a new graph with no vertexes */
 graph_t* graph_new() {
 	return graph_new_with_count(0);
+}
+
+void graph_recompute(graph_t* self, int flags) {
+	size_t i, j;
+	if ( flags == 0 )
+		return;
+
+	if ( flags & GRAPH_RECOMPUTE_REACHED_BIT
+		 || flags & GRAPH_RECOMPUTE_INCOMING_BIT ) {
+		for ( i = 0; i < self->size; ++i ) {
+			if ( flags & GRAPH_RECOMPUTE_REACHED_BIT )
+				self->v[i]->reached = 0;
+			if ( flags & GRAPH_RECOMPUTE_INCOMING_BIT )
+				self->v[i]->incoming_edges_count = 0;
+		}
+	}
+
+	if ( flags & GRAPH_RECOMPUTE_INCOMING_BIT ) {
+		for ( i = 0; i < self->size; ++i ) {
+			adjacent_t* current = self->v[i]->adjacents_head;
+			while ( current != NULL ) {
+				self->v[current->id]->incoming_edges_count += 1;
+				current = current->next;
+			}
+		}
+	}
+}
+
+vertex_t** graph_topological_sort(graph_t* self) {
+	vertex_t** ret = (vertex_t**) malloc(self->size * sizeof(vertex_t**));
+
+	if ( ret == NULL )
+		return ret;
+
+	graph_recompute(self, GRAPH_RECOMPUTE_REACHED_BIT | GRAPH_RECOMPUTE_INCOMING_BIT);
+
+	// TODO
+
+	return ret;
 }
 
 #endif
