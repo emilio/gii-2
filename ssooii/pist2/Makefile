@@ -4,19 +4,20 @@ LINK_FLAGS := -L. -lpist -lm
 DEPS := pist2.c pist2.h
 
 
-all: pist2 conformant
+all: pist2 bypass
 	@echo > /dev/null
 
-conformant: pist2_conformant
+bypass: pist2_bypassing
 	@echo > /dev/null
-
-pist2_conformant: $(DEPS)
-	$(CC) $(CFLAGS) -DSTATEMENT_CONFORMANT $< -o $@ $(LINK_FLAGS)
 
 pist2: $(DEPS)
 	$(CC) $(CFLAGS) $< -o $@ $(LINK_FLAGS)
 
+pist2_bypassing: $(DEPS)
+	$(CC) $(CFLAGS) $< -DDEBUG -DBYPASS_STATEMENT -o $@ $(LINK_FLAGS)
+
 clean:
+	rm pist2_bypassing
 	rm pist2
 
-.PHONY: all clean conformant
+.PHONY: all clean bypass

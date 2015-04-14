@@ -20,7 +20,7 @@
 #include <sys/wait.h> /** waitpid, WNOHANG */
 #include <sys/sem.h>
 
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 #	include <sys/msg.h>
 #endif
 
@@ -98,6 +98,7 @@ union semun {
 	ERROR_EXIT(); \
 } while( 0 )
 
+#ifdef DEBUG
 #define LOG_PATH "pist2.log"
 #define LOG(msg, ...) do { \
 	GameData* data = get_data(); \
@@ -108,6 +109,9 @@ union semun {
 	} \
 	semaphore_signal(data->semaphores, SEMAPHORE_LOG); \
 } while (0)
+#else
+#define LOG(...)
+#endif
 
 #define LIMIT_MIN 3
 #define LIMIT_MAX 26
@@ -116,7 +120,7 @@ union semun {
 typedef int semaphore_t;
 typedef unsigned char bool;
 
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 	typedef int message_queue_t;
 
 #	define MESSAGE_MAX_CONTENT_SIZE 10
@@ -172,10 +176,12 @@ typedef struct GameData {
 	unsigned short alive_count; /** Current round alive pids count */
 	Process *children; /** The children processes */
 	semaphore_t semaphores;
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 	message_queue_t message_queue;
 #endif
+#ifdef DEBUG
 	FILE* log;
+#endif
 	char library_data[256];
 } GameData;
 
@@ -367,9 +373,11 @@ GameData * manage_data(DataActionType action, size_t count) {
 		data->semaphores = 0;
 		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
+#ifdef DEBUG
 		data->log = fopen(LOG_PATH, "w+");
 		if ( data->log == NULL )
 			data->log = stderr;
+#endif
 	}
 
 	/** Release data */
@@ -377,13 +385,14 @@ GameData * manage_data(DataActionType action, size_t count) {
 		if ( data->semaphores > -1 )
 			semctl(data->semaphores, 0, IPC_RMID);
 
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 		if ( data->message_queue > -1 )
 			msgctl(data->message_queue, IPC_RMID, NULL);
 #endif
-
+#ifdef DEBUG
 		if ( data->log != NULL )
 			fclose(data->log);
+#endif
 
 		munmap( (void *) data, size);
 		data = NULL;
@@ -499,7 +508,7 @@ int child_proc(char lib_id) {
 		/** Mark the target as shot, equivalent to send the "DEAD" message */
 		data->children[target - 'A'].status |= PID_STATUS_DEAD_THIS_ROUND;
 
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 		message_t msg;
 		msg.type = target;
 		strncpy(msg.content, MESSAGE_DEAD_CONTENT, MESSAGE_MAX_CONTENT_SIZE);
@@ -524,7 +533,7 @@ int child_proc(char lib_id) {
 		/** Without this lock, someone can shoot, reach the bottom, and start shooting again, or get its status corrupted */
 		semaphore_wait(data->semaphores, 2);
 
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 		message_t message;
 		/** This is far less elegant, but required given the practice statement */
 		if ( msgrcv(data->message_queue, &message, MESSAGE_MAX_CONTENT_SIZE, lib_id, IPC_NOWAIT | MSG_NOERROR) != -1 ) {
@@ -568,7 +577,7 @@ int main(int argc, char **argv) {
 		speed = DEFAULT_SPEED,
 		seed = 0;
 	pid_t current_pid,
-		  last_dead_process;
+		last_dead_process;
 	GameData *data;
 	int ret;
 	char lib_id = 'A';
@@ -615,7 +624,7 @@ int main(int argc, char **argv) {
 	if ( data->semaphores == -1 )
 		FATAL_ERROR("Semaphore creation failed: %s\n", strerror(errno));
 
-#ifdef STATEMENT_CONFORMANT
+#ifndef BYPASS_STATEMENT
 	data->message_queue = msgget(IPC_PRIVATE, IPC_CREAT | 0600);
 
 	if ( data->message_queue == -1 )
