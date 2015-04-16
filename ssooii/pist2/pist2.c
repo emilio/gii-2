@@ -33,17 +33,6 @@ union semun {
 };
 
 #ifdef __GNUC__
-#	if __x86_64__ || __ppc64__
-#		define PID_T_FORMAT "%d"
-#	else
-#		define PID_T_FORMAT "%ld"
-#	endif
-#else
-#	warning "Could not detect arch. Assuming 32x"
-#	define PID_T_FORMAT "%ld"
-#endif
-
-#ifdef __GNUC__
 #	if __GNUC__ < 4 /** Encina... -.- */
 #       include <sys/atomic.h>
 		/** Assume it's 2 bytes (short size)  */
@@ -66,7 +55,6 @@ union semun {
  *
  * Semaphore overview:
  *   - SEMAPHORE_READY to wait for everybody
- *   - SEMAPHORE_ALL_SHOOTED is 0 when everyone has shooted
  *   - SEMAPHORE_ALL_RECEIVED is 0 when everyone has received his shot
  *   - SEMAPHORE_READY is used at the beginning and is 0 when all processes are ready
  *        We can't use this semaphore later, since one process can lock it, and without
@@ -80,7 +68,7 @@ union semun {
 #endif
 #define SEMAPHORE_ALL_SHOOTED 1
 #define SEMAPHORE_ALL_RECEIVED 2
-#define SEMAPHORE_READY 2 // Reused
+#define SEMAPHORE_READY 2 /* Reused */
 
 /** Error */
 #define ERROR(str, ...) do { \
@@ -88,9 +76,6 @@ union semun {
 	snprintf(buff, 512, str, ##__VA_ARGS__); \
 	pon_error(buff); \
 } while ( 0 )
-/* #define ERROR(str, ...) do { \
-	fprintf(stderr, "(error) "str, ## __VA_ARGS__); \
-} while (0) */
 
 #define ERROR_EXIT() exit(100)
 
@@ -106,7 +91,7 @@ union semun {
 	GameData* data = get_data(); \
 	semaphore_wait(data->semaphores, SEMAPHORE_LOG); \
 	if ( fseek(data->log, 0, SEEK_END) > -1 ) {  \
-		fprintf(data->log, "("PID_T_FORMAT") "msg"\n", getpid(), ##__VA_ARGS__); \
+		fprintf(data->log, "(%ld) "msg"\n", (long) getpid(), ##__VA_ARGS__); \
 		fflush(data->log); \
 	} \
 	semaphore_signal(data->semaphores, SEMAPHORE_LOG); \
@@ -212,7 +197,7 @@ GameData * manage_data(DataActionType, size_t);
 void __dump();
 void kill_all();
 void sig_exit(int);
-void release_all_data();
+void release_all_resources();
 int semaphore_set_value(semaphore_t sem, unsigned short index, int val);
 int semaphore_get_value(semaphore_t sem, unsigned short index);
 int semaphore_change_value(semaphore_t sem, unsigned short index, short value);
@@ -259,8 +244,10 @@ int semaphore_change_value(semaphore_t sem, unsigned short index, short value) {
 	buff.sem_op = value;
 
 	int ret = semop(sem, &buff, 1);
+
 	if ( ret == -1 )
 		FATAL_ERROR("semaphore_change_value (%d, %d, %d): %s", sem, index, value, strerror(errno));
+
 	return ret;
 }
 
@@ -280,7 +267,6 @@ int semaphore_signal(semaphore_t sem, unsigned short index) {
 void __dump() {
 	GameData *data = get_data();
 	size_t i;
-	Process *p;
 
 	if ( ! data ) {
 		fprintf(stderr, "No data available\n");
@@ -295,7 +281,7 @@ void __dump() {
 	fprintf(stderr, "\n");
 
 	for ( i = 0; i < data->process_count; ++i )
-		fprintf(stderr, "{ "PID_T_FORMAT", %d}\t", data->children[i].id, data->children[i].status);
+		fprintf(stderr, "{ %ld, %d}\t", (long) data->children[i].id, data->children[i].status);
 	fprintf(stderr, "\n");
 }
 
@@ -308,6 +294,7 @@ void program_help() {
 bool is_current_proc_coordinator() {
 	GameData* data = get_data();
 	pid_t current_pid = getpid();
+
 	Process* p;
 	size_t i;
 
@@ -323,7 +310,7 @@ bool is_current_proc_coordinator() {
 		}
 	}
 
-	assert(0); // Unreachable
+	assert(0); /* Unreachable */
 	return 0;
 }
 
@@ -342,9 +329,9 @@ GameData * manage_data(DataActionType action, size_t count) {
 		data->alive_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
-		data->semaphores = 0;
+		data->semaphores = -1;
 #ifndef BYPASS_STATEMENT
-		data->message_queue = 0;
+		data->message_queue = -1;
 #endif
 		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
@@ -385,14 +372,22 @@ void kill_all() {
 		kill(data->children[i].id, SIGKILL);
 }
 
-/** Resources handled by atexit() */
+/** Our parent was interrupted, dump data for debugging and release everything */
 void sig_exit(int s) {
 	LOG("Signal %d received\n", s);
 	__dump();
+
+	/**
+	 * This should be handled with the atexit call,
+	 * but for some reason solaris doesn't call it on a signal handler,
+	 * so we call it manually.
+	 *
+	 * Nothing happens if we call it two times.
+	 */
+	release_all_resources();
 	ERROR_EXIT();
 }
 
-/** Our parent was interrupted, dump data for debugging and release all */
 void release_all_resources() {
 	GameData* data = get_data();
 	int ret;
@@ -441,7 +436,7 @@ int child_proc(char lib_id) {
 	char target;
 	int ret;
 	bool im_coordinator;
-	int this_round_alive_count;
+	unsigned short this_round_alive_count = 0;
 
 	bind_children_signals();
 
@@ -475,7 +470,7 @@ int child_proc(char lib_id) {
 			LOG("Round: %d, alive: %hu", data->rounds, this_round_alive_count);
 
 			/** Increment semaphore 1 value alive_count times */
-			semaphore_change_value(data->semaphores, 1, this_round_alive_count); // Allow everyone to shoot
+			semaphore_change_value(data->semaphores, SEMAPHORE_ALL_SHOOTED, this_round_alive_count);
 			LOG("Semaphore 1 increased");
 		}
 		LOG("Starting to shoot");
@@ -499,15 +494,15 @@ int child_proc(char lib_id) {
 		if ( PIST_disparar(target) == -1 )
 			ERROR("PIST_disparar");
 
-		LOG("Waiting for semaphore 1, shot to %c", target);
-		semaphore_wait(data->semaphores, 1);
+		LOG("Shot to %c", target);
+
+		semaphore_wait(data->semaphores, SEMAPHORE_ALL_SHOOTED);
 		/** Wait for everyone to shoot */
-		semaphore_wait_zero(data->semaphores, 1);
+		semaphore_wait_zero(data->semaphores, SEMAPHORE_ALL_SHOOTED);
 
 		if ( im_coordinator ) {
-			/** Make sure we track when everyone has checked if must die */
-			semaphore_change_value(data->semaphores, 2, this_round_alive_count);
-			LOG("Semaphore 2 increased");
+			/** Make sure we track when everyone has checked if he must die */
+			semaphore_change_value(data->semaphores, SEMAPHORE_ALL_RECEIVED, this_round_alive_count);
 		}
 
 #ifndef BYPASS_STATEMENT
@@ -536,10 +531,8 @@ int child_proc(char lib_id) {
 		 * This wait is global because we can't choose a coordinator until everyone is
 		 * dead
 		 */
-		LOG("Waiting for semaphore 2");
-		semaphore_wait(data->semaphores, 2);
-		semaphore_wait_zero(data->semaphores, 2);
-		LOG("Semaphore 2 is 0");
+		semaphore_wait(data->semaphores, SEMAPHORE_ALL_RECEIVED);
+		semaphore_wait_zero(data->semaphores, SEMAPHORE_ALL_RECEIVED);
 
 		/** Die if round over */
 		if ( me->status & PID_STATUS_DEAD )
@@ -617,8 +610,8 @@ int main(int argc, char **argv) {
 
 
 	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
-	semaphore_set_value(data->semaphores, 2, count);
-	semaphore_set_value(data->semaphores, 1, 0);
+	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
+	semaphore_set_value(data->semaphores, SEMAPHORE_ALL_SHOOTED, 0);
 
 #ifdef DEBUG
 	/** Just one process logging at a time */
