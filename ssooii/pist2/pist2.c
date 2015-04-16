@@ -348,14 +348,16 @@ GameData * manage_data(DataActionType action, size_t count) {
 	if ( action == DATA_RELEASE && data != NULL ) {
 		union semun dummy;
 
+		LOG("Releasing shared memory");
+
 		if ( data->semaphores > -1 )
 			if ( semctl(data->semaphores, 0, IPC_RMID, dummy) == -1 )
-				fprintf(stderr, "Failed to remove semaphores: %s\n", strerror(errno));
+				LOG("Failed to remove semaphores: %s", strerror(errno));
 
 #ifndef BYPASS_STATEMENT
 		if ( data->message_queue > -1 )
 			if ( msgctl(data->message_queue, IPC_RMID, NULL) == -1 )
-				fprintf(stderr, "Failed to remove message queue: %s\n", strerror(errno));
+				LOG("Failed to remove message queue: %s", strerror(errno));
 #endif
 #ifdef DEBUG
 		if ( data->log != NULL )
@@ -377,8 +379,12 @@ void kill_all() {
 	if ( ! data )
 		return;
 
+	LOG("Killing all remaining processes");
+
 	for ( i = 0; i < data->process_count; ++ i)
-		kill(data->children[i].id, SIGKILL);
+		if ( data->children[i].id /** If we kill uninitialized memory we may kill ourselves with 0 */
+			 && kill(data->children[i].id, SIGKILL) == -1 )
+			LOG("Kill to %ld failed: %s", (long) data->children[i].id, strerror(errno));
 }
 
 /** Our parent was interrupted, dump data for debugging and release everything */
@@ -396,14 +402,17 @@ void release_all_resources() {
 	if ( data && data->parent_id != getpid() )
 		return;
 
+	LOG("Releasing data");
+
 	/** When game is over... */
 	ret = PIST_fin();
 	if ( ret == -1 )
 		LOG("Library termination failed\n");
 
 	kill_all();
+
+	LOG("Calling `release_data`");
 	release_data();
-	fflush(stderr);
 	fclose(stderr);
 
 }
@@ -582,9 +591,9 @@ int main(int argc, char **argv) {
 	if ( count == 0 )
 		FATAL_ERROR("At least one player is required.\n");
 
-	bind_parent_signals();
-
 	atexit(release_all_resources);
+
+	bind_parent_signals();
 
 	/** Create shared data structure */
 	data = create_data(count);
