@@ -32,8 +32,6 @@ union semun {
     unsigned short  *array;  /* Array for GETALL, SETALL */
 };
 
-#define SELF "pistolos"
-
 #ifdef __GNUC__
 #	if __x86_64__ || __ppc64__
 #		define PID_T_FORMAT "%d"
@@ -74,11 +72,15 @@ union semun {
  *        We can't use this semaphore later, since one process can lock it, and without
  *        waiting for zero, the rest wake up
  */
-#define TOTAL_SEMAPHORE_COUNT 4
+#ifdef DEBUG
+#    define TOTAL_SEMAPHORE_COUNT 4
+#    define SEMAPHORE_LOG 3
+#else
+#    define TOTAL_SEMAPHORE_COUNT 3
+#endif
 #define SEMAPHORE_ALL_SHOOTED 1
 #define SEMAPHORE_ALL_RECEIVED 2
 #define SEMAPHORE_READY 2 // Reused
-#define SEMAPHORE_LOG 3
 
 /** Error */
 #define ERROR(str, ...) do { \
@@ -196,15 +198,6 @@ GameData * manage_data(DataActionType, size_t);
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
 
-/** Loop helper. item is a pointer */
-#define EACH(arr, length, item, ...) do { \
-	size_t __i; \
-	for ( __i = 0; __i < length; ++__i ) { \
-		item = &arr[__i]; \
-		__VA_ARGS__ \
-	} \
-} while (0)
-
 /** Another helper. Instead of signal() (implementation dependent), we use sigaction */
 #define BIND_TO(signal, handler) do { \
 	struct sigaction action; \
@@ -214,7 +207,6 @@ GameData * manage_data(DataActionType, size_t);
 	action.sa_handler = handler; \
 	sigaction(signal, &action, NULL); \
 } while (0)
-
 
 /** Debugging and resource management */
 void __dump();
@@ -230,7 +222,6 @@ int semaphore_signal(semaphore_t sem, unsigned short index);
 
 /** Utilities */
 void program_help();
-Process * current_proc();
 
 /** Game logic */
 void bind_parent_signals();
@@ -269,7 +260,7 @@ int semaphore_change_value(semaphore_t sem, unsigned short index, short value) {
 
 	int ret = semop(sem, &buff, 1);
 	if ( ret == -1 )
-		FATAL_ERROR("semaphore_wait: %s", strerror(errno));
+		FATAL_ERROR("semaphore_change_value (%d, %d, %d): %s", sem, index, value, strerror(errno));
 	return ret;
 }
 
@@ -303,35 +294,15 @@ void __dump() {
 		fprintf(stderr, "\t%d", semaphore_get_value(data->semaphores, i));
 	fprintf(stderr, "\n");
 
-	EACH(data->children, data->process_count, p,
-		fprintf(stderr, "{ "PID_T_FORMAT", %d}\t", p->id, p->status);
-	);
+	for ( i = 0; i < data->process_count; ++i )
+		fprintf(stderr, "{ "PID_T_FORMAT", %d}\t", data->children[i].id, data->children[i].status);
 	fprintf(stderr, "\n");
 }
 
 /** Program help */
 void program_help() {
-	fprintf(stderr, "Usage: "SELF" <count> <speed> <seed>\n");
+	fprintf(stderr, "Usage: ./pist2 <count> <speed> <seed>\n");
 	ERROR_EXIT();
-}
-
-/** Get current child process, cached statically */
-Process *current_proc() {
-	static Process *me = NULL;
-
-	if ( me == NULL ) {
-		GameData *data = get_data();
-		Process *p;
-		pid_t current_pid = getpid();
-		EACH(data->children, data->process_count, p,
-			if ( p->id == current_pid ) {
-				me = p;
-				break;
-			}
-		);
-	}
-
-	return me;
 }
 
 bool is_current_proc_coordinator() {
@@ -352,6 +323,7 @@ bool is_current_proc_coordinator() {
 		}
 	}
 
+	assert(0); // Unreachable
 	return 0;
 }
 
@@ -371,6 +343,9 @@ GameData * manage_data(DataActionType action, size_t count) {
 		data->parent_id = 0;
 		data->rounds = 0;
 		data->semaphores = 0;
+#ifndef BYPASS_STATEMENT
+		data->message_queue = 0;
+#endif
 		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
 #ifdef DEBUG
@@ -404,11 +379,10 @@ GameData * manage_data(DataActionType action, size_t count) {
 /** Kill all pending processes */
 void kill_all() {
 	GameData *data = get_data();
-	Process *p;
+	size_t i;
 
-	EACH(data->children, data->process_count, p,
-		kill(p->id, SIGKILL);
-	);
+	for ( i = 0; i < data->process_count; ++ i)
+		kill(data->children[i].id, SIGKILL);
 }
 
 /** Resources handled by atexit() */
@@ -463,10 +437,11 @@ void bind_parent_signals() {
 /** Child process subroutine */
 int child_proc(char lib_id) {
 	GameData* data = get_data();
-	Process* me = current_proc();
+	Process* me = data->children + (lib_id - 'A');
 	char target;
 	int ret;
 	bool im_coordinator;
+	int this_round_alive_count;
 
 	bind_children_signals();
 
@@ -485,6 +460,7 @@ int child_proc(char lib_id) {
 
 	/** S1 = 0; S2 = 0; */
 	while ( 1 ) {
+		LOG("Starting round");
 		/** Check if I'm the coordinator */
 		im_coordinator = is_current_proc_coordinator();
 
@@ -493,10 +469,14 @@ int child_proc(char lib_id) {
 			if ( data->alive_count == 1 )
 				exit(0);
 			data->rounds++;
-			LOG("Round: %d, alive: %hu", data->rounds, data->alive_count);
+
+			/** We cache this value locally because it may change after the W0(S1) */
+			this_round_alive_count = data->alive_count;
+			LOG("Round: %d, alive: %hu", data->rounds, this_round_alive_count);
 
 			/** Increment semaphore 1 value alive_count times */
-			semaphore_change_value(data->semaphores, 1, data->alive_count); // Allow everyone to shoot
+			semaphore_change_value(data->semaphores, 1, this_round_alive_count); // Allow everyone to shoot
+			LOG("Semaphore 1 increased");
 		}
 		LOG("Starting to shoot");
 
@@ -519,19 +499,16 @@ int child_proc(char lib_id) {
 		if ( PIST_disparar(target) == -1 )
 			ERROR("PIST_disparar");
 
+		LOG("Waiting for semaphore 1, shot to %c", target);
 		semaphore_wait(data->semaphores, 1);
-		LOG("Shot to %c", target);
-
 		/** Wait for everyone to shoot */
 		semaphore_wait_zero(data->semaphores, 1);
 
 		if ( im_coordinator ) {
-			/** When everyone has shooted, allow to receive, this has to be two times alive_count because they must be locked if everyone hasn't stopped */
-			semaphore_change_value(data->semaphores, 2, data->alive_count * 2);
+			/** Make sure we track when everyone has checked if must die */
+			semaphore_change_value(data->semaphores, 2, this_round_alive_count);
+			LOG("Semaphore 2 increased");
 		}
-
-		/** Without this lock, someone can shoot, reach the bottom, and start shooting again, or get its status corrupted */
-		semaphore_wait(data->semaphores, 2);
 
 #ifndef BYPASS_STATEMENT
 		message_t message;
@@ -559,8 +536,10 @@ int child_proc(char lib_id) {
 		 * This wait is global because we can't choose a coordinator until everyone is
 		 * dead
 		 */
+		LOG("Waiting for semaphore 2");
 		semaphore_wait(data->semaphores, 2);
 		semaphore_wait_zero(data->semaphores, 2);
+		LOG("Semaphore 2 is 0");
 
 		/** Die if round over */
 		if ( me->status & PID_STATUS_DEAD )
@@ -638,10 +617,13 @@ int main(int argc, char **argv) {
 
 
 	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
-	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
+	semaphore_set_value(data->semaphores, 2, count);
+	semaphore_set_value(data->semaphores, 1, 0);
 
+#ifdef DEBUG
 	/** Just one process logging at a time */
 	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
+#endif
 
 	/** Process creation */
 	for ( i = 0; i < count; ++i ) {
@@ -654,7 +636,6 @@ int main(int argc, char **argv) {
 				__dump();
 				ERROR_EXIT();
 			case 0:
-				/** We must ensure current_index is ok in child_proc */
 				data->children[i].id = getpid();
 				return child_proc(lib_id);
 		}
