@@ -276,9 +276,11 @@ void __dump() {
 	fprintf(stderr, "\nDump:\n");
 	fprintf(stderr, "Alive count: %hu\n", data->alive_count);
 	fprintf(stderr, "Semaphores:\n");
-	for ( i = 0; i < TOTAL_SEMAPHORE_COUNT; ++i )
-		fprintf(stderr, "\t%d", semaphore_get_value(data->semaphores, i));
-	fprintf(stderr, "\n");
+	if ( data->semaphores > -1 ) {
+		for ( i = 0; i < TOTAL_SEMAPHORE_COUNT; ++i )
+			fprintf(stderr, "\t%d", semaphore_get_value(data->semaphores, i));
+		fprintf(stderr, "\n");
+	}
 
 	for ( i = 0; i < data->process_count; ++i )
 		fprintf(stderr, "{ %ld, %d}\t", (long) data->children[i].id, data->children[i].status);
@@ -343,13 +345,17 @@ GameData * manage_data(DataActionType action, size_t count) {
 	}
 
 	/** Release data */
-	if ( action == DATA_RELEASE ) {
+	if ( action == DATA_RELEASE && data != NULL ) {
+		union semun dummy;
+
 		if ( data->semaphores > -1 )
-			semctl(data->semaphores, 0, IPC_RMID);
+			if ( semctl(data->semaphores, 0, IPC_RMID, dummy) == -1 )
+				fprintf(stderr, "Failed to remove semaphores: %s\n", strerror(errno));
 
 #ifndef BYPASS_STATEMENT
 		if ( data->message_queue > -1 )
-			msgctl(data->message_queue, IPC_RMID, NULL);
+			if ( msgctl(data->message_queue, IPC_RMID, NULL) == -1 )
+				fprintf(stderr, "Failed to remove message queue: %s\n", strerror(errno));
 #endif
 #ifdef DEBUG
 		if ( data->log != NULL )
@@ -368,6 +374,9 @@ void kill_all() {
 	GameData *data = get_data();
 	size_t i;
 
+	if ( ! data )
+		return;
+
 	for ( i = 0; i < data->process_count; ++ i)
 		kill(data->children[i].id, SIGKILL);
 }
@@ -376,15 +385,6 @@ void kill_all() {
 void sig_exit(int s) {
 	LOG("Signal %d received\n", s);
 	__dump();
-
-	/**
-	 * This should be handled with the atexit call,
-	 * but for some reason solaris doesn't call it on a signal handler,
-	 * so we call it manually.
-	 *
-	 * Nothing happens if we call it two times.
-	 */
-	release_all_resources();
 	ERROR_EXIT();
 }
 

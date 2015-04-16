@@ -1,5 +1,5 @@
 CC := clang
-CFLAGS := -Wall -m32 -D__DEBUG -O3 -pedantic
+CFLAGS := -Wall -m32 -D__DEBUG -O3
 LINK_FLAGS := -L. -lpist -lm
 DEPS := pist2.c pist2.h
 
