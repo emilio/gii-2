@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created by diasvg.py -->
+<svg width="65.300cm" height="55.203cm" viewBox="3.330 49.003 68.630 104.206"
+ xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+<rect x="41.430" y="55.703" width="9.740" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="41.430" y="55.703" width="9.740" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="46.300" y="56.653"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Expert</text>
+<rect x="41.430" y="57.103" width="9.740" height="3.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="41.430" y="57.103" width="9.740" height="3.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="41.580" y="57.803"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id: integer</text>
+<text x="41.580" y="58.603"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<text x="41.580" y="59.403"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++curriculum: text</text>
+<text x="41.580" y="60.203"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++institution_id: integer</text>
+<rect x="41.430" y="60.503" width="9.740" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="41.430" y="60.503" width="9.740" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="54.780" y="49.053" width="5.505" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="54.780" y="49.053" width="5.505" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="57.532" y="50.003"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Country</text>
+<rect x="54.780" y="50.453" width="5.505" height="1.800" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="54.780" y="50.453" width="5.505" height="1.800" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="54.930" y="51.153"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id: integer</text>
+<text x="54.930" y="51.953"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<rect x="54.780" y="52.253" width="5.505" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="54.780" y="52.253" width="5.505" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="51.170,59.203 52.975,59.203 52.975,50.953 54.780,50.953 "/>
+<text x="53.075" y="54.878"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Was born in</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="57.410,54.878 57.410,54.478 57.810,54.678 "/>
+<text x="51.370" y="59.003"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<text x="54.580" y="50.753"  fill="#000000" text-anchor="end" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<rect x="13.430" y="55.703" width="6.660" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="13.430" y="55.703" width="6.660" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="16.760" y="56.653"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Institution</text>
+<rect x="13.430" y="57.103" width="6.660" height="3.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="13.430" y="57.103" width="6.660" height="3.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="13.580" y="57.803"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id: integer</text>
+<text x="13.580" y="58.603"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<text x="13.580" y="59.403"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++address: string</text>
+<text x="13.580" y="60.203"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++website: string</text>
+<rect x="13.430" y="60.503" width="6.660" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="13.430" y="60.503" width="6.660" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="21.280" y="67.053" width="5.110" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="21.280" y="67.053" width="5.110" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.835" y="68.003"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+University</text>
+<rect x="21.280" y="68.453" width="5.110" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="21.280" y="68.453" width="5.110" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="21.280" y="68.853" width="5.110" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="21.280" y="68.853" width="5.110" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="16.760,61.814 16.760,64.378 23.835,64.378 23.835,67.053 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="17.160,61.814 16.760,61.014 16.360,61.814 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="17.160,61.814 16.760,61.014 16.360,61.814 "/>
+<rect x="3.380" y="67.053" width="9.152" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="3.380" y="67.053" width="9.152" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="7.956" y="68.003"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+CommonInstitution</text>
+<rect x="3.380" y="68.453" width="9.152" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="3.380" y="68.453" width="9.152" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="3.380" y="68.853" width="9.152" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="3.380" y="68.853" width="9.152" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="16.760,61.814 16.760,64.378 7.956,64.378 7.956,67.053 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="17.160,61.814 16.760,61.014 16.360,61.814 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="17.160,61.814 16.760,61.014 16.360,61.814 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="12.532,67.753 12.582,67.753 21.230,67.753 21.280,67.753 "/>
+<text x="16.906" y="67.553"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Attached to</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="19.124,67.553 19.124,67.153 19.524,67.353 "/>
+<text x="12.732" y="67.553"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<text x="21.080" y="67.553"  fill="#000000" text-anchor="end" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<rect x="31.430" y="67.053" width="2.402" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="31.430" y="67.053" width="2.402" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="32.631" y="68.003"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+UDC</text>
+<rect x="31.430" y="68.453" width="2.402" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="31.430" y="68.453" width="2.402" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="31.430" y="68.853" width="2.402" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="31.430" y="68.853" width="2.402" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="16.760,61.814 16.760,64.378 32.631,64.378 32.631,67.053 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="17.160,61.814 16.760,61.014 16.360,61.814 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="17.160,61.814 16.760,61.014 16.360,61.814 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="20.090,56.403 20.140,56.403 41.380,56.403 41.430,56.403 "/>
+<text x="30.760" y="56.203"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Belongs to</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="28.635,56.203 28.635,55.803 28.235,56.003 "/>
+<text x="20.290" y="56.203"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<text x="41.230" y="56.203"  fill="#000000" text-anchor="end" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="33.832,67.753 37.631,67.753 37.631,60.903 41.430,60.903 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="37.531,64.128 37.531,63.728 37.131,63.928 "/>
+<text x="34.032" y="67.553"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<text x="41.230" y="60.703"  fill="#000000" text-anchor="end" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+ President</text>
+<text x="41.230" y="61.503"  fill="#000000" text-anchor="end" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="33.832,69.253 51.170,69.253 51.170,60.903 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="42.301,69.053 42.301,68.653 41.901,68.853 "/>
+<text x="34.032" y="69.053"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<text x="51.370" y="61.503"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+ Vicepresident</text>
+<text x="51.370" y="62.303"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<rect x="6.655" y="80.415" width="2.620" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="6.655" y="80.415" width="2.620" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="7.965" y="81.365"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+CRAI</text>
+<rect x="6.655" y="81.815" width="2.620" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="6.655" y="81.815" width="2.620" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="6.655" y="82.215" width="2.620" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="6.655" y="82.215" width="2.620" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="23.835,69.253 23.835,81.115 9.275,81.115 "/>
+<text x="16.555" y="80.915"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Attached to</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="14.238,80.915 14.238,80.515 13.838,80.715 "/>
+<text x="24.035" y="69.853"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<text x="9.475" y="80.915"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="7.956,70.164 7.956,75.234 7.965,75.234 7.965,80.415 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="8.356,70.164 7.956,69.364 7.556,70.164 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="8.356,70.164 7.956,69.364 7.556,70.164 "/>
+<rect x="58.093" y="72.166" width="7.045" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="58.093" y="72.166" width="7.045" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="61.615" y="73.116"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Resource</text>
+<rect x="58.093" y="73.566" width="7.045" height="5.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="58.093" y="73.566" width="7.045" height="5.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="58.243" y="74.266"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id: integer</text>
+<text x="58.243" y="75.066"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++title: string</text>
+<text x="58.243" y="75.866"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++created_at: date</text>
+<text x="58.243" y="76.666"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++version: string</text>
+<text x="58.243" y="77.466"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++uri: string</text>
+<text x="58.243" y="78.266"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++schema: string</text>
+<rect x="58.093" y="78.566" width="7.045" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="58.093" y="78.566" width="7.045" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="43.967" y="72.431" width="7.430" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="43.967" y="72.431" width="7.430" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="47.682" y="73.381"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Publication</text>
+<rect x="43.967" y="73.831" width="7.430" height="4.200" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="43.967" y="73.831" width="7.430" height="4.200" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="44.117" y="74.531"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id: integer</text>
+<text x="44.117" y="75.331"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<text x="44.117" y="76.131"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++abstract: text</text>
+<text x="44.117" y="76.931"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++paper_uri: string</text>
+<text x="44.117" y="77.731"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++authors: string</text>
+<rect x="43.967" y="78.031" width="7.430" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="43.967" y="78.031" width="7.430" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="5.368" y="98.203" width="11.218" height="2.800" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="5.368" y="98.203" width="11.218" height="2.800" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="10.977" y="99.153"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Database</text>
+<text x="10.977" y="99.928"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+This is the data required to connect to</text>
+<text x="10.977" y="100.628"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+a database</text>
+<rect x="5.368" y="101.003" width="11.218" height="2.600" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="5.368" y="101.003" width="11.218" height="2.600" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="5.518" y="101.703"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<text x="5.518" y="102.503"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++host: string</text>
+<text x="5.518" y="103.303"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++port: integer</text>
+<rect x="5.368" y="103.603" width="11.218" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="5.368" y="103.603" width="11.218" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="32.442" y="96.456" width="10.700" height="6.300" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="32.442" y="96.456" width="10.700" height="6.300" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="37.792" y="97.406"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Table</text>
+<text x="37.792" y="98.181"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+A table from a database will be</text>
+<text x="37.792" y="98.881"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+accessible if and only if is registered</text>
+<text x="37.792" y="99.581"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+here.</text>
+<text x="37.792" y="100.281"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+If the underying data belongs to a</text>
+<text x="37.792" y="100.981"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+university, access is revoked to</text>
+<text x="37.792" y="101.681"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+experts who are not from that</text>
+<text x="37.792" y="102.381"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+university.</text>
+<rect x="32.442" y="102.756" width="10.700" height="1.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="32.442" y="102.756" width="10.700" height="1.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="32.592" y="103.456"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<rect x="32.442" y="103.756" width="10.700" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="32.442" y="103.756" width="10.700" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="17.844,99.603 24.864,99.603 24.864,99.606 32.442,99.606 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="16.585,99.603 17.285,99.363 17.985,99.603 17.285,99.843 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="16.585,99.603 17.285,99.363 17.985,99.603 17.285,99.843 "/>
+<text x="24.964" y="99.604"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Belongs to</text>
+<rect x="57.603" y="96.790" width="10.978" height="2.800" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="57.603" y="96.790" width="10.978" height="2.800" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="63.092" y="97.740"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Variable</text>
+<text x="63.092" y="98.515"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+Is unclear given the statement what</text>
+<text x="63.092" y="99.215"  fill="#000000" text-anchor="middle" font-size="0.70" font-family="sans" font-style="normal" font-weight="400">
+should we do... So this is our aproach</text>
+<rect x="57.603" y="99.590" width="10.978" height="1.800" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="57.603" y="99.590" width="10.978" height="1.800" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="57.753" y="100.290"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id: integer</text>
+<text x="57.753" y="101.090"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++description: text</text>
+<rect x="57.603" y="101.390" width="10.978" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="57.603" y="101.390" width="10.978" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="57.603,98.190 50.372,98.190 50.372,99.606 43.142,99.606 "/>
+<text x="50.472" y="98.898"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Have data from</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="55.962,98.898 55.962,98.498 56.362,98.698 "/>
+<text x="57.403" y="97.990"  fill="#000000" text-anchor="end" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<text x="43.342" y="99.406"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<rect x="51.972" y="87.917" width="5.505" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="51.972" y="87.917" width="5.505" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="54.725" y="88.867"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Category</text>
+<rect x="51.972" y="89.317" width="5.505" height="1.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="51.972" y="89.317" width="5.505" height="1.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="52.122" y="90.017"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++name: string</text>
+<rect x="51.972" y="90.317" width="5.505" height="0.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="51.972" y="90.317" width="5.505" height="0.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="63.092,96.740 63.092,93.729 54.725,93.729 54.725,90.717 "/>
+<text x="58.908" y="93.729"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Belongs to</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.783,93.729 56.783,93.329 56.383,93.529 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="54.725,87.867 54.725,86.817 58.577,86.817 58.577,89.317 57.527,89.317 "/>
+<text x="56.651" y="86.817"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+Parent</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="57.906,86.817 57.906,86.417 58.306,86.617 "/>
+<text x="54.925" y="87.667"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+1</text>
+<text x="57.727" y="89.117"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+0..1</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="37.792,96.456 37.792,81.191 26.390,81.191 26.390,69.253 "/>
+<text x="32.091" y="80.991"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+May belong to</text>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="29.388,80.991 29.388,80.591 28.988,80.791 "/>
+<text x="37.992" y="96.256"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+*</text>
+<text x="26.590" y="69.853"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
+0..1</text>
+</svg>
