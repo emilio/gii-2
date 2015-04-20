@@ -15,7 +15,7 @@ target/%: src/%
 	cp $< $@
 
 # Lexer
-target/lex.yy.c: src/lexer.l target/tokens.h target/y.tab.h
+target/lex.yy.c: src/lexer.l target/y.tab.h
 	@mkdir -p $(dir $@)
 	flex -o $@ $<
 
