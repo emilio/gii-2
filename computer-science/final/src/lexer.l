@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include "tokens.h"
+#include "y.tab.h"
 
 %}
 
@@ -25,10 +25,10 @@ ident [a-zA-Z_][0-9a-zA-Z_]*
 <block_comment>\*\/  { BEGIN(INITIAL); }
 <block_comment>.|\n  {}
 
-0o[0-9]+             { return LITERAL_INTEGER; }
-0x[0-9A-Za-z]+       { return LITERAL_INTEGER; }
-0b[01]+              { return LITERAL_INTEGER; }
-[0-9]+               { return LITERAL_INTEGER; }
+0o[0-9]+             { return INTEGER_LITERAL; }
+0x[0-9A-Za-z]+       { return INTEGER_LITERAL; }
+0b[01]+              { return INTEGER_LITERAL; }
+[0-9]+               { return INTEGER_LITERAL; }
 
 \(    { return '('; }
 \)    { return ')'; }
@@ -41,6 +41,8 @@ ident [a-zA-Z_][0-9a-zA-Z_]*
 \-    { return '-'; }
 \*    { return '*'; }
 \/    { return '/'; }
+
+==    { return EQEQ; }
 
 {ident}  { return IDENT; }
 

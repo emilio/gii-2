@@ -3,7 +3,10 @@
 
 typedef enum token {
 	LITERAL_INTEGER,
-	IDENT
+	IDENT,
+    EQEQ,
+    IF,
+    ELSE,
 } token_t;
 
 #endif
