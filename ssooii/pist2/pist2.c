@@ -1,7 +1,7 @@
 /**
- * Pistolo.c
+ * pist2.c
  *
- * http://avellano.usal.es/~ssooi/pract115.htm
+ * http://avellano.usal.es/~ssooii/PISTOLEROS/wisconsin.htm
  *
  * @author Emilio Cobos Álvarez <emiliocobos@usal.es>
  */

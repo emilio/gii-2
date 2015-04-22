@@ -38,8 +38,8 @@ CREATE TABLE themes (
 	FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
 );
 
-DROP TABLE asks CASCADE CONSTRAINTS;
-CREATE TABLE asks (
+DROP TABLE questions CASCADE CONSTRAINTS;
+CREATE TABLE questions (
 	id NUMBER(10) NOT NULL,
 	statement VARCHAR(255) NOT NULL,
 	PRIMARY KEY (id)
@@ -51,9 +51,9 @@ CREATE TABLE answers (
     title VARCHAR(255) NOT NULL,
     is_correct CHAR(1) CHECK (is_correct in (0,1)),
     priority NUMBER(5) DEFAULT 1,
-    ask_id NUMBER(10) NOT NULL,
+    question_id NUMBER(10) NOT NULL,
 	PRIMARY KEY (id),
-    FOREIGN KEY (ask_id) REFERENCES asks(id) ON DELETE CASCADE
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
 
 DROP TABLE exams CASCADE CONSTRAINTS;
@@ -67,22 +67,25 @@ CREATE TABLE exams (
     CONSTRAINT unique_exam UNIQUE (subject_id, year, convocatory)
 );
 
-DROP TABLE asks_themes CASCADE CONSTRAINTS;
-CREATE TABLE asks_themes (
-	ask_id NUMBER(10) NOT NULL,
+DROP TABLE questions_themes CASCADE CONSTRAINTS;
+CREATE TABLE questions_themes (
+	question_id NUMBER(10) NOT NULL,
 	theme_id NUMBER(10) NOT NULL,
-	FOREIGN KEY (ask_id) REFERENCES asks(id) ON DELETE CASCADE,
+	FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
 	FOREIGN KEY (theme_id) REFERENCES themes(id) ON DELETE CASCADE,
-    PRIMARY KEY (ask_id, theme_id)
+    PRIMARY KEY (question_id, theme_id)
 );
 
-DROP TABLE asks_exams CASCADE CONSTRAINTS;
-CREATE TABLE asks_exams (
-	ask_id NUMBER(10) NOT NULL,
+DROP TABLE exams_questions CASCADE CONSTRAINTS;
+CREATE TABLE exams_questions (
+	question_id NUMBER(10) NOT NULL,
 	exam_id NUMBER(10) NOT NULL,
-	FOREIGN KEY (ask_id) REFERENCES asks(id) ON DELETE CASCADE,
+    correct_answer_count NUMBER(10) DEFAULT 0,
+    incorrect_answer_count NUMBER(10) DEFAULT 0,
+    unreplied_answer_count NUMBER(10) DEFAULT 0,
+	FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
 	FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
-    PRIMARY KEY (ask_id, exam_id)
+    PRIMARY KEY (question_id, exam_id)
 );
 
 DROP TABLE subjects_teachers CASCADE CONSTRAINTS;

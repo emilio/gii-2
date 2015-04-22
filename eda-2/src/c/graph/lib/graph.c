@@ -18,6 +18,8 @@ vertex_t* vertex_new() {
 	assert(ret != NULL);
 
 	ret->reached = 0;
+    ret->distance = GRAPH_INFINITE_DISTANCE;
+    ret->reached_from = 0;
 	ret->incoming_edges_count = 0;
 	ret->adjacents_head = ret->adjacents_last = NULL;
 
@@ -68,8 +70,14 @@ void graph_recompute(graph_t* self, int flags) {
 	if ( flags & GRAPH_RECOMPUTE_REACHED_BIT
 		 || flags & GRAPH_RECOMPUTE_INCOMING_BIT ) {
 		for ( i = 0; i < self->size; ++i ) {
-			if ( flags & GRAPH_RECOMPUTE_REACHED_BIT )
+			if ( flags & GRAPH_RECOMPUTE_REACHED_BIT ) {
 				self->v[i]->reached = 0;
+                self->v[i]->reached_from = 0;
+            }
+
+            if ( flags & GRAPH_RECOMPUTE_DISTANCE_BIT )
+                self->v[i]->distance = GRAPH_INFINITE_DISTANCE;
+
 			if ( flags & GRAPH_RECOMPUTE_INCOMING_BIT )
 				self->v[i]->incoming_edges_count = 0;
 		}
@@ -87,12 +95,28 @@ void graph_recompute(graph_t* self, int flags) {
 }
 
 vertex_t** graph_topological_sort(graph_t* self) {
-	vertex_t** ret = (vertex_t**) malloc(self->size * sizeof(vertex_t**));
-
-	if ( ret == NULL )
-		return ret;
+	vertex_t** ret;
+    vertex_t* initial_vertex = NULL;
+    size_t i;
 
 	graph_recompute(self, GRAPH_RECOMPUTE_REACHED_BIT | GRAPH_RECOMPUTE_INCOMING_BIT);
+
+    for ( i = 0; i < self->size; ++i ) {
+        if ( self->v[i]->incoming_edges_count == 0 ) {
+            initial_vertex = self->v[i];
+            break;
+        }
+    }
+
+    if ( ! initial_vertex )
+        return NULL;
+
+    ret = (vertex_t**) malloc(self->size * sizeof(vertex_t**));
+
+	if ( ! ret )
+		return ret;
+
+    ret[0] = initial_vertex;
 
 	// TODO
 

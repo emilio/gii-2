@@ -5,18 +5,24 @@
 
 #define GRAPH_RECOMPUTE_REACHED_BIT   0x01
 #define GRAPH_RECOMPUTE_INCOMING_BIT  0x02
+#define GRAPH_RECOMPUTE_DISTANCE_BIT  0x04
 
-#define GRAPH_RECOMPUTE_ALL           0x03
+#define GRAPH_RECOMPUTE_ALL           0xFF
+#define GRAPH_INFINITE_DISTANCE ((size_t) -1)
 
 typedef size_t vertex_id_t;
 
 typedef struct adjacent {
 	vertex_id_t id;
+    size_t weight;
+    size_t distance;
 	struct adjacent* next;
 } adjacent_t;
 
 typedef struct vertex {
 	unsigned char reached;
+    vertex_id_t reached_from;
+    size_t distance;
 	size_t incoming_edges_count;
 	adjacent_t* adjacents_head;
 	adjacent_t* adjacents_last;
@@ -31,6 +37,7 @@ typedef struct graph {
 adjacent_t* adjacent_new(vertex_id_t id);
 
 vertex_t* vertex_new();
+vertex_t* vertex_new_weighed(size_t weight);
 
 void vertex_adjacent_add(vertex_t* self, vertex_id_t id);
 
