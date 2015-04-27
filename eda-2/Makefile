@@ -10,7 +10,7 @@ FLAGS := -Wall
 CFLAGS := --std=c99
 PERCENT := %
 PWD := $(shell pwd)
-CC := gcc
+CC := clang
 
 all: $(C_EXECS)
 	@echo > /dev/null

@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "../../queue-contiguous/lib/queue.h"
 
 /** Create a new representation for an adjacent vertex */
 adjacent_t* adjacent_new(vertex_id_t id) {
@@ -9,6 +10,10 @@ adjacent_t* adjacent_new(vertex_id_t id) {
 	ret->id = id;
 	ret->next = NULL;
 	return ret;
+}
+
+void adjacent_destroy(adjacent_t* self) {
+    free(self);
 }
 
 /** Create a new vertex */
@@ -24,6 +29,19 @@ vertex_t* vertex_new() {
 	ret->adjacents_head = ret->adjacents_last = NULL;
 
 	return ret;
+}
+
+void vertex_destroy(vertex_t* self) {
+    adjacent_t* current = self->adjacents_head;
+    adjacent_t* next;
+
+    while ( current ) {
+        next = current->next;
+        adjacent_destroy(current);
+        current = next;
+    }
+
+    free(self);
 }
 
 /** Add a new adjacent vertex to given vertex */
@@ -45,13 +63,12 @@ graph_t* graph_new_with_count(size_t vertex_count) {
 	assert(ret != NULL);
 
 	if ( vertex_count == 0 )
-		ret->vertices = NULL;
+		ret->v = NULL;
 	else
-		ret->vertices = (vertex_t**) malloc(sizeof(vertex_t**) * vertex_count);
+		ret->v = (vertex_t**) malloc(sizeof(vertex_t**) * vertex_count);
 
-	for ( i = 0; i < vertex_count; ++i ) {
-		ret->vertices[i] = vertex_new();
-	}
+	for ( i = 0; i < vertex_count; ++i )
+		ret->v[i] = vertex_new();
 
 	ret->size = ret->capacity = vertex_count;
 	return ret;
@@ -62,8 +79,18 @@ graph_t* graph_new() {
 	return graph_new_with_count(0);
 }
 
+void graph_destroy(graph_t* self) {
+    size_t i;
+
+    for ( i = 0; i < self->size; ++i )
+        vertex_destroy(self->v[i]);
+
+    free(self->v);
+    free(self);
+}
+
 void graph_recompute(graph_t* self, int flags) {
-	size_t i, j;
+	size_t i;
 	if ( flags == 0 )
 		return;
 
@@ -94,33 +121,58 @@ void graph_recompute(graph_t* self, int flags) {
 	}
 }
 
-vertex_t** graph_topological_sort(graph_t* self) {
-	vertex_t** ret;
-    vertex_t* initial_vertex = NULL;
+vertex_id_t* graph_topological_sort(graph_t* self) {
+	vertex_id_t* ret;
+    size_t current_id;
+    vertex_t* current = NULL;
+    adjacent_t* current_adjacent = NULL;
     size_t i;
+    queue_t* q;
 
 	graph_recompute(self, GRAPH_RECOMPUTE_REACHED_BIT | GRAPH_RECOMPUTE_INCOMING_BIT);
 
-    for ( i = 0; i < self->size; ++i ) {
-        if ( self->v[i]->incoming_edges_count == 0 ) {
-            initial_vertex = self->v[i];
-            break;
+    q = queue_new(vertex_id_t);
+
+    for ( i = 0; i < self->size; ++i )
+        if ( self->v[i]->incoming_edges_count == 0 )
+            queue_push(q, i);
+
+    if ( queue_empty(q) ) {
+        queue_destroy(q);
+        return NULL;
+    }
+
+    ret = (vertex_id_t*) malloc(self->size * sizeof(vertex_id_t));
+
+	if ( ! ret ) {
+        queue_destroy(q);
+		return ret;
+    }
+
+    i = 0;
+
+    while ( ! queue_empty(q) ) {
+        queue_front(q, &current_id);
+        queue_pop(q);
+
+        current = self->v[current_id];
+
+        ret[i++] = current_id;
+
+        current_adjacent = current->adjacents_head;
+
+        while ( current_adjacent ) {
+
+            if ( --(self->v[current_adjacent->id]->incoming_edges_count) == 0 )
+                queue_push(q, current_adjacent->id);
+
+            current_adjacent = current_adjacent->next;
         }
     }
 
-    if ( ! initial_vertex )
-        return NULL;
+    queue_destroy(q);
 
-    ret = (vertex_t**) malloc(self->size * sizeof(vertex_t**));
-
-	if ( ! ret )
-		return ret;
-
-    ret[0] = initial_vertex;
-
-	// TODO
+    assert(i == self->size);
 
 	return ret;
 }
-
-#endif

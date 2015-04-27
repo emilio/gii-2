@@ -1,20 +1,26 @@
+PREPRO := ecpg
 CC := clang
-CFLAGS := -Wall -Ilib
+CFLAGS := -Wall -Ilib -I/usr/include/postgresql -DPOSTGRES
+CLINKFLAGS := -lecpg
 TARGETS := target/app
-C_FILES := $(wildcard src/**/*.c) $(wildcard src/*.c)
+SC_FILES := $(wildcard src/**/*.sc) $(wildcard src/*.sc)
+C_PREPROCESSED_FILES := $(SC_FILES:.sc=.c)
+C_FILES := $(C_PREPROCESSED_FILES) $(wildcard src/**/*.c) $(wildcard src/*.c)
 OBJECTS := $(patsubst src/%, bin/%, $(C_FILES:.c=.o))
 
 LIB_FILES := $(wildcard lib/**/*.c) $(wildcard lib/*.c)
 LIB_OBJECTS := $(patsubst lib/%, bin/lib/%, $(LIB_FILES:.c=.o))
 
 
-all:  $(TARGETS)
+all: $(TARGETS)
 	@echo > /dev/null
 
 target/%: bin/%.o $(OBJECTS) $(LIB_OBJECTS)
 	@mkdir -p $(dir $@)
-	@echo $(LIB_FILES)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(CLINKFLAGS)
+
+src/%.c: src/%.sc
+	$(PREPRO) -c $< -o $@
 
 src/%.c: src/%.h
 	@echo > /dev/null
@@ -28,6 +34,7 @@ bin/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
+	rm -r $(C_PREPROCESSED_FILES)
 	rm -r bin
 	rm -r target
 

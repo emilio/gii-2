@@ -35,9 +35,11 @@ typedef struct graph {
 } graph_t;
 
 adjacent_t* adjacent_new(vertex_id_t id);
+void adjacent_destroy(adjacent_t*);
 
 vertex_t* vertex_new();
 vertex_t* vertex_new_weighed(size_t weight);
+void vertex_destroy(vertex_t*);
 
 void vertex_adjacent_add(vertex_t* self, vertex_id_t id);
 
@@ -45,8 +47,10 @@ graph_t* graph_new_with_count(size_t vertex_count);
 
 graph_t* graph_new();
 
+void graph_destroy(graph_t*);
+
 void graph_recompute(graph_t*, int flags);
 
-vertex_t** graph_topological_sort(graph_t*);
+vertex_id_t* graph_topological_sort(graph_t*);
 
 #endif

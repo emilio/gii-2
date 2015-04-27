@@ -1,10 +1,12 @@
 <h2 id="son-los-casos-de-uso-una-tecnica-orientada-a-objetos">¿Son los casos de uso una técnica orientada a objetos?</h2>
 <p>Aunque la forma de soportarlo en UML sí se oriente a objetos, <strong>los casos de uso como tal son orientados a la funcionalidad del sistema</strong>, no orientados a objetos: No se encapsula información, etc.</p>
 <h2 id="como-se-representa-en-un-diagrama-de-casos-de-uso-que-la-misma-persona-puede-interpretar-varios-roles-a-la-vez">¿Cómo se representa en un diagrama de casos de uso que la misma persona puede interpretar varios roles a la vez?</h2>
-<p>No se representa, <strong>el diagrama de casos de uso representa los roles</strong>, independientemente que una persona particular pueda ejercer como varios roles a la vez.</p>
-<h2 id="si-en-un-diagrama-de-uso...">Si en un diagrama de uso...</h2>
-<p>Cuando el <code>Actor2</code> está asociado a un caso de uso, implica que sólo ese rol (y sus especializaciones) pueden protagonizarlo.</p>
-<p>Si es <code>Actor1</code> el que está asociado, tanto <code>Actor1</code> como su especialización <code>Actor2</code> pueden protagonizar el caso de uso.</p>
+<p>No se representa, <strong>el diagrama de casos de uso representa los roles</strong>, independientemente que un actor particular pueda ejercer varios roles a la vez.</p>
+<h2 id="si-en-un-diagrama-de-uso-de-actores-se-tine-que-el-actor2-especializa-al-actor1">Si en un diagrama de uso de actores se tine que el <code>Actor2</code> especializa al <code>Actor1</code>:</h2>
+<ul>
+<li>Cuando el <code>Actor2</code> está asociado a un caso de uso, implica que sólo ese rol (y sus especializaciones) pueden protagonizarlo, pero nunca un <code>Actor1</code> no especializado.<br /></li>
+<li>Si es <code>Actor1</code> el que está asociado, tanto <code>Actor1</code> como su especialización <code>Actor2</code> pueden protagonizar el caso de uso.</li>
+</ul>
 <h2 id="pluralidad-en-los-casos-de-uso">Pluralidad en los casos de uso</h2>
 <p>La pluralidad implica que un caso de uso tenga varios escenarios posibles o sólo uno.</p>
 <h2 id="el-concepto-de-escenario-es-sinonimo-del-concepto-de-caso-de-uso">¿El concepto de escenario es sinónimo del concepto de caso de uso?</h2>
@@ -12,5 +14,6 @@
 <h2 id="por-que-hay-que-poner-una-condicion-en-las-relaciones-de-extension-entre-casos-de-uso">¿Por qué hay que poner una condicion en las relaciones de extensión entre casos de uso?</h2>
 <p>Porque si no se especifica esa condición, la extensión está siempre dentro del caso de uso, y por lo tanto deja de ser una extensión, pasando a ser una inclusión.</p>
 <h2 id="por-que-se-presentan-los-sentidos-en-las-relaciones-de-extension-e-inclusion-de-forma-opuesta">¿Por qué se presentan los sentidos en las relaciones de extensión e inclusión de forma opuesta?</h2>
-<p>La extensión depende del caso de uso padre, mientras que el padre depende de la inclusión.</p>
-<h2 id="abstraccion-del-caso-de-uso-padre">Abstracción del caso de uso padre</h2>
+<p><strong>La extensión depende del caso de uso padre, mientras que el padre depende de la inclusión</strong>, es decir: El padre puede ser completado si una extensión no se da, pero no es posible completarlo sin la inclusión.</p>
+<h2 id="abstraccion-del-caso-de-uso-padre-en-relaciones-de-generalizacion">Abstracción del caso de uso padre en relaciones de generalización</h2>
+<p>Se recomienda que en relaciones de generación el padre sea abstracto, es decir, que <strong>no se especifiquen los pasos concretos del caso de uso</strong>, para dar flexibilidad a los casos de uso hijos. No es requerido que sea abstracto, pero sí que es más claro, ya que si no fuera así en los hijos habría que omitir los pasos del padre (menos claro) o reescribirlos y modificarlos (poco ortodoxo).</p>

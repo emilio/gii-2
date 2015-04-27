@@ -1,11 +1,18 @@
+// vim:set syntax=c:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <commands.h>
 
-char SQLSTATE[6] = { 0 };
-long SQLCODE = 0;
+// char SQLSTATE[6] = { 0 };
+// long SQLCODE = 0;
+
+#ifdef POSTGRES
+#  define NOT_FOUND ECPG_NOT_FOUND
+#else
+#  define NOT_FOUND SQLE_NOTFOUND
+#endif
 
 // Our executors
 int create_question(int, char**);
@@ -43,7 +50,8 @@ int list_questions(int argc, char** argv) {
     EXEC SQL BEGIN DECLARE SECTION;
     int id;
     char statement[256] = {0};
-    EXEC SQL END DECLARE SECTION; 
+    EXEC SQL END DECLARE SECTION;
+
     int count = 0;
 
     if ( argc > 0 ) {
@@ -51,15 +59,15 @@ int list_questions(int argc, char** argv) {
         return 1;
     }
 
-    EXEC SQL DECLARE CURSOR questions_cursor FOR
+    EXEC SQL DECLARE questions_cursor CURSOR FOR
         SELECT id, statement FROM questions;
 
     EXEC SQL OPEN questions_cursor;
     while ( 1 ) {
         EXEC SQL FETCH questions_cursor INTO :id, :statement;
-        if ( SQLCODE == SQLE_NOTFOUND )
+        if ( SQLCODE == NOT_FOUND )
             break;
-        
+
         ++count;
         printf("%d\t%s\n", id, statement);
     }
@@ -75,11 +83,11 @@ void show_answers_for_question(int _qid) {
     int question_id;
     int id;
     char title[256] = {0};
-    char is_corrrect;
-    EXEC SQL END DECLARE SECTION; 
-    id = question_id;
-    
-    EXEC SQL DECLARE CURSOR answers_cursor FOR
+    char is_correct;
+    EXEC SQL END DECLARE SECTION;
+    question_id = _qid;
+
+    EXEC SQL DECLARE answers_cursor CURSOR FOR
         SELECT id, title, is_correct FROM answers
             WHERE question_id = :question_id
                 ORDER BY priority DESC;
@@ -87,32 +95,32 @@ void show_answers_for_question(int _qid) {
     EXEC SQL OPEN answers_cursor;
     while ( 1 ) {
         EXEC SQL FETCH answers_cursor INTO :id, :title, :is_correct;
-        
-        if ( SQLCODE == SQLE_NOTFOUND )
+
+        if ( SQLCODE == NOT_FOUND )
             break;
 
         printf(" [%c] %s (%d)\n", is_correct ? 'x' : ' ', title, id);
     }
     EXEC SQL CLOSE answers_cursor;
-
-    return 0;
 }
 
 void show_exams_for_question(int _qid) {
     EXEC SQL BEGIN DECLARE SECTION;
-    int id,
-        year,
-        convocatory, 
-        correct,
-        incorrect,
-        unreplied;
-    
+    int question_id;
+    int id;
+    int exam_year;
+    int convocatory;
+    int correct;
+    int incorrect;
+    int unreplied;
+
     char subject_name[256] = {0};
-    EXEC SQL END DECLARE SECTION; 
+    EXEC SQL END DECLARE SECTION;
+
     int count = 0;
-    id = question_id;
-    
-    EXEC SQL DECLARE CURSOR exams_cursor FOR
+    question_id = _qid;
+
+    EXEC SQL DECLARE exams_cursor CURSOR FOR
         SELECT exams.id, exams.year, exams.convocatory, subjects.name, exams_questions.correct_answer_count, exams_questions.incorrect_answer_count, exam_questions.unreplied_answer_count
         FROM exams, exams_questions, subjects
             WHERE exams_questions.question_id = :question_id AND
@@ -121,13 +129,14 @@ void show_exams_for_question(int _qid) {
 
     EXEC SQL OPEN exams_cursor;
     while ( 1 ) {
-        EXEC SQL FETCH exams_cursor INTO :id, :year, :convocatory, :subject_name, :correct, :incorrect, :unreplied;
-        
-        if ( SQLCODE == SQLE_NOTFOUND )
+        EXEC SQL FETCH exams_cursor INTO :id, :exam_year, :convocatory, :subject_name, :correct, :incorrect, :unreplied;
+
+        if ( SQLCODE == NOT_FOUND )
             break;
+
         ++count;
 
-        printf("%d %s (%d)\n", year, subject_name, convocatory);
+        printf("%d %s (%d)\n", exam_year, subject_name, convocatory);
         printf(" - Total: %d\n", correct + incorrect + unreplied);
         printf(" - Correct: %d\n", correct);
         printf(" - Incorrect: %d\n", incorrect);
@@ -136,15 +145,13 @@ void show_exams_for_question(int _qid) {
     EXEC SQL CLOSE exams_cursor;
 
     printf("Total: %d\n", count);
-
-    return 0;
 }
 
 int show_question(int argc, char** argv) {
     EXEC SQL BEGIN DECLARE SECTION;
     int id;
     char statement[256] = {0};
-    EXEC SQL END DECLARE SECTION; 
+    EXEC SQL END DECLARE SECTION;
 
     if ( argc == 0 || argc > 1 ) {
         fprintf(stderr, "Usage: show <id>\n");
@@ -153,8 +160,10 @@ int show_question(int argc, char** argv) {
 
     id = atoi(argv[0]);
 
-    EXEC SQL SELECT statement FROM questions WHERE id = :id INTO :statement;
-    if ( SQLCODE == SQLE_NOTFOUND ) {
+    EXEC SQL SELECT statement INTO :statement FROM questions WHERE id = :id;
+    //INTO :statement;
+
+    if ( SQLCODE == NOT_FOUND ) {
         fprintf(stderr, "Record not found: %d\n", id);
         return 1;
     }
@@ -164,15 +173,18 @@ int show_question(int argc, char** argv) {
     printf("Options:\n");
 
     show_answers_for_question(id);
-    
+
     printf("Exams:\n");
 
     show_exams_for_question(id);
-    
+
     return 0;
 }
 
 int main(int argc, char** argv) {
     EXEC SQL WHENEVER SQLERROR DO handle_error();
+    EXEC SQL CONNECT TO exams@localhost AS connection;
+    EXEC SQL SET CONNECTION connection;
     return command_exec(commands, argc, argv);
 }
+
