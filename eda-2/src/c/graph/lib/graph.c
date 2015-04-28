@@ -1,15 +1,21 @@
 #include "graph.h"
-#include "../../queue-contiguous/lib/queue.h"
+#include "queue.h"
+#include "binary-heap.h"
 
 /** Create a new representation for an adjacent vertex */
-adjacent_t* adjacent_new(vertex_id_t id) {
+adjacent_t* adjacent_new_weighted(vertex_id_t id, size_t weight) {
 	adjacent_t* ret = (adjacent_t*) malloc(sizeof(adjacent_t));
 
 	assert(ret != NULL);
 
+    ret->weight = weight;
 	ret->id = id;
 	ret->next = NULL;
 	return ret;
+}
+
+adjacent_t* adjacent_new(vertex_id_t id) {
+    return adjacent_new_weighted(id, 0);
 }
 
 void adjacent_destroy(adjacent_t* self) {
@@ -45,14 +51,18 @@ void vertex_destroy(vertex_t* self) {
 }
 
 /** Add a new adjacent vertex to given vertex */
-void vertex_adjacent_add(vertex_t* self, vertex_id_t id) {
+void vertex_adjacent_add_weighted(vertex_t* self, vertex_id_t id, size_t weight) {
 	if ( self->adjacents_head == NULL ) {
-		self->adjacents_head = self->adjacents_last = adjacent_new(id);
+		self->adjacents_head = self->adjacents_last = adjacent_new_weighted(id, weight);
 		return;
 	}
 
 	self->adjacents_last->next = adjacent_new(id);
 	self->adjacents_last = self->adjacents_last->next;
+}
+
+void vertex_adjacent_add(vertex_t* self, vertex_id_t id) {
+    return vertex_adjacent_add_weighted(self, id, 0);
 }
 
 /** Create a new graph with given vertex count */
@@ -175,4 +185,63 @@ vertex_id_t* graph_topological_sort(graph_t* self) {
     assert(i == self->size);
 
 	return ret;
+}
+
+// Dijkstra's algorithm: Compute the distance from a vertex
+// This algorithm uses a priority queue (ordered by min distance)
+// Returns 0 on success, negative value on error
+int graph_shortest_path_from(graph_t* self, vertex_id_t from) {
+    b_heap_t* heap;
+    vertex_id_t current_id;
+    vertex_t* current_vertex;
+    adjacent_t* current_adjacent;
+    size_t distance = 0;
+
+    if ( from >= self->size )
+        return -1;
+
+    heap = b_heap_new();
+
+    if ( ! heap )
+        return -1;
+
+    graph_recompute(self, GRAPH_RECOMPUTE_REACHED_BIT | GRAPH_RECOMPUTE_DISTANCE_BIT);
+
+    self->v[from]->distance = 0;
+
+    // The heap initially contains just the first vertex, with a distance 0
+    b_heap_insert(heap, from, 0);
+
+    while ( ! b_heap_empty(heap) ) {
+        current_id = b_heap_front(heap);
+        b_heap_pop(heap);
+
+        current_vertex = self->v[current_id];
+        current_adjacent = current_vertex->adjacents_head;
+
+        if ( current_vertex->reached )
+            continue;
+
+        current_vertex->reached = 1;
+
+        // Check all the neighbors, calculate distance to them
+        while ( current_adjacent ) {
+            distance = current_vertex->distance + current_adjacent->weight;
+
+            // If found a shorter path, add them to the queue
+            // Note that at this point an element can be multiple times in
+            // the queue, but since it's inserted with different priority
+            // the node will be processed at the correct time
+            if ( self->v[current_adjacent->id]->distance > distance ) {
+                self->v[current_adjacent->id]->distance = distance;
+                self->v[current_adjacent->id]->reached_from = current_id;
+                b_heap_insert(heap, current_adjacent->id, distance);
+            }
+            current_adjacent = current_adjacent->next;
+        }
+    }
+
+    b_heap_destroy(heap);
+
+    return 0;
 }

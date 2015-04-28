@@ -15,7 +15,6 @@ typedef size_t vertex_id_t;
 typedef struct adjacent {
 	vertex_id_t id;
     size_t weight;
-    size_t distance;
 	struct adjacent* next;
 } adjacent_t;
 
@@ -34,14 +33,17 @@ typedef struct graph {
 	size_t size;
 } graph_t;
 
+#define graph_vertex(g, id) (g->v[id])
+
 adjacent_t* adjacent_new(vertex_id_t id);
+adjacent_t* adjacent_new_weighted(vertex_id_t id, size_t weight);
 void adjacent_destroy(adjacent_t*);
 
 vertex_t* vertex_new();
-vertex_t* vertex_new_weighed(size_t weight);
 void vertex_destroy(vertex_t*);
 
 void vertex_adjacent_add(vertex_t* self, vertex_id_t id);
+void vertex_adjacent_add_weighted(vertex_t* self, vertex_id_t id, size_t weight);
 
 graph_t* graph_new_with_count(size_t vertex_count);
 
@@ -52,5 +54,7 @@ void graph_destroy(graph_t*);
 void graph_recompute(graph_t*, int flags);
 
 vertex_id_t* graph_topological_sort(graph_t*);
+
+int graph_shortest_path_from(graph_t*, vertex_id_t from);
 
 #endif
