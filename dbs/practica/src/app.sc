@@ -34,7 +34,7 @@ struct command commands[] = {
 
 // TODO: Recover graciously
 void handle_error() {
-    fprintf(stderr, "ERROR: SQLstate: %s, code: %ld\n", SQLSTATE, SQLCODE);
+    fprintf(stderr, "[ERROR] %s | SQLSTATE(%s), SQLCODE(%ld)\n", sqlca.sqlerrm.sqlerrmc, SQLSTATE, SQLCODE);
     exit(1);
 }
 
@@ -47,10 +47,13 @@ int create_question(int argc, char** argv) {
 }
 
 int list_questions(int argc, char** argv) {
+    EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL BEGIN DECLARE SECTION;
     int id;
     char statement[256] = {0};
     EXEC SQL END DECLARE SECTION;
+
+    EXEC SQL WHENEVER SQLERROR DO handle_error();
 
     int count = 0;
 
@@ -68,6 +71,8 @@ int list_questions(int argc, char** argv) {
         if ( SQLCODE == NOT_FOUND )
             break;
 
+        printf("SQLCODE: %ld\n", SQLCODE);
+
         ++count;
         printf("%d\t%s\n", id, statement);
     }
@@ -79,6 +84,7 @@ int list_questions(int argc, char** argv) {
 }
 
 void show_answers_for_question(int _qid) {
+    EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL BEGIN DECLARE SECTION;
     int question_id;
     int id;
@@ -105,6 +111,7 @@ void show_answers_for_question(int _qid) {
 }
 
 void show_exams_for_question(int _qid) {
+    EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL BEGIN DECLARE SECTION;
     int question_id;
     int id;
@@ -116,6 +123,7 @@ void show_exams_for_question(int _qid) {
 
     char subject_name[256] = {0};
     EXEC SQL END DECLARE SECTION;
+
 
     int count = 0;
     question_id = _qid;
@@ -148,6 +156,7 @@ void show_exams_for_question(int _qid) {
 }
 
 int show_question(int argc, char** argv) {
+    EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL BEGIN DECLARE SECTION;
     int id;
     char statement[256] = {0};
@@ -183,8 +192,8 @@ int show_question(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     EXEC SQL WHENEVER SQLERROR DO handle_error();
-    EXEC SQL CONNECT TO exams@localhost AS connection;
-    EXEC SQL SET CONNECTION connection;
+    EXEC SQL CONNECT TO exams;
+
     return command_exec(commands, argc, argv);
 }
 

@@ -2,7 +2,7 @@ PREPRO := ecpg
 CC := clang
 CFLAGS := -Wall -Ilib -I/usr/include/postgresql -DPOSTGRES
 CLINKFLAGS := -lecpg
-TARGETS := target/app
+TARGETS := target/app src/app.c
 SC_FILES := $(wildcard src/**/*.sc) $(wildcard src/*.sc)
 C_PREPROCESSED_FILES := $(SC_FILES:.sc=.c)
 C_FILES := $(C_PREPROCESSED_FILES) $(wildcard src/**/*.c) $(wildcard src/*.c)
@@ -14,6 +14,9 @@ LIB_OBJECTS := $(patsubst lib/%, bin/lib/%, $(LIB_FILES:.c=.o))
 
 all: $(TARGETS)
 	@echo > /dev/null
+
+database:
+	$(MAKE) -C etc/sql
 
 target/%: bin/%.o $(OBJECTS) $(LIB_OBJECTS)
 	@mkdir -p $(dir $@)
