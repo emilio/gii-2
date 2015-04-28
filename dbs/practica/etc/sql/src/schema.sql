@@ -1,5 +1,3 @@
--- Oracle does not support DROP _ IF EXISTS... -.-
-
 CREATE TABLE grades (
 	id INTEGER NOT NULL,
 	name VARCHAR(255) NOT NULL,
