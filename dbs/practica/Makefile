@@ -2,7 +2,7 @@ PREPRO := ecpg
 CC := clang
 CFLAGS := -Wall -Ilib -I/usr/include/postgresql -DPOSTGRES
 CLINKFLAGS := -lecpg
-TARGETS := target/app src/app.c
+TARGETS := target/app
 SC_FILES := $(wildcard src/**/*.sc) $(wildcard src/*.sc)
 C_PREPROCESSED_FILES := $(SC_FILES:.sc=.c)
 C_FILES := $(C_PREPROCESSED_FILES) $(wildcard src/**/*.c) $(wildcard src/*.c)
