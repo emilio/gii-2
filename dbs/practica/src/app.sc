@@ -4,10 +4,47 @@
 #include <string.h>
 #include "question.h"
 #include "answer.h"
-#include "macros.h"
+#include "exam.h"
+#include "interactive.h"
+#include "common.h"
 
 #include <commands.h>
 
+int create_question(int argc, char** argv) {
+    char buffer[255];
+    char is_correct;
+
+    printf("Give me the statement:");
+    get_str(buffer, sizeof(buffer));
+
+    char* args[] = { "-a", buffer, NULL };
+    question(2, args);
+
+    char* id_str = NULL;
+
+    while ( 1 ) {
+        printf("Give me one answer (empty to stop):");
+        get_str(buffer, sizeof(buffer));
+
+        if ( ! *buffer )
+            break;
+
+        printf("Is correct? (Y/n):");
+        do {
+            is_correct = getchar();
+        } while ( is_correct != 'n' && is_correct != 'Y' );
+
+        if ( is_correct == 'Y' ) {
+            char* args[] = { "-a", id_str, buffer, "--correct", NULL };
+            answer(4, args);
+        } else {
+            char* args[] = { "-a", id_str, buffer, NULL };
+            answer(3, args);
+        }
+    }
+
+    return 1;
+}
 
 // The list of our supported commands
 struct command commands[] = {
@@ -20,10 +57,14 @@ struct command commands[] = {
         "\t-l\tlists all questions\t-l\n"
         "Prints the question id on success to stdout." },
     { "answer", answer, "manages answers",
-        "Usage: answer [args...]"
-        "\t-a\tcreates an answer\t-a <question_id> <statement> [--correct]"
-        "\t-l\tlist answers for a question\t-l <question_id>"
+        "Usage: answer [args...]\n"
+        "\t-a\tcreates an answer\t-a <question_id> <statement> [--correct]\n"
+        "\t-l\tlist answers for a question\t-l <question_id>\n"
         "\t-d\tdeletes a question\t-d <id>" },
+    { "exam", exam, "manages exams",
+        "Usage: answer [args...]\n"
+        "\t-l\tlist exams for a question\t-l <question_id>\n" },
+    { "interactive", interactive, "Open an interactive session" },
     { NULL, NULL, NULL, NULL } // End of the list
 };
 
@@ -37,7 +78,7 @@ void handle_error() {
 
 
 
-
+/// Comentario de prueba
 int main(int argc, char** argv) {
     EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL CONNECT TO exams;

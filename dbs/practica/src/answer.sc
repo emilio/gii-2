@@ -1,6 +1,6 @@
 // vim:set syntax=c:
 #include "answer.h"
-#include "macros.h"
+#include "common.h"
 
 int list_answers(int argc, char** argv);
 
@@ -64,7 +64,7 @@ int list_answers(int argc, char** argv) {
     int question_id;
     int id;
     char title[256] = {0};
-    char is_correct;
+    short is_correct;
     EXEC SQL END DECLARE SECTION;
 
     if ( argc != 1 )
@@ -75,7 +75,7 @@ int list_answers(int argc, char** argv) {
     EXEC SQL DECLARE answers_cursor CURSOR FOR
         SELECT id, title, is_correct FROM answers
             WHERE question_id = :question_id
-                ORDER BY priority DESC;
+                ORDER BY priority ASC;
 
     EXEC SQL OPEN answers_cursor;
     while ( 1 ) {

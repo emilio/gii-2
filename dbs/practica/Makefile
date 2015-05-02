@@ -1,7 +1,13 @@
-PREPRO := ecpg
+ifeq ($(TARGET_ENV),oracle)
+PREPRO := proc MODE=ANSI iname=
+CC := gcc
+else
 CC := clang
-CFLAGS := -Wall -Ilib -I/usr/include/postgresql -DPOSTGRES
+PREPRO := ecpg
 CLINKFLAGS := -lecpg
+CFLAGS := -I/usr/include/postgresql -DPOSTGRES
+endif
+CFLAGS := $(CFLAGS) -Wall -Ilib
 TARGETS := target/app
 SC_FILES := $(wildcard src/**/*.sc) $(wildcard src/*.sc)
 C_PREPROCESSED_FILES := $(SC_FILES:.sc=.c)
@@ -37,7 +43,6 @@ bin/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -r $(C_PREPROCESSED_FILES)
 	rm -r bin
 	rm -r target
 

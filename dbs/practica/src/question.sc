@@ -1,9 +1,11 @@
 // vim: set syntax=c:
-#include "macros.h"
+#include "common.h"
 #include "question.h"
 #include "answer.h"
+#include "exam.h"
 
 int list_questions(int, char**);
+int show_question(int argc, char** argv);
 
 /// Manages questions
 int question(int argc, char** argv) {
@@ -26,6 +28,9 @@ int question(int argc, char** argv) {
         COPY_TO_VARCHAR(statement, argv[0], 255);
         EXEC SQL INSERT INTO questions (statement) VALUES (:statement)
             RETURNING id INTO :id;
+
+        APPCOM_RET_INT(id);
+
         // We return the id printing it
         printf("%d\n", id);
         return 0;
@@ -124,60 +129,11 @@ int show_question(int argc, char** argv) {
     printf("-----------------------------------\n");
     printf("Options:\n");
 
-    char* args[] = { "-l", argv[0], NULL };
-
-    answer(2, args);
+    CALL(answer, "-l", argv[0]);
 
     printf("Exams:\n");
 
-    show_exams_for_question(id);
-
-    return 0;
-}
-
-int show_exams_for_question(int _qid) {
-    EXEC SQL WHENEVER SQLERROR DO handle_error();
-    EXEC SQL BEGIN DECLARE SECTION;
-    int question_id;
-    int id;
-    int exam_year;
-    int convocatory;
-    int correct;
-    int incorrect;
-    int unreplied;
-
-    char subject_name[256] = {0};
-    EXEC SQL END DECLARE SECTION;
-
-
-    int count = 0;
-    question_id = _qid;
-
-    EXEC SQL DECLARE exams_cursor CURSOR FOR
-        SELECT exams.id, exams.year, exams.convocatory, subjects.name, exams_questions.correct_answer_count, exams_questions.incorrect_answer_count, exams_questions.unreplied_answer_count
-        FROM exams, exams_questions, subjects
-            WHERE exams_questions.question_id = :question_id AND
-                  exams_questions.exam_id = exams.id AND subjects.id = exams.subject_id
-                ORDER BY exams.year, exams.convocatory ASC;
-
-    EXEC SQL OPEN exams_cursor;
-    while ( 1 ) {
-        EXEC SQL FETCH exams_cursor INTO :id, :exam_year, :convocatory, :subject_name, :correct, :incorrect, :unreplied;
-
-        if ( SQLCODE == NOT_FOUND )
-            break;
-
-        ++count;
-
-        printf("%d %s (%d)\n", exam_year, subject_name, convocatory);
-        printf(" - Total: %d\n", correct + incorrect + unreplied);
-        printf(" - Correct: %d\n", correct);
-        printf(" - Incorrect: %d\n", incorrect);
-        printf(" - Unreplied: %d\n", unreplied);
-    }
-    EXEC SQL CLOSE exams_cursor;
-
-    printf("Total: %d\n", count);
+    CALL(exam, "-l", argv[0]);
 
     return 0;
 }
