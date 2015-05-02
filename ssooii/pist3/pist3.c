@@ -10,27 +10,16 @@
 #include <stdio.h>
 #include <string.h> /* strlen, strerror */
 #include <time.h> /* time */
-#include <windows.h>
+#define ERROR_MSG_EXIT() exit(100)
 
-/** Default process count and output */
-#define DEFAULT_PROC_COUNT 7
-#define DEFAULT_SPEED 0
-
-/** Error */
-#define ERROR(str, ...) do { \
-	snprintf(buff, 512, str, ##__VA_ARGS__); \
-} while ( 0 )
-
-#define ERROR_EXIT() exit(100)
-
-#define ERROR(str, ...) do { \
+#define ERROR_MSG(str, ...) do { \
 	fprintf(stderr, str "\n", ##__VA_ARGS__); \
 } while (0)
 
-#define FATAL_ERROR(str, ...) do { \
+#define FATAL_ERROR_MSG(str, ...) do { \
 	LPVOID lpErrBuffer; \
 	DWORD dwErrCode; \
-	ERROR(str, ##__VA_ARGS__); \
+	ERROR_MSG(str, ##__VA_ARGS__); \
    	dwErrCode = GetLastError(); \
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, \
 	              NULL, \
@@ -136,6 +125,39 @@ GameData * manage_data(DataActionType, size_t);
 	sigaction(signal, &action, NULL); \
 } while (0)
 
+struct lib {
+       void (*init)(int, int, int);
+       int (*newShooter)(char);
+       char (*victim)(void);
+       int (*shoot)(char);
+       void (*die)(void);
+       int (*deinit)(void);
+       void (*error)(char*);
+} lib;
+
+bool init_lib() {
+    void* lib = LoadLibrary("pist3.dll");
+    if ( ! lib )
+       return false;
+    lib.init = GetProcAddress(lib, "PIST_inicio");
+    lib.newShooter = GetProcAddress(lib, "PIST_nuevoPistolero");
+    lib.victim = GetProcAddress(lib, "PIST_vIctima");
+    lib.shoot = GetProcAddress(lib, "PIST_disparar");
+    lib.die = GetProcAddress(lib, "PIST_morirme");
+    lib.deinit = GetProcAddress(lib, "PIST_fin");
+    lib.error = GetProcAddress(lib, "pon_error");
+    
+    if ( lib.init == NULL ||
+         lib.newShooter == NULL ||
+         lib.victim == NULL ||
+         lib.shoot == NULL ||
+         lib.die == NULL ||
+         lib.deinit == NULL ||
+         lib.error == NULL )
+        return false;
+    
+    return true;     
+}
 
 /** Debugging and resource management */
 void __dump();
@@ -168,7 +190,7 @@ int semaphore_set_value(semaphore_t sem, unsigned short index, int val) {
 	ret = semctl(sem, index, SETVAL, param);
 
 	if ( ret == -1 )
-		FATAL_ERROR("semaphore_set_value: %s", strerror(errno));
+		FATAL_ERROR_MSG("semaphore_set_value: %s", strerror(errno));
 
 	return ret;
 }
@@ -177,7 +199,7 @@ int semaphore_get_value(semaphore_t sem, unsigned short index) {
 	int ret = semctl(sem, index, GETVAL);
 
 	if ( ret == -1 )
-		FATAL_ERROR("semaphore_set_value: %s", strerror(errno));
+		FATAL_ERROR_MSG("semaphore_set_value: %s", strerror(errno));
 
 	return ret;
 }
@@ -190,7 +212,7 @@ int semaphore_change_value(semaphore_t sem, unsigned short index, short value) {
 
 	int ret = semop(sem, &buff, 1);
 	if ( ret == -1 )
-		FATAL_ERROR("semaphore_wait: %s", strerror(errno));
+		FATAL_ERROR_MSG("semaphore_wait: %s", strerror(errno));
 	return ret;
 }
 
@@ -383,7 +405,7 @@ int child_proc(char lib_id) {
 
 	ret = PIST_nuevoPistolero(lib_id);
 	if ( ret == -1 )
-		FATAL_ERROR("Shooter not initialized");
+		FATAL_ERROR_MSG("Shooter not initialized");
 
 	LOG("Ready to roll");
 	/** Ensure we're ready, and wait for everybody else */
@@ -411,13 +433,13 @@ int child_proc(char lib_id) {
 		target = PIST_vIctima();
 
 		if ( target == '@' )
-			FATAL_ERROR("This shit blew up\n");
+			FATAL_ERROR_MSG("This shit blew up\n");
 
 		/** Mark the target as shot, equivalent to send the "DEAD" message */
 		data->children[target - 'A'].status |= PID_STATUS_DEAD_THIS_ROUND;
 
 		if ( PIST_disparar(target) == -1 )
-			ERROR("PIST_disparar");
+			ERROR_MSG("PIST_disparar");
 
 		semaphore_wait(data->semaphores, 1);
 		LOG("Shot to %c", target);
@@ -476,27 +498,27 @@ int main(int argc, char **argv) {
 	if ( argv[1][0] >= '0' && argv[1][0] <= '9' )
 		count = strtoul(argv[1], NULL, 10);
 	else
-		FATAL_ERROR("Option not recognized: %s", argv[1]);
+		FATAL_ERROR_MSG("Option not recognized: %s", argv[1]);
 
 	if ( argv[2][0] >= '0' && argv[2][0] <= '9' )
 		speed = strtoul(argv[2], NULL, 10);
 	else
-		FATAL_ERROR("Option not recognized: %s", argv[2]);
+		FATAL_ERROR_MSG("Option not recognized: %s", argv[2]);
 
 	if ( argc == 4 ) {
 		if ( argv[3][0] >= '0' && argv[3][0] <= '9' )
 			 seed = strtoul(argv[3], NULL, 10);
 		else
-			FATAL_ERROR("Option not recognized: %s", argv[3]);
+			FATAL_ERROR_MSG("Option not recognized: %s", argv[3]);
 	}
 
 #if CHECK_LIMITS
 	if ( count < LIMIT_MIN || count > LIMIT_MAX )
-		FATAL_ERROR("Number of processes must be between %d and %d.\n", LIMIT_MIN, LIMIT_MAX);
+		FATAL_ERROR_MSG("Number of processes must be between %d and %d.\n", LIMIT_MIN, LIMIT_MAX);
 #endif
 
 	if ( count == 0 )
-		FATAL_ERROR("At least one player is required.\n");
+		FATAL_ERROR_MSG("At least one player is required.\n");
 
 	atexit(release_all_resources);
 
@@ -508,12 +530,12 @@ int main(int argc, char **argv) {
 	data->semaphores = semget(IPC_PRIVATE, TOTAL_SEMAPHORE_COUNT, IPC_CREAT | 0600);
 
 	if ( data->semaphores == -1 )
-		FATAL_ERROR("Semaphore creation failed: %s\n", strerror(errno));
+		FATAL_ERROR_MSG("Semaphore creation failed: %s\n", strerror(errno));
 
 	ret = PIST_inicio(count, speed, data->semaphores, data->library_data, seed);
 
 	if ( ret == -1 )
-		FATAL_ERROR("Library initialization failed\n");
+		FATAL_ERROR_MSG("Library initialization failed\n");
 
 	bind_parent_signals();
 
