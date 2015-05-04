@@ -11,7 +11,7 @@
 #include <string.h> /* strlen, strerror */
 #include <time.h> /* time */
 #include <windows.h>
-#define ERROR_MSG_EXIT() exit(100)
+#define ERROR_EXIT() exit(100)
 
 #define ERROR_MSG(str, ...) do { \
 	fprintf(stderr, str "\n", ##__VA_ARGS__); \
@@ -26,9 +26,9 @@
 	              NULL, \
 	              dwErrCode, \
                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), \
-	              (LPSTR) &lpBuffer, \
+	              (LPSTR) &lpErrBuffer, \
 	              0, NULL); \
-	_tfprintf(stderr, TEXT("Windows Error: %s\n"), lpBuffer); \
+	fprintf(stderr, TEXT("Windows Error: %s\n"), lpErrBuffer); \
 	ERROR_EXIT(); \
 } while( 0 )
 
@@ -36,18 +36,19 @@
 HANDLE logMutex;
 #define LOG(msg, ...) do { \
 	GameData* data = get_data(); \
-	DWORD dwWaitResult = WaitForSingleObject(logMutex);	\
+	DWORD dwWaitResult = WaitForSingleObject(logMutex, 0L);	\
 	if ( dwWaitResult == WAIT_OBJECT_0 ) { \
 		if ( fseek(data->log, 0, SEEK_END) > -1 ) { \
 			fprintf(data->log, "(%d) "msg"\n", GetCurrentThreadId(), ##__VA_ARGS__); \
-		fflush(data->log); \
+        } \
+        fflush(data->log); \
 		ReleaseMutex(logMutex); \
 	} \
 } while (0)
 
 #define LIMIT_MIN 3
 #define LIMIT_MAX 26
-
+#define MAX_CHILDREN LIMIT_MAX
 /** The  action type passed to manage_data */
 typedef enum DataActionType {
 	DATA_CREATE,
@@ -68,13 +69,7 @@ typedef enum PidStatusType {
 	PID_STATUS_SHOT = 0x02,
 	PID_STATUS_DEAD_THIS_ROUND = 0x04,
 	PID_STATUS_DEAD = 0x08
-} PidStatusType;
-
-/** Process struct */
-typedef struct Process {
-	pid_t id; /** PID */
-	PidStatusType status; /** Current status, if pid is alive it gets updated to PID_STATUS_READY */
-} Process;
+} StatusType;
 
 /**
  * The main struct
@@ -87,10 +82,11 @@ typedef struct Process {
  */
 typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
-	/* const */ pid_t parent_id; /** The parent process id */
+	/* const */ HANDLE parent_thread; /** The parent process id */
 	size_t rounds; /** The round count */
 	unsigned short alive_count; /** Current round alive pids count */
-	Process *children; /** The children processes */
+	HANDLE threads[MAX_CHILDREN];
+	StatusType statuses[MAX_CHILDREN]; /** The children processes */
 	HANDLE semaphore;
     HANDLE ready_event;
 	FILE* log;
@@ -118,16 +114,16 @@ struct lib {
 } lib;
 
 bool init_lib() {
-    void* dlllib = LoadLibrary("pist3.dll");
-    if ( ! lib )
+    HINSTANCE dlllib = LoadLibrary("pist3.dll");
+    if ( ! dlllib )
        return false;
-    lib.init = GetProcAddress(dlllib, "PIST_inicio");
-    lib.newShooter = GetProcAddress(dlllib, "PIST_nuevoPistolero");
-    lib.victim = GetProcAddress(dlllib, "PIST_vIctima");
-    lib.shoot = GetProcAddress(dlllib, "PIST_disparar");
-    lib.die = GetProcAddress(dlllib, "PIST_morirme");
-    lib.deinit = GetProcAddress(dlllib, "PIST_fin");
-    lib.error = GetProcAddress(dlllib, "pon_error");
+    lib.init = (void (*)(int, int, int)) GetProcAddress(dlllib, "PIST_inicio");
+    lib.newShooter = (int (*) (char)) GetProcAddress(dlllib, "PIST_nuevoPistolero");
+    lib.victim = (char (*) (void)) GetProcAddress(dlllib, "PIST_vIctima");
+    lib.shoot = (int(*)(char)) GetProcAddress(dlllib, "PIST_disparar");
+    lib.die = (void (*) (void)) GetProcAddress(dlllib, "PIST_morirme");
+    lib.deinit = (int (*) (void)) GetProcAddress(dlllib, "PIST_fin");
+    lib.error = (void (*)(char*)) GetProcAddress(dlllib, "pon_error");
 
     if ( lib.init == NULL ||
          lib.newShooter == NULL ||
@@ -141,6 +137,7 @@ bool init_lib() {
     return true;
 }
 
+typedef HANDLE semaphore_t;
 /** Debugging and resource management */
 void __dump();
 void kill_all();
@@ -155,7 +152,6 @@ int semaphore_signal(semaphore_t sem, unsigned short index);
 
 /** Utilities */
 void program_help();
-Process * current_proc();
 
 /** Game logic */
 void bind_parent_signals();
@@ -167,16 +163,13 @@ int child_proc(char);
 bool semaphore_change_value(semaphore_t sem, short value) {
     if ( value < 0 ) {
         if ( value != -1 ) {
-            FATAL_ERROR_MSG("Multi-decrement not supported by windows")
+            FATAL_ERROR_MSG("Multi-decrement not supported by windows");
         } else {
             return WaitForSingleObject(sem, 0L) == WAIT_OBJECT_0;
         }
     }
 
-    if ( value == 0 ) {
-    }
-
-	return ret;
+    return true;
 }
 
 int semaphore_wait_zero(semaphore_t sem, unsigned short index) {
@@ -195,58 +188,26 @@ int semaphore_signal(semaphore_t sem, unsigned short index) {
 void __dump() {
 	GameData *data = get_data();
 	size_t i;
-	Process *p;
 
 	fprintf(stderr, "\nDump:\n");
 	fprintf(stderr, "Alive count: %hu\n", data->alive_count);
-	fprintf(stderr, "Semaphores:\n");
-	for ( i = 0; i < TOTAL_SEMAPHORE_COUNT; ++i )
-		fprintf(stderr, "\t%d", semaphore_get_value(data->semaphores, i));
-	fprintf(stderr, "\n");
-
-	EACH(data->children, data->process_count, p,
-		fprintf(stderr, "{ "PID_T_FORMAT", %d}\t", p->id, p->status);
-	);
-	fprintf(stderr, "\n");
 }
 
 /** Program help */
 void program_help() {
-	fprintf(stderr, "Usage: "SELF" <count> <speed> <seed>\n");
+	fprintf(stderr, "Usage: ./pist3 <count> <speed> <seed>\n");
 	ERROR_EXIT();
 }
 
-/** Get current child process, cached statically */
-Process *current_proc() {
-	static Process *me = NULL;
-
-	if ( me == NULL ) {
-		GameData *data = get_data();
-		Process *p;
-		pid_t current_pid = GetThreadId();
-		EACH(data->children, data->process_count, p,
-			if ( p->id == current_pid ) {
-				me = p;
-				break;
-			}
-		);
-	}
-
-	return me;
-}
-
-bool is_current_proc_coordinator() {
+bool is_current_proc_coordinator(size_t current_index) {
 	GameData* data = get_data();
-	pid_t current_pid = GetThreadId();
-	Process* p;
 	size_t i;
 
 	i = data->process_count;
 	while ( i-- ) {
-		p = data->children + i;
 		/** If there's a process which is not dead */
-		if ( ~p->status & PID_STATUS_DEAD ) {
-			if ( p->id == current_pid )
+		if ( ~data->statuses[i] & PID_STATUS_DEAD ) {
+			if ( i == current_index )
 				return 1;
 			else
 				return 0;
@@ -259,23 +220,18 @@ bool is_current_proc_coordinator() {
 /** Manage game data */
 GameData* manage_data(DataActionType action, size_t count) {
 	static GameData* data = NULL;
-	static size_t size = 0;
 
 	/** Create data */
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
-		size = DATA_SIZE_FOR(count);
-		data = (GameData*) malloc(size);
-
+        data = (GameData*) malloc(sizeof(GameData)); 
 		data->process_count = count;
 		data->alive_count = count;
-		data->parent_id = 0;
+		data->parent_thread = NULL;
 		data->rounds = 0;
 		data->semaphore = NULL;
 
-		/** Adjust the pointer to the end of the struct */
-		data->children = (Process *) (data + 1);
 		data->log = fopen(LOG_PATH, "w+");
-		if ( data->log == NULL )
+		if ( !data->log )
 			data->log = stderr;
 	}
 
@@ -286,7 +242,7 @@ GameData* manage_data(DataActionType action, size_t count) {
 		    if ( !CloseHandle(data->semaphore) )
                 LOG("Release semaphore failed: %s\n", GetLastError());
 
-		if ( data->log != NULL )
+		if ( data->log )
 			fclose(data->log);
 
 		free( (void *) data);
@@ -299,11 +255,9 @@ GameData* manage_data(DataActionType action, size_t count) {
 /** Kill all pending processes */
 void kill_all() {
 	GameData *data = get_data();
-	Process *p;
 
-	EACH(data->children, data->process_count, p,
-		kill(p->id, SIGKILL);
-	);
+	for (size_t i = 0; i < data->process_count; ++i )
+	    TerminateThread(data->threads[i], 1);
 }
 
 /** Resources handled by atexit() */
@@ -317,10 +271,6 @@ void release_all_resources() {
 	GameData* data = get_data();
 	int ret;
 
-	/** Just for parent */
-	if ( data->parent_id != GetThreadId() )
-		return;
-
 	/** When game is over... */
 	ret = lib.deinit();
 	if ( ret == -1 )
@@ -333,53 +283,29 @@ void release_all_resources() {
 
 }
 
-/** Children have all signals blocked. */
-void bind_children_signals() {
-	sigset_t set;
-
-	sigfillset(&set);
-	sigprocmask(SIG_BLOCK, &set, NULL);
-}
-
-/** Parent listens for sigint and sigterm */
-void bind_parent_signals() {
-	sigset_t set;
-
-	sigfillset(&set);
-	sigdelset(&set, SIGINT);
-	sigdelset(&set, SIGTERM);
-	sigprocmask(SIG_BLOCK, &set, NULL);
-
-	BIND_TO(SIGTERM, sig_exit);
-	BIND_TO(SIGINT, sig_exit);
-}
-
 /** Child process subroutine */
-int child_proc(void* my_process_) {
+int child_proc(void* my_status_ptr_) {
 	GameData* data = get_data();
-	Process* me = (Process*) my_process_;
-    char lib_id = 'A' + (my_process - data->children);
+	size_t my_index = ((StatusType*)my_status_ptr_) - (StatusType*)data->statuses;
+    char lib_id = 'A' + my_index;
 	char target;
 	int ret;
 	bool im_coordinator;
 
 	/** We update our status */
-	me->status = PID_STATUS_READY;
+	data->statuses[my_index] = PID_STATUS_READY;
 
 	ret = lib.newShooter(lib_id);
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Shooter not initialized");
 
 	LOG("Ready to roll");
-	/** Ensure we're ready, and wait for everybody else */
-	semaphore_wait(data->semaphores, SEMAPHORE_READY);
-	semaphore_wait_zero(data->semaphores, SEMAPHORE_READY);
-	LOG("Loaded");
+	// TODO: add load rendezvous here
 
 	/** S1 = 0; S2 = 0; */
 	while ( 1 ) {
 		/** Check if I'm the coordinator */
-		im_coordinator = is_current_proc_coordinator();
+		im_coordinator = is_current_proc_coordinator(my_index);
 
 		/** If I am, give pass to everyone two times: one for start and one for end */
 		if ( im_coordinator ) {
@@ -399,7 +325,7 @@ int child_proc(void* my_process_) {
 			FATAL_ERROR_MSG("This shit blew up\n");
 
 		/** Mark the target as shot, equivalent to send the "DEAD" message */
-		data->children[target - 'A'].status |= PID_STATUS_DEAD_THIS_ROUND;
+		data->statuses[target - 'A'] |= PID_STATUS_DEAD_THIS_ROUND;
 
 		if ( lib.shoot(target) == -1 )
 			ERROR_MSG("PIST_disparar");
@@ -419,12 +345,12 @@ int child_proc(void* my_process_) {
 		semaphore_wait(data->semaphores, 2);
 
 		/** If we have received a shot, mark as dead, else... we're ready */
-		if ( me->status & PID_STATUS_DEAD_THIS_ROUND ) {
-			me->status |= PID_STATUS_DEAD;
+		if ( data->statuses[i] & PID_STATUS_DEAD_THIS_ROUND ) {
+			data->statuses[i] |= PID_STATUS_DEAD;
 			ATOMIC_DECREMENT(&data->alive_count);
 			lib.die();
 		} else {
-			me->status = PID_STATUS_READY;
+			data->statuses[i] = PID_STATUS_READY;
 		}
 
 		/**
@@ -491,7 +417,7 @@ int main(int argc, char **argv) {
 	/** Create shared data structure */
 	data = create_data(count);
 
-	data->parent_id = GetThreadId();
+	data->parent_thread = GetCurrentThread();
 
     data->ready_event = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadyEvent"));
 
@@ -520,7 +446,7 @@ int main(int argc, char **argv) {
 				ERROR_EXIT();
 			case 0:
 				/** We must ensure current_index is ok in child_proc */
-				data->children[i].id = GetThreadId();
+				data->children[i].id = GetCurrentThreadId();
 				return child_proc(lib_id);
 		}
 		lib_id++;
