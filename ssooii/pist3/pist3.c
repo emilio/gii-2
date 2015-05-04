@@ -90,9 +90,9 @@ typedef struct GameData {
 	size_t rounds; /** The round count */
 	unsigned short alive_count; /** Current round alive pids count */
 	Process *children; /** The children processes */
-	semaphore_t semaphores;
+	HANDLE semaphore;
+    HANDLE ready_event;
 	FILE* log;
-	char library_data[256];
 } GameData;
 
 /** Get the main game data struct, create if non-zero value is passed as a second argument */
@@ -105,25 +105,6 @@ GameData * manage_data(DataActionType, size_t);
 #define refresh_data() manage_data(DATA_REFRESH, 0)
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
-
-/** Loop helper. item is a pointer */
-#define EACH(arr, length, item, ...) do { \
-	size_t __i; \
-	for ( __i = 0; __i < length; ++__i ) { \
-		item = &arr[__i]; \
-		__VA_ARGS__ \
-	} \
-} while (0)
-
-/** Another helper. Instead of signal() (implementation dependent), we use sigaction */
-#define BIND_TO(signal, handler) do { \
-	struct sigaction action; \
-	/** Block everything during execution */ \
-	sigfillset(&action.sa_mask); \
-	action.sa_flags = 0; \
-	action.sa_handler = handler; \
-	sigaction(signal, &action, NULL); \
-} while (0)
 
 struct lib {
        void (*init)(int, int, int);
@@ -146,7 +127,7 @@ bool init_lib() {
     lib.die = GetProcAddress(lib, "PIST_morirme");
     lib.deinit = GetProcAddress(lib, "PIST_fin");
     lib.error = GetProcAddress(lib, "pon_error");
-    
+
     if ( lib.init == NULL ||
          lib.newShooter == NULL ||
          lib.victim == NULL ||
@@ -155,8 +136,8 @@ bool init_lib() {
          lib.deinit == NULL ||
          lib.error == NULL )
         return false;
-    
-    return true;     
+
+    return true;
 }
 
 /** Debugging and resource management */
@@ -181,38 +162,19 @@ void bind_children_signals();
 bool is_current_proc_coordinator();
 int child_proc(char);
 
-/** Main semaphore utilities */
-int semaphore_set_value(semaphore_t sem, unsigned short index, int val) {
-	union semun param;
-	int ret;
-
-	param.val = val;
-	ret = semctl(sem, index, SETVAL, param);
-
-	if ( ret == -1 )
-		FATAL_ERROR_MSG("semaphore_set_value: %s", strerror(errno));
-
-	return ret;
-}
-
-int semaphore_get_value(semaphore_t sem, unsigned short index) {
-	int ret = semctl(sem, index, GETVAL);
-
-	if ( ret == -1 )
-		FATAL_ERROR_MSG("semaphore_set_value: %s", strerror(errno));
-
-	return ret;
-}
-
 /** Change the value atomically: increment or decrement */
-int semaphore_change_value(semaphore_t sem, unsigned short index, short value) {
-	static struct sembuf buff = { 0, 0, 0 };
-	buff.sem_num = index;
-	buff.sem_op = value;
+bool semaphore_change_value(semaphore_t sem, short value) {
+    if ( value < 0 ) {
+        if ( value != -1 ) {
+            FATAL_ERROR_MSG("Multi-decrement not supported by windows")
+        } else {
+            return WaitForSingleObject(sem, 0L) == WAIT_OBJECT_0;
+        }
+    }
 
-	int ret = semop(sem, &buff, 1);
-	if ( ret == -1 )
-		FATAL_ERROR_MSG("semaphore_wait: %s", strerror(errno));
+    if ( value == 0 ) {
+    }
+
 	return ret;
 }
 
@@ -260,7 +222,7 @@ Process *current_proc() {
 	if ( me == NULL ) {
 		GameData *data = get_data();
 		Process *p;
-		pid_t current_pid = getpid();
+		pid_t current_pid = GetThreadId();
 		EACH(data->children, data->process_count, p,
 			if ( p->id == current_pid ) {
 				me = p;
@@ -274,7 +236,7 @@ Process *current_proc() {
 
 bool is_current_proc_coordinator() {
 	GameData* data = get_data();
-	pid_t current_pid = getpid();
+	pid_t current_pid = GetThreadId();
 	Process* p;
 	size_t i;
 
@@ -307,7 +269,7 @@ GameData* manage_data(DataActionType action, size_t count) {
 		data->alive_count = count;
 		data->parent_id = 0;
 		data->rounds = 0;
-		data->semaphores = 0;
+		data->semaphore = NULL;
 
 		/** Adjust the pointer to the end of the struct */
 		data->children = (Process *) (data + 1);
@@ -319,8 +281,9 @@ GameData* manage_data(DataActionType action, size_t count) {
 	/** Release data */
 	if ( action == DATA_RELEASE ) {
 		/** TODO: Is count ignored in semctl with RMID? */
-		if ( data->semaphores > 0 )
-			semctl(data->semaphores, 0, IPC_RMID);
+		if ( data->semaphore )
+		    if ( !CloseHandle(data->semaphore) )
+                LOG("Release semaphore failed: %s\n", GetLastError());
 
 		if ( data->log != NULL )
 			fclose(data->log);
@@ -354,11 +317,11 @@ void release_all_resources() {
 	int ret;
 
 	/** Just for parent */
-	if ( data->parent_id != getpid() )
+	if ( data->parent_id != GetThreadId() )
 		return;
 
 	/** When game is over... */
-	ret = PIST_fin();
+	ret = lib.deinit();
 	if ( ret == -1 )
 		LOG("Library termination failed\n");
 
@@ -391,19 +354,18 @@ void bind_parent_signals() {
 }
 
 /** Child process subroutine */
-int child_proc(char lib_id) {
+int child_proc(void* my_process_) {
 	GameData* data = get_data();
-	Process* me = current_proc();
+	Process* me = (Process*) my_process;
+    char lib_id = 'A' + (my_process - data->children);
 	char target;
 	int ret;
 	bool im_coordinator;
 
-	bind_children_signals();
-
 	/** We update our status */
 	me->status = PID_STATUS_READY;
 
-	ret = PIST_nuevoPistolero(lib_id);
+	ret = lib.newShooter(lib_id);
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Shooter not initialized");
 
@@ -430,7 +392,7 @@ int child_proc(char lib_id) {
 		}
 		LOG("Starting to shoot");
 
-		target = PIST_vIctima();
+		target = lib.victim();
 
 		if ( target == '@' )
 			FATAL_ERROR_MSG("This shit blew up\n");
@@ -438,7 +400,7 @@ int child_proc(char lib_id) {
 		/** Mark the target as shot, equivalent to send the "DEAD" message */
 		data->children[target - 'A'].status |= PID_STATUS_DEAD_THIS_ROUND;
 
-		if ( PIST_disparar(target) == -1 )
+		if ( lib.shoot(target) == -1 )
 			ERROR_MSG("PIST_disparar");
 
 		semaphore_wait(data->semaphores, 1);
@@ -459,7 +421,7 @@ int child_proc(char lib_id) {
 		if ( me->status & PID_STATUS_DEAD_THIS_ROUND ) {
 			me->status |= PID_STATUS_DEAD;
 			ATOMIC_DECREMENT(&data->alive_count);
-			PIST_morirme();
+			lib.die();
 		} else {
 			me->status = PID_STATUS_READY;
 		}
@@ -522,38 +484,34 @@ int main(int argc, char **argv) {
 
 	atexit(release_all_resources);
 
+    if ( ! init_lib() )
+        FATAL_ERROR_MSG("Library not initialized correctly\n");
+
 	/** Create shared data structure */
 	data = create_data(count);
 
-	data->parent_id = getpid();
+	data->parent_id = GetThreadId();
 
-	data->semaphores = semget(IPC_PRIVATE, TOTAL_SEMAPHORE_COUNT, IPC_CREAT | 0600);
+    data->ready_event = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadyEvent"));
 
-	if ( data->semaphores == -1 )
+    if ( !data->ready_event )
+        FATAL_ERROR_MSG("CreateEvent failed: %s\n", GetLastError());
+
+    data->semaphore = CreateSemaphore(NULL, count, count, NULL);
+
+	if ( !data->semaphore )
 		FATAL_ERROR_MSG("Semaphore creation failed: %s\n", strerror(errno));
 
-	ret = PIST_inicio(count, speed, data->semaphores, data->library_data, seed);
+	ret = lib.init(count, speed, seed);
 
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Library initialization failed\n");
 
-	bind_parent_signals();
-
-	/** Set the "ready" semaphore to `count`: we'll wait to 0 in the main proc to wait until they are all ready */
-	semaphore_set_value(data->semaphores, SEMAPHORE_READY, count);
-
-	/** Just one process logging at a time */
-	semaphore_set_value(data->semaphores, SEMAPHORE_LOG, 1);
-
-	LOG("Semaphores initialized: %d %d",
-			semaphore_get_value(data->semaphores, SEMAPHORE_READY),
-			semaphore_get_value(data->semaphores, SEMAPHORE_LOG));
-
-	/** Process creation */
 	for ( i = 0; i < count; ++i ) {
-		/** All processes start as dead */
 		data->children[i].status = PID_STATUS_DEAD;
-		current_pid = fork();
+        // We could allocate a char here, and deallocate it in the thread,
+        // but pointer arithmetic is cool
+		current_pid = CreateThread(NULL, 0, child_proc, data->children + i, 0);
 		switch ( current_pid ) {
 			case -1:
 				perror("fork");
@@ -561,7 +519,7 @@ int main(int argc, char **argv) {
 				ERROR_EXIT();
 			case 0:
 				/** We must ensure current_index is ok in child_proc */
-				data->children[i].id = getpid();
+				data->children[i].id = GetThreadId();
 				return child_proc(lib_id);
 		}
 		lib_id++;
