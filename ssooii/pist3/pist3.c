@@ -223,7 +223,7 @@ GameData* manage_data(DataActionType action, size_t count) {
 
 	/** Create data */
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
-        data = (GameData*) malloc(sizeof(GameData)); 
+        data = (GameData*) malloc(sizeof(GameData));
 		data->process_count = count;
 		data->alive_count = count;
 		data->parent_thread = NULL;
@@ -291,6 +291,7 @@ int child_proc(void* my_status_ptr_) {
 	char target;
 	int ret;
 	bool im_coordinator;
+    size_t this_round_alive_count;
 
 	/** We update our status */
 	data->statuses[my_index] = PID_STATUS_READY;
@@ -299,23 +300,23 @@ int child_proc(void* my_status_ptr_) {
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Shooter not initialized");
 
+    // We tell the parent we're ready
+    SetEvent(data->ready_event);
+    // And wait for it to reply back when all the threads are awake
+    WaitForSingleObject(data->semaphore);
+
 	LOG("Ready to roll");
-	// TODO: add load rendezvous here
 
 	/** S1 = 0; S2 = 0; */
 	while ( 1 ) {
-		/** Check if I'm the coordinator */
 		im_coordinator = is_current_proc_coordinator(my_index);
 
-		/** If I am, give pass to everyone two times: one for start and one for end */
 		if ( im_coordinator ) {
+            this_round_alive_count = data->alive_count;
 			if ( data->alive_count == 1 )
 				exit(0);
 			data->rounds++;
 			LOG("Round: %d, alive: %hu", data->rounds, data->alive_count);
-
-			/** Increment semaphore 1 value alive_count times */
-			semaphore_change_value(data->semaphores, 1, data->alive_count); // Allow everyone to shoot
 		}
 		LOG("Starting to shoot");
 
@@ -330,39 +331,40 @@ int child_proc(void* my_status_ptr_) {
 		if ( lib.shoot(target) == -1 )
 			ERROR_MSG("PIST_disparar");
 
-		semaphore_wait(data->semaphores, 1);
 		LOG("Shot to %c", target);
 
-		/** Wait for everyone to shoot */
-		semaphore_wait_zero(data->semaphores, 1);
-
+        // We set the ready event and wait for the coordinator
+        // to give us pass
+        SetEvent(data->ready_event);
 		if ( im_coordinator ) {
-			/** When everyone has shooted, allow to receive, this has to be two times alive_count because they must be locked if everyone hasn't stopped */
-			semaphore_change_value(data->semaphores, 2, data->alive_count * 2);
+            size_t i = this_round_alive_count;
+            while ( i-- )
+                WaitForSingleObject(data->ready_event, INFINITE);
+            ReleaseSemaphore(data->semaphore, this_round_alive_count, NULL);
 		}
-
-		/** Without this lock, someone can shoot, reach the bottom, and start shooting again, or get its status corrupted */
-		semaphore_wait(data->semaphores, 2);
+        WaitForSingleObject(data->semaphore, INFINITE);
 
 		/** If we have received a shot, mark as dead, else... we're ready */
-		if ( data->statuses[i] & PID_STATUS_DEAD_THIS_ROUND ) {
-			data->statuses[i] |= PID_STATUS_DEAD;
-			ATOMIC_DECREMENT(&data->alive_count);
+		if ( data->statuses[my_index] & PID_STATUS_DEAD_THIS_ROUND ) {
+			data->statuses[my_index] |= PID_STATUS_DEAD;
+			InterlockedDecrement(&data->alive_count);
 			lib.die();
 		} else {
-			data->statuses[i] = PID_STATUS_READY;
+			data->statuses[my_index] = PID_STATUS_READY;
 		}
 
-		/**
-		 * Wait until semaphore 2 is zero (everyone has died in the previous round)
-		 * This wait is global because we can't choose a coordinator until everyone is
-		 * dead
-		 */
-		semaphore_wait(data->semaphores, 2);
-		semaphore_wait_zero(data->semaphores, 2);
+        // The same strategy here
+        SetEvent(data->ready_event);
+        if ( im_coordinator ) {
+            size_t i = this_round_alive_count;
+            while ( i-- )
+                WaitForSingleObject(data->ready_event, INFINITE);
+            ReleaseSemaphore(data->semaphore, this_round_alive_count, NULL);
+        }
+        WaitForSingleObject(data->semaphore, INFINITE);
 
 		/** Die if round over */
-		if ( me->status & PID_STATUS_DEAD )
+		if ( data->statuses[my_index] & PID_STATUS_DEAD )
 			exit(0);
 	}
 
@@ -375,8 +377,6 @@ int main(int argc, char **argv) {
 		count = DEFAULT_PROC_COUNT,
 		speed = DEFAULT_SPEED,
 		seed = 0;
-	pid_t current_pid,
-		  last_dead_process;
 	GameData *data;
 	int ret;
 	char lib_id = 'A';
@@ -417,14 +417,13 @@ int main(int argc, char **argv) {
 	/** Create shared data structure */
 	data = create_data(count);
 
-	data->parent_thread = GetCurrentThread();
-
     data->ready_event = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadyEvent"));
 
     if ( !data->ready_event )
         FATAL_ERROR_MSG("CreateEvent failed: %s\n", GetLastError());
 
-    data->semaphore = CreateSemaphore(NULL, count, count, NULL);
+    // Semaphore with initial value of 0
+    data->semaphore = CreateSemaphore(NULL, 0, count, NULL);
 
 	if ( !data->semaphore )
 		FATAL_ERROR_MSG("Semaphore creation failed: %s\n", strerror(errno));
@@ -435,10 +434,11 @@ int main(int argc, char **argv) {
 		FATAL_ERROR_MSG("Library initialization failed\n");
 
 	for ( i = 0; i < count; ++i ) {
-		data->children[i].status = PID_STATUS_DEAD;
+		data->statuses[i] = PID_STATUS_DEAD;
+
         // We could allocate a char here, and deallocate it in the thread,
         // but pointer arithmetic is cool
-		current_pid = CreateThread(NULL, 0, child_proc, data->children + i, 0);
+		data->threads[i] = CreateThread(NULL, 0, child_proc, data->statuses + i, 0);
 		switch ( current_pid ) {
 			case -1:
 				perror("fork");
@@ -452,12 +452,15 @@ int main(int argc, char **argv) {
 		lib_id++;
 	}
 
-	/** Wait for all processes to die */
-	while ( count-- )
-		last_dead_process = waitpid(0, NULL, 0);
+    size_t count_ = count;
 
-	if ( data->alive_count == 1 )
-		return last_dead_process;
+    // We wait for all the processes to tell us they're ready
+    while ( count_-- )
+        WaitForSingleObject(data->ready_event, INFINITE);
+    ReleaseSemaphore(data->semaphore, count, NULL);
+
+    // Now they take care of the job, we must  wait for them to die
+    WaitForMultipleObjects(count, data->threads, TRUE, INFINITE);
 
 	return 0;
 }
