@@ -20,11 +20,19 @@ extern struct appcom appcom;
     snprintf(appcom.ret.str_value, APPCOM_RET_STR_MAX, "%d", val); \
 } while (0)
 
+#if 0
+#define DEBUG(format, ...) \
+    fprintf(stderr, format "\n", ## __VA_ARGS__)
+#else
+#define DEBUG(...)
+#endif
+
 #define CALL(fn, ...) do { \
     int argc__ = 0; \
     char* argv__[] = { __VA_ARGS__, NULL }; \
     char** argvp__ = argv__; \
     while ( *argvp__++ ) argc__++; \
+    DEBUG("Call %s: argc = %d", #fn, argc__); \
     fn(argc__, argv__); \
 } while ( 0 )
 

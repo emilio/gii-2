@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h> /* strlen, strerror */
 #include <time.h> /* time */
+#include <windows.h>
 #define ERROR_MSG_EXIT() exit(100)
 
 #define ERROR_MSG(str, ...) do { \
@@ -117,16 +118,16 @@ struct lib {
 } lib;
 
 bool init_lib() {
-    void* lib = LoadLibrary("pist3.dll");
+    void* dlllib = LoadLibrary("pist3.dll");
     if ( ! lib )
        return false;
-    lib.init = GetProcAddress(lib, "PIST_inicio");
-    lib.newShooter = GetProcAddress(lib, "PIST_nuevoPistolero");
-    lib.victim = GetProcAddress(lib, "PIST_vIctima");
-    lib.shoot = GetProcAddress(lib, "PIST_disparar");
-    lib.die = GetProcAddress(lib, "PIST_morirme");
-    lib.deinit = GetProcAddress(lib, "PIST_fin");
-    lib.error = GetProcAddress(lib, "pon_error");
+    lib.init = GetProcAddress(dlllib, "PIST_inicio");
+    lib.newShooter = GetProcAddress(dlllib, "PIST_nuevoPistolero");
+    lib.victim = GetProcAddress(dlllib, "PIST_vIctima");
+    lib.shoot = GetProcAddress(dlllib, "PIST_disparar");
+    lib.die = GetProcAddress(dlllib, "PIST_morirme");
+    lib.deinit = GetProcAddress(dlllib, "PIST_fin");
+    lib.error = GetProcAddress(dlllib, "pon_error");
 
     if ( lib.init == NULL ||
          lib.newShooter == NULL ||

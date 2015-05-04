@@ -54,7 +54,8 @@ struct command commands[] = {
         "\t-d\tdeletes a question\t-d <id>\n"
         "\t-e\tedits a question\t-e <id> <statement>\n"
         "\t-s\tshows a question\t-s <id>\n"
-        "\t-l\tlists all questions\t-l\n"
+        "\t-l\tlists all questions\t-l [<theme_id>] [--detailed]\n"
+        "\t-t\tlists all questions by theme and subject\t-t [--detailed]\n"
         "Prints the question id on success to stdout." },
     { "answer", answer, "manages answers",
         "Usage: answer [args...]\n"

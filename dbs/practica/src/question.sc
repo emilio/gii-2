@@ -6,6 +6,7 @@
 
 int list_questions(int, char**);
 int show_question(int argc, char** argv);
+int list_questions_by_theme(int argc, char** argv);
 
 /// Manages questions
 int question(int argc, char** argv) {
@@ -63,6 +64,11 @@ int question(int argc, char** argv) {
         argc--; argv++;
 
         return list_questions(argc, argv);
+    // List by theme
+    } else if ( strcmp(argv[0], "-t") == 0 ) {
+        argc--; argv++;
+
+        return list_questions_by_theme(argc, argv);
     } else if ( strcmp(argv[0], "-s") == 0 ) {
         argc--; argv++;
 
@@ -77,31 +83,97 @@ int list_questions(int argc, char** argv) {
     EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL BEGIN DECLARE SECTION;
     int id;
+    int theme_id;
     char statement[256] = {0};
+    char question_id_str[20];
     EXEC SQL END DECLARE SECTION;
+    unsigned char detailed_mode = 0;
 
     EXEC SQL WHENEVER SQLERROR DO handle_error();
 
     int count = 0;
 
-    if ( argc > 0 )
+    if ( argc > 2 )
         ARGUMENT_ERROR();
+
+    if ( argc && strcmp(argv[argc - 1], "--detailed") == 0 )
+        detailed_mode = 1;
+    // If we passed two args and the detailed flag is not found...
+    else if ( argc == 2 )
+        ARGUMENT_ERROR();
+
+    DEBUG("list_questions");
 
     EXEC SQL DECLARE questions_cursor CURSOR FOR
         SELECT id, statement FROM questions;
 
-    EXEC SQL OPEN questions_cursor;
+    EXEC SQL DECLARE questions_themes_cursor CURSOR FOR
+        SELECT questions.id, questions.statement FROM questions, questions_themes WHERE questions_themes.question_id = questions.id AND questions_themes.theme_id = :theme_id;
+
+    if ( argc == 0 || (argc == 1 && detailed_mode) ) {
+        EXEC SQL OPEN questions_cursor;
+    } else {
+        theme_id = atoi(argv[0]);
+        EXEC SQL OPEN questions_themes_cursor;
+    }
     while ( 1 ) {
-        EXEC SQL FETCH questions_cursor INTO :id, :statement;
+        if ( argc == 0 || (argc == 1 && detailed_mode) )
+            EXEC SQL FETCH questions_cursor INTO :id, :statement;
+        else
+            EXEC SQL FETCH questions_themes_cursor INTO :id, :statement;
+
         if ( SQLCODE == NOT_FOUND )
             break;
 
         ++count;
-        printf("%d\t%s\n", id, statement);
+        if ( detailed_mode ) {
+            snprintf(question_id_str, sizeof(question_id_str), "%d", id);
+            CALL(question, "-s", question_id_str);
+        } else {
+            printf("%d\t%s\n", id, statement);
+        }
     }
-    EXEC SQL CLOSE questions_cursor;
+    if ( argc == 0 || (argc == 1 && detailed_mode) )
+        EXEC SQL CLOSE questions_cursor;
+    else
+        EXEC SQL CLOSE questions_themes_cursor;
 
     printf("Total records: %d\n", count);
+
+    return 0;
+}
+
+int list_questions_by_theme(int argc, char** argv) {
+    EXEC SQL WHENEVER SQLERROR DO handle_error();
+    EXEC SQL BEGIN DECLARE SECTION;
+    int theme_id;
+    int subject_id;
+    int theme_priority;
+    char theme_name[256] = {0};
+    char theme_id_str[20];
+    char subject_name[256] = {0};
+    EXEC SQL END DECLARE SECTION;
+
+    if ( argc > 1 )
+        ARGUMENT_ERROR();
+
+    EXEC SQL DECLARE themes_cursor CURSOR FOR
+        SELECT themes.id, themes.priority, themes.name, subjects.id, subjects.name FROM themes, subjects WHERE themes.subject_id = subjects.id ORDER BY subjects.id, themes.priority;
+
+    EXEC SQL OPEN themes_cursor;
+    while ( 1 ) {
+        EXEC SQL FETCH themes_cursor INTO :theme_id, :theme_priority, :theme_name, :subject_id, :subject_name;
+        if ( SQLCODE == NOT_FOUND )
+            break;
+
+        printf("#%d - %d: %s (%s)\n", theme_id, theme_priority, theme_name, subject_name);
+
+        snprintf(theme_id_str, sizeof(theme_id_str), "%d", theme_id);
+        // argv[argc - 1] is required to be null
+        CALL(question, "-l", theme_id_str, argv[0]);
+    }
+
+    EXEC SQL CLOSE themes_cursor;
 
     return 0;
 }
