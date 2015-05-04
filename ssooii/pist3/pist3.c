@@ -13,6 +13,8 @@
 #include <windows.h>
 #define ERROR_EXIT() exit(100)
 
+extern "C" {
+
 #define ERROR_MSG(str, ...) do { \
 	fprintf(stderr, str "\n", ##__VA_ARGS__); \
 } while (0)
@@ -64,12 +66,10 @@ typedef enum DataActionType {
  *  - A process has shot if his pid_status & PID_STATUS_SHOT gives a non-zero value
  *  - A process is dead if his pid_status & PID_STATUS_DEAD gives a non-zero value
  */
-typedef enum PidStatusType {
-	PID_STATUS_READY = 0x01,
-	PID_STATUS_SHOT = 0x02,
-	PID_STATUS_DEAD_THIS_ROUND = 0x04,
-	PID_STATUS_DEAD = 0x08
-} StatusType;
+#define PID_STATUS_READY 0x01
+#define PID_STATUS_SHOT 0x02
+#define PID_STATUS_DEAD_THIS_ROUND 0x04
+#define PID_STATUS_DEAD 0x08
 
 /**
  * The main struct
@@ -84,10 +84,10 @@ typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
 	/* const */ HANDLE parent_thread; /** The parent process id */
 	size_t rounds; /** The round count */
-	unsigned short alive_count; /** Current round alive pids count */
+	long alive_count; /** Current round alive pids count */
 	HANDLE threads[MAX_CHILDREN];
-	StatusType statuses[MAX_CHILDREN]; /** The children processes */
-	HANDLE semaphore;
+	int statuses[MAX_CHILDREN];
+    HANDLE semaphore;
     HANDLE ready_event;
 	FILE* log;
 } GameData;
@@ -104,7 +104,7 @@ GameData * manage_data(DataActionType, size_t);
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
 
 struct lib {
-       void (*init)(int, int, int);
+       int (*init)(int, int, int);
        int (*newShooter)(char);
        char (*victim)(void);
        int (*shoot)(char);
@@ -117,7 +117,7 @@ bool init_lib() {
     HINSTANCE dlllib = LoadLibrary("pist3.dll");
     if ( ! dlllib )
        return false;
-    lib.init = (void (*)(int, int, int)) GetProcAddress(dlllib, "PIST_inicio");
+    lib.init = (int (*)(int, int, int)) GetProcAddress(dlllib, "PIST_inicio");
     lib.newShooter = (int (*) (char)) GetProcAddress(dlllib, "PIST_nuevoPistolero");
     lib.victim = (char (*) (void)) GetProcAddress(dlllib, "PIST_vIctima");
     lib.shoot = (int(*)(char)) GetProcAddress(dlllib, "PIST_disparar");
@@ -143,12 +143,6 @@ void __dump();
 void kill_all();
 void sig_exit(int);
 void release_all_data();
-int semaphore_set_value(semaphore_t sem, unsigned short index, int val);
-int semaphore_get_value(semaphore_t sem, unsigned short index);
-int semaphore_change_value(semaphore_t sem, unsigned short index, short value);
-int semaphore_wait_zero(semaphore_t sem, unsigned short index);
-int semaphore_wait(semaphore_t sem, unsigned short index);
-int semaphore_signal(semaphore_t sem, unsigned short index);
 
 /** Utilities */
 void program_help();
@@ -156,33 +150,8 @@ void program_help();
 /** Game logic */
 void bind_parent_signals();
 void bind_children_signals();
-bool is_current_proc_coordinator();
-int child_proc(char);
-
-/** Change the value atomically: increment or decrement */
-bool semaphore_change_value(semaphore_t sem, short value) {
-    if ( value < 0 ) {
-        if ( value != -1 ) {
-            FATAL_ERROR_MSG("Multi-decrement not supported by windows");
-        } else {
-            return WaitForSingleObject(sem, 0L) == WAIT_OBJECT_0;
-        }
-    }
-
-    return true;
-}
-
-int semaphore_wait_zero(semaphore_t sem, unsigned short index) {
-	return semaphore_change_value(sem, index, 0);
-}
-
-int semaphore_wait(semaphore_t sem, unsigned short index) {
-	return semaphore_change_value(sem, index, -1);
-}
-
-int semaphore_signal(semaphore_t sem, unsigned short index) {
-	return semaphore_change_value(sem, index, +1);
-}
+bool is_current_proc_coordinator(size_t);
+DWORD child_proc(void*);
 
 /** Dump data */
 void __dump() {
@@ -275,6 +244,8 @@ void release_all_resources() {
 	ret = lib.deinit();
 	if ( ret == -1 )
 		LOG("Library termination failed\n");
+		
+	system("pause");
 
 	kill_all();
 	release_data();
@@ -284,9 +255,9 @@ void release_all_resources() {
 }
 
 /** Child process subroutine */
-int child_proc(void* my_status_ptr_) {
+DWORD child_proc(void* my_status_ptr_) {
 	GameData* data = get_data();
-	size_t my_index = ((StatusType*)my_status_ptr_) - (StatusType*)data->statuses;
+	size_t my_index = ((int*)my_status_ptr_) - (int*)data->statuses;
     char lib_id = 'A' + my_index;
 	char target;
 	int ret;
@@ -303,7 +274,7 @@ int child_proc(void* my_status_ptr_) {
     // We tell the parent we're ready
     SetEvent(data->ready_event);
     // And wait for it to reply back when all the threads are awake
-    WaitForSingleObject(data->semaphore);
+    WaitForSingleObject(data->semaphore, INFINITE);
 
 	LOG("Ready to roll");
 
@@ -314,7 +285,7 @@ int child_proc(void* my_status_ptr_) {
 		if ( im_coordinator ) {
             this_round_alive_count = data->alive_count;
 			if ( data->alive_count == 1 )
-				exit(0);
+				return 0;
 			data->rounds++;
 			LOG("Round: %d, alive: %hu", data->rounds, data->alive_count);
 		}
@@ -365,7 +336,7 @@ int child_proc(void* my_status_ptr_) {
 
 		/** Die if round over */
 		if ( data->statuses[my_index] & PID_STATUS_DEAD )
-			exit(0);
+			return 0;
 	}
 
 	return 0;
@@ -374,12 +345,11 @@ int child_proc(void* my_status_ptr_) {
 /** Main process logic */
 int main(int argc, char **argv) {
 	size_t i = 0,
-		count = DEFAULT_PROC_COUNT,
-		speed = DEFAULT_SPEED,
+		count = 0,
+		speed = 0,
 		seed = 0;
 	GameData *data;
 	int ret;
-	char lib_id = 'A';
 
 	if ( argc < 3 || argc > 4 )
 		program_help();
@@ -438,19 +408,10 @@ int main(int argc, char **argv) {
 
         // We could allocate a char here, and deallocate it in the thread,
         // but pointer arithmetic is cool
-		data->threads[i] = CreateThread(NULL, 0, child_proc, data->statuses + i, 0);
-		switch ( current_pid ) {
-			case -1:
-				perror("fork");
-				__dump();
-				ERROR_EXIT();
-			case 0:
-				/** We must ensure current_index is ok in child_proc */
-				data->children[i].id = GetCurrentThreadId();
-				return child_proc(lib_id);
-		}
-		lib_id++;
-	}
+		data->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) child_proc, data->statuses + i, 0, NULL);
+		if ( ! data->threads[i] )
+		   FATAL_ERROR_MSG("CreateThread");   
+     }
 
     size_t count_ = count;
 
@@ -464,3 +425,5 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+
+} // Extern "C"
