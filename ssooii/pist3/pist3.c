@@ -357,7 +357,7 @@ void bind_parent_signals() {
 /** Child process subroutine */
 int child_proc(void* my_process_) {
 	GameData* data = get_data();
-	Process* me = (Process*) my_process;
+	Process* me = (Process*) my_process_;
     char lib_id = 'A' + (my_process - data->children);
 	char target;
 	int ret;
