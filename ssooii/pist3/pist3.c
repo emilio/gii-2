@@ -37,6 +37,7 @@ extern "C" {
 	ERROR_EXIT(); \
 } while( 0 )
 
+#ifdef DEBUG
 #define LOG_PATH "pist3.log"
 #define LOG(msg, ...) do { \
 	GameData* data = get_data(); \
@@ -50,6 +51,9 @@ extern "C" {
         fprintf(stderr, "Log error: %s", GetLastError()); \
     } \
 } while (0)
+#else
+#define LOG(...)
+#endif
 
 #define LIMIT_MIN 3
 #define LIMIT_MAX 26
@@ -74,21 +78,16 @@ typedef enum DataActionType {
 #define PID_STATUS_DEAD_THIS_ROUND 0x04
 #define PID_STATUS_DEAD 0x08
 
-// We need two semaphores
+// We need three semaphores:
+//    - We'll use one for telling the parent or coordinator we're
+//        ready to go.
+//    - We need other too wait for pass and avoid conflits that
+//        can happen if we reuse the same semaphore in both
+//        parts of the round
 #define SEMAPHORE_COUNT 3
 
-/**
- * The main struct
- * See the comment on each member for a quick description
- *
- * IMPORTANT (non-written) rules:
- *  - The parent pid can modify anything in the struct
- *  - A process can't modify anything in the struct except
- *    its corresponding `Process` struct
- */
 typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
-	/* const */ HANDLE parent_thread; /** The parent process id */
 	size_t rounds; /** The round count */
 	long alive_count; /** Current round alive pids count */
 	HANDLE threads[MAX_CHILDREN];
@@ -109,9 +108,10 @@ GameData * manage_data(DataActionType, size_t);
 #define release_data() manage_data(DATA_RELEASE, 0)
 #define create_data(process_count) manage_data(DATA_CREATE, process_count)
 
+// Library management
 struct lib {
        int (*init)(int, int, int);
-       int (*newShooter)(char);
+       int (*new_shooter)(char);
        char (*victim)(void);
        int (*shoot)(char);
        void (*die)(void);
@@ -124,7 +124,7 @@ bool init_lib() {
     if ( ! dlllib )
        return false;
     lib.init = (int (*)(int, int, int)) GetProcAddress(dlllib, "PIST_inicio");
-    lib.newShooter = (int (*) (char)) GetProcAddress(dlllib, "PIST_nuevoPistolero");
+    lib.new_shooter = (int (*) (char)) GetProcAddress(dlllib, "PIST_nuevoPistolero");
     lib.victim = (char (*) (void)) GetProcAddress(dlllib, "PIST_vIctima");
     lib.shoot = (int(*)(char)) GetProcAddress(dlllib, "PIST_disparar");
     lib.die = (void (*) (void)) GetProcAddress(dlllib, "PIST_morirme");
@@ -132,7 +132,7 @@ bool init_lib() {
     lib.error = (void (*)(char*)) GetProcAddress(dlllib, "pon_error");
 
     if ( lib.init == NULL ||
-         lib.newShooter == NULL ||
+         lib.new_shooter == NULL ||
          lib.victim == NULL ||
          lib.shoot == NULL ||
          lib.die == NULL ||
@@ -143,37 +143,25 @@ bool init_lib() {
     return true;
 }
 
-typedef HANDLE semaphore_t;
 /** Debugging and resource management */
-void __dump();
 void kill_all();
-void sig_exit(int);
 void release_all_data();
 
 /** Utilities */
 void program_help();
 
 /** Game logic */
-void bind_parent_signals();
-void bind_children_signals();
 bool is_current_proc_coordinator(size_t);
 DWORD child_proc(void*);
 
-/** Dump data */
-void __dump() {
-	GameData *data = get_data();
-	size_t i;
-
-	fprintf(stderr, "\nDump:\n");
-	fprintf(stderr, "Alive count: %hu\n", data->alive_count);
-}
-
-/** Program help */
+// Print program help
 void program_help() {
 	fprintf(stderr, "Usage: ./pist3 <count> <speed> <seed>\n");
 	ERROR_EXIT();
 }
 
+// Check if the current process is the coordinator
+// We do an index check
 bool is_current_proc_coordinator(size_t current_index) {
 	GameData* data = get_data();
 	size_t i;
@@ -201,7 +189,6 @@ GameData* manage_data(DataActionType action, size_t count) {
         data = (GameData*) malloc(sizeof(GameData));
 		data->process_count = count;
 		data->alive_count = count;
-		data->parent_thread = NULL;
 		data->rounds = 0;
 		for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
 		    data->semaphores[i] = NULL;
@@ -218,7 +205,8 @@ GameData* manage_data(DataActionType action, size_t count) {
                     LOG("Release semaphore failed: %s\n", GetLastError());
 
         if ( data->log_mutex )
-            CloseHandle(data->log_mutex);
+            if ( !CloseHandle(data->log_mutex) )
+                LOG("Release mutex failed: %s\n", GetLastError());
 
 		if ( data->log )
 			fclose(data->log);
@@ -236,12 +224,6 @@ void kill_all() {
 
 	for (size_t i = 0; i < data->process_count; ++i )
 	    TerminateThread(data->threads[i], 1);
-}
-
-/** Resources handled by atexit() */
-void sig_exit(int s) {
-	__dump();
-	ERROR_EXIT();
 }
 
 /** Our parent was interrupted, dump data for debugging and release all */
@@ -272,10 +254,10 @@ DWORD child_proc(void* my_status_ptr_) {
 
 	/** We update our status */
 	data->statuses[my_index] = PID_STATUS_READY;
-	
+
 	LOG("Thread %d started, index: %d", GetCurrentThreadId(), my_index);
 
-	ret = lib.newShooter(lib_id);
+	ret = lib.new_shooter(lib_id);
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Shooter not initialized");
 
@@ -289,7 +271,7 @@ DWORD child_proc(void* my_status_ptr_) {
 	/** S1 = 0; S2 = 0; */
 	int internal_rounds = 0; // A counter to ensure consistency
 	while ( 1 ) {
-        internal_rounds++;  
+        internal_rounds++;
 		im_coordinator = is_current_proc_coordinator(my_index);
 
 		if ( im_coordinator ) {
@@ -302,11 +284,10 @@ DWORD child_proc(void* my_status_ptr_) {
 		LOG("Starting to shoot");
 
 		target = lib.victim();
-
 		if ( target == '@' )
 			FATAL_ERROR_MSG("This shit blew up\n");
 
-		/** Mark the target as shot, equivalent to send the "DEAD" message */
+		// Mark the target as shot, equivalent to send the "DEAD" message
 		data->statuses[target - 'A'] |= PID_STATUS_DEAD_THIS_ROUND;
 
 		if ( lib.shoot(target) == -1 )
@@ -328,10 +309,11 @@ DWORD child_proc(void* my_status_ptr_) {
             ReleaseSemaphore(data->semaphores[1], this_round_alive_count, NULL);
 		}
         WaitForSingleObject(data->semaphores[1], INFINITE);
-        
+
         LOG("Second part access granted");
 
-		/** If we have received a shot, mark as dead, else... we're ready */
+		// If we have received a shot, mark as dead, else... we're ready
+        // for the next round
 		if ( data->statuses[my_index] & PID_STATUS_DEAD_THIS_ROUND ) {
             LOG("Reveived a shot");
 			data->statuses[my_index] |= PID_STATUS_DEAD;
@@ -344,7 +326,6 @@ DWORD child_proc(void* my_status_ptr_) {
 
         // The same strategy here
         ReleaseSemaphore(data->semaphores[0], 1, NULL);
-        
         if ( im_coordinator ) {
             size_t i = this_round_alive_count;
             while ( i-- ) {
@@ -356,7 +337,7 @@ DWORD child_proc(void* my_status_ptr_) {
         }
         WaitForSingleObject(data->semaphores[2], INFINITE);
 
-		/** Die if round over */
+        // Die if we do not count anymore
 		if ( data->statuses[my_index] & PID_STATUS_DEAD )
 			return 0;
 	}
@@ -393,10 +374,8 @@ int main(int argc, char **argv) {
 			FATAL_ERROR_MSG("Option not recognized: %s", argv[3]);
 	}
 
-#if CHECK_LIMITS
 	if ( count < LIMIT_MIN || count > LIMIT_MAX )
 		FATAL_ERROR_MSG("Number of processes must be between %d and %d.\n", LIMIT_MIN, LIMIT_MAX);
-#endif
 
 	if ( count == 0 )
 		FATAL_ERROR_MSG("At least one player is required.\n");
@@ -408,7 +387,6 @@ int main(int argc, char **argv) {
 
 
 	ret = lib.init(count, speed, seed);
-
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Library initialization failed\n");
 
@@ -430,7 +408,7 @@ int main(int argc, char **argv) {
         // but pointer arithmetic is cool
 		data->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) child_proc, data->statuses + i, 0, NULL);
 		if ( ! data->threads[i] )
-		   FATAL_ERROR_MSG("CreateThread");   
+		   FATAL_ERROR_MSG("CreateThread");
      }
 
     size_t count_ = count;
