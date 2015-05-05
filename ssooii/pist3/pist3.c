@@ -6,6 +6,7 @@
 #include <windows.h>
 #define ERROR_EXIT() exit(100)
 
+// We're forced to compile with Dev-CPP :/
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +42,7 @@ extern "C" {
 #define LIMIT_MIN 3
 #define LIMIT_MAX 26
 #define MAX_CHILDREN LIMIT_MAX
-/** The  action type passed to manage_data */
+
 typedef enum DataActionType {
 	DATA_CREATE,
 	DATA_REFRESH,
@@ -49,13 +50,6 @@ typedef enum DataActionType {
 	DATA_RELEASE
 } DataActionType;
 
-/**
- * The different pid statuses, see below
- *
- * This is a binary mask meaning that:
- *  - A process has shot if his pid_status & PID_STATUS_SHOT gives a non-zero value
- *  - A process is dead if his pid_status & PID_STATUS_DEAD gives a non-zero value
- */
 #define PID_STATUS_READY 0x01
 #define PID_STATUS_SHOT 0x02
 #define PID_STATUS_DEAD_THIS_ROUND 0x04
@@ -82,12 +76,8 @@ typedef struct GameData {
 #endif
 } GameData;
 
-/** Get the main game data struct, create if non-zero value is passed as a second argument */
 GameData * manage_data(DataActionType, size_t);
 
-#define DATA_SIZE_FOR(count) (sizeof(GameData) + sizeof(Process) * count)
-
-/** Wrapper macros for GameData actions */
 #define get_data() manage_data(DATA_GET, 0)
 #define refresh_data() manage_data(DATA_REFRESH, 0)
 #define release_data() manage_data(DATA_RELEASE, 0)
@@ -153,7 +143,6 @@ bool is_current_proc_coordinator(size_t current_index) {
 
 	i = data->process_count;
 	while ( i-- ) {
-		/** If there's a process which is not dead */
 		if ( ~data->statuses[i] & PID_STATUS_DEAD ) {
 			if ( i == current_index )
 				return 1;
@@ -165,11 +154,9 @@ bool is_current_proc_coordinator(size_t current_index) {
 	return 0;
 }
 
-/** Manage game data */
 GameData* manage_data(DataActionType action, size_t count) {
 	static GameData* data = NULL;
 
-	/** Create data */
 	if ( action == DATA_CREATE && count != 0 && data == NULL ) {
         data = (GameData*) malloc(sizeof(GameData));
 		data->process_count = count;
@@ -184,7 +171,6 @@ GameData* manage_data(DataActionType action, size_t count) {
 #endif
 	}
 
-	/** Release data */
 	if ( action == DATA_RELEASE ) {
         for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
 		    if ( data->semaphores[i] )
@@ -207,7 +193,6 @@ GameData* manage_data(DataActionType action, size_t count) {
 	return data;
 }
 
-/** Kill all pending processes */
 void kill_all() {
 	GameData *data = get_data();
 
@@ -215,11 +200,9 @@ void kill_all() {
 	    TerminateThread(data->threads[i], 1);
 }
 
-/** Our parent was interrupted, dump data for debugging and release all */
 void release_all_resources() {
 	int ret;
 
-	/** When game is over... */
 	ret = lib.deinit();
 	if ( ret == -1 )
 		LOG("Library termination failed\n");
@@ -230,7 +213,6 @@ void release_all_resources() {
 	fclose(stderr);
 }
 
-/** Child process subroutine */
 DWORD child_proc(void* my_status_ptr_) {
 	GameData* data = get_data();
 	size_t my_index = ((int*)my_status_ptr_) - (int*)data->statuses;
@@ -240,7 +222,6 @@ DWORD child_proc(void* my_status_ptr_) {
 	bool im_coordinator;
     size_t this_round_alive_count = 0;
 
-	/** We update our status */
 	data->statuses[my_index] = PID_STATUS_READY;
 
 	LOG("Thread %d started, index: %d", GetCurrentThreadId(), my_index);
@@ -250,13 +231,12 @@ DWORD child_proc(void* my_status_ptr_) {
 		FATAL_ERROR_MSG("Shooter not initialized");
 
     // We tell the parent we're ready
-    ReleaseSemaphore(data->semaphores[0], 1, NULL);
     // And wait for it to reply back when all the threads are awake
+    ReleaseSemaphore(data->semaphores[0], 1, NULL);
     WaitForSingleObject(data->semaphores[2], INFINITE);
 
 	LOG("Ready to roll");
 
-	/** S1 = 0; S2 = 0; */
 	while ( 1 ) {
 		im_coordinator = is_current_proc_coordinator(my_index);
 
@@ -329,7 +309,6 @@ DWORD child_proc(void* my_status_ptr_) {
 	return 0;
 }
 
-/** Main process logic */
 int main(int argc, char **argv) {
 	size_t i = 0,
 		count = 0,
@@ -374,7 +353,6 @@ int main(int argc, char **argv) {
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Library initialization failed\n");
 
-	/** Create shared data structure */
 	data = create_data(count);
 
     for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
