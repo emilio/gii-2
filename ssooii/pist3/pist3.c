@@ -13,10 +13,13 @@
 #include <windows.h>
 #define ERROR_EXIT() exit(100)
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 #define ERROR_MSG(str, ...) do { \
 	fprintf(stderr, str "\n", ##__VA_ARGS__); \
+	LOG(str, ##__VA_ARGS__); \
 } while (0)
 
 #define FATAL_ERROR_MSG(str, ...) do { \
@@ -35,17 +38,17 @@ extern "C" {
 } while( 0 )
 
 #define LOG_PATH "pist3.log"
-HANDLE logMutex;
 #define LOG(msg, ...) do { \
 	GameData* data = get_data(); \
-	DWORD dwWaitResult = WaitForSingleObject(logMutex, 0L);	\
-	if ( dwWaitResult == WAIT_OBJECT_0 ) { \
+	if ( data && WaitForSingleObject(data->log_mutex, INFINITE) == WAIT_OBJECT_0 ) { \
 		if ( fseek(data->log, 0, SEEK_END) > -1 ) { \
 			fprintf(data->log, "(%d) "msg"\n", GetCurrentThreadId(), ##__VA_ARGS__); \
         } \
         fflush(data->log); \
-		ReleaseMutex(logMutex); \
-	} \
+		ReleaseMutex(data->log_mutex); \
+	} else { \
+        fprintf(stderr, "Log error: %s", GetLastError()); \
+    } \
 } while (0)
 
 #define LIMIT_MIN 3
@@ -71,6 +74,9 @@ typedef enum DataActionType {
 #define PID_STATUS_DEAD_THIS_ROUND 0x04
 #define PID_STATUS_DEAD 0x08
 
+// We need two semaphores
+#define SEMAPHORE_COUNT 3
+
 /**
  * The main struct
  * See the comment on each member for a quick description
@@ -87,9 +93,9 @@ typedef struct GameData {
 	long alive_count; /** Current round alive pids count */
 	HANDLE threads[MAX_CHILDREN];
 	int statuses[MAX_CHILDREN];
-    HANDLE semaphore;
-    HANDLE ready_event;
-	FILE* log;
+	HANDLE log_mutex;
+	HANDLE semaphores[SEMAPHORE_COUNT];
+    FILE* log;
 } GameData;
 
 /** Get the main game data struct, create if non-zero value is passed as a second argument */
@@ -197,8 +203,8 @@ GameData* manage_data(DataActionType action, size_t count) {
 		data->alive_count = count;
 		data->parent_thread = NULL;
 		data->rounds = 0;
-		data->semaphore = NULL;
-
+		for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
+		    data->semaphores[i] = NULL;
 		data->log = fopen(LOG_PATH, "w+");
 		if ( !data->log )
 			data->log = stderr;
@@ -206,10 +212,13 @@ GameData* manage_data(DataActionType action, size_t count) {
 
 	/** Release data */
 	if ( action == DATA_RELEASE ) {
-		/** TODO: Is count ignored in semctl with RMID? */
-		if ( data->semaphore )
-		    if ( !CloseHandle(data->semaphore) )
-                LOG("Release semaphore failed: %s\n", GetLastError());
+        for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
+		    if ( data->semaphores[i] )
+                if ( !CloseHandle(data->semaphores[i]) )
+                    LOG("Release semaphore failed: %s\n", GetLastError());
+
+        if ( data->log_mutex )
+            CloseHandle(data->log_mutex);
 
 		if ( data->log )
 			fclose(data->log);
@@ -244,14 +253,11 @@ void release_all_resources() {
 	ret = lib.deinit();
 	if ( ret == -1 )
 		LOG("Library termination failed\n");
-		
-	system("pause");
 
 	kill_all();
 	release_data();
 	fflush(stderr);
 	fclose(stderr);
-
 }
 
 /** Child process subroutine */
@@ -266,20 +272,24 @@ DWORD child_proc(void* my_status_ptr_) {
 
 	/** We update our status */
 	data->statuses[my_index] = PID_STATUS_READY;
+	
+	LOG("Thread %d started, index: %d", GetCurrentThreadId(), my_index);
 
 	ret = lib.newShooter(lib_id);
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Shooter not initialized");
 
     // We tell the parent we're ready
-    SetEvent(data->ready_event);
+    ReleaseSemaphore(data->semaphores[0], 1, NULL);
     // And wait for it to reply back when all the threads are awake
-    WaitForSingleObject(data->semaphore, INFINITE);
+    WaitForSingleObject(data->semaphores[2], INFINITE);
 
 	LOG("Ready to roll");
 
 	/** S1 = 0; S2 = 0; */
+	int internal_rounds = 0; // A counter to ensure consistency
 	while ( 1 ) {
+        internal_rounds++;  
 		im_coordinator = is_current_proc_coordinator(my_index);
 
 		if ( im_coordinator ) {
@@ -287,7 +297,7 @@ DWORD child_proc(void* my_status_ptr_) {
 			if ( data->alive_count == 1 )
 				return 0;
 			data->rounds++;
-			LOG("Round: %d, alive: %hu", data->rounds, data->alive_count);
+			LOG("Round: %d, alive: %d", data->rounds, data->alive_count);
 		}
 		LOG("Starting to shoot");
 
@@ -302,37 +312,49 @@ DWORD child_proc(void* my_status_ptr_) {
 		if ( lib.shoot(target) == -1 )
 			ERROR_MSG("PIST_disparar");
 
-		LOG("Shot to %c", target);
+		LOG("(%d) Shot to %c, waiting for second part", internal_rounds, target);
 
         // We set the ready event and wait for the coordinator
         // to give us pass
-        SetEvent(data->ready_event);
-		if ( im_coordinator ) {
+        ReleaseSemaphore(data->semaphores[0], 1, NULL);
+
+   		if ( im_coordinator ) {
             size_t i = this_round_alive_count;
-            while ( i-- )
-                WaitForSingleObject(data->ready_event, INFINITE);
-            ReleaseSemaphore(data->semaphore, this_round_alive_count, NULL);
+            LOG("Waiting for everyone to be ready");
+            while ( i-- ) {
+                WaitForSingleObject(data->semaphores[0], INFINITE);
+                LOG("Reveived signal, %d left", i);
+            }
+            ReleaseSemaphore(data->semaphores[1], this_round_alive_count, NULL);
 		}
-        WaitForSingleObject(data->semaphore, INFINITE);
+        WaitForSingleObject(data->semaphores[1], INFINITE);
+        
+        LOG("Second part access granted");
 
 		/** If we have received a shot, mark as dead, else... we're ready */
 		if ( data->statuses[my_index] & PID_STATUS_DEAD_THIS_ROUND ) {
+            LOG("Reveived a shot");
 			data->statuses[my_index] |= PID_STATUS_DEAD;
 			InterlockedDecrement(&data->alive_count);
 			lib.die();
 		} else {
+            LOG("They missed");
 			data->statuses[my_index] = PID_STATUS_READY;
 		}
 
         // The same strategy here
-        SetEvent(data->ready_event);
+        ReleaseSemaphore(data->semaphores[0], 1, NULL);
+        
         if ( im_coordinator ) {
             size_t i = this_round_alive_count;
-            while ( i-- )
-                WaitForSingleObject(data->ready_event, INFINITE);
-            ReleaseSemaphore(data->semaphore, this_round_alive_count, NULL);
+            while ( i-- ) {
+                LOG("Waiting for everyone to be ready, pending: %d", i);
+                WaitForSingleObject(data->semaphores[0], INFINITE);
+            }
+            LOG("All ready");
+            ReleaseSemaphore(data->semaphores[2], this_round_alive_count, NULL);
         }
-        WaitForSingleObject(data->semaphore, INFINITE);
+        WaitForSingleObject(data->semaphores[2], INFINITE);
 
 		/** Die if round over */
 		if ( data->statuses[my_index] & PID_STATUS_DEAD )
@@ -384,24 +406,22 @@ int main(int argc, char **argv) {
     if ( ! init_lib() )
         FATAL_ERROR_MSG("Library not initialized correctly\n");
 
-	/** Create shared data structure */
-	data = create_data(count);
-
-    data->ready_event = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadyEvent"));
-
-    if ( !data->ready_event )
-        FATAL_ERROR_MSG("CreateEvent failed: %s\n", GetLastError());
-
-    // Semaphore with initial value of 0
-    data->semaphore = CreateSemaphore(NULL, 0, count, NULL);
-
-	if ( !data->semaphore )
-		FATAL_ERROR_MSG("Semaphore creation failed: %s\n", strerror(errno));
 
 	ret = lib.init(count, speed, seed);
 
 	if ( ret == -1 )
 		FATAL_ERROR_MSG("Library initialization failed\n");
+
+	/** Create shared data structure */
+	data = create_data(count);
+
+    for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
+        if ( !(data->semaphores[i] = CreateSemaphore(NULL, 0, count, NULL)) )
+            FATAL_ERROR_MSG("Semaphore creation failed: %s\n", GetLastError());
+
+    data->log_mutex = CreateMutex(NULL, FALSE, TEXT("LogMutex"));
+    if ( !data->log_mutex )
+       FATAL_ERROR_MSG("Log mutex initialization failed: %s\n", GetLastError());
 
 	for ( i = 0; i < count; ++i ) {
 		data->statuses[i] = PID_STATUS_DEAD;
@@ -416,14 +436,21 @@ int main(int argc, char **argv) {
     size_t count_ = count;
 
     // We wait for all the processes to tell us they're ready
-    while ( count_-- )
-        WaitForSingleObject(data->ready_event, INFINITE);
-    ReleaseSemaphore(data->semaphore, count, NULL);
+    while ( count_-- ) {
+        LOG("Parent waiting for children, pending: %d", count_);
+        WaitForSingleObject(data->semaphores[0], INFINITE);
+    }
+    LOG("All should be ready now");
+    // This is reused
+    ReleaseSemaphore(data->semaphores[2], count, NULL);
 
+    LOG("Waiting for all threads to exit");
     // Now they take care of the job, we must  wait for them to die
     WaitForMultipleObjects(count, data->threads, TRUE, INFINITE);
 
 	return 0;
 }
 
+#ifdef __cplusplus
 } // Extern "C"
+#endif
