@@ -1,10 +1,3 @@
-/**
- * Pistolo.c
- *
- * http://avellano.usal.es/~ssooi/pract115.htm
- *
- * @author Emilio Cobos Álvarez <emiliocobos@usal.es>
- */
 #define _UNICODE
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,17 +16,7 @@ extern "C" {
 } while (0)
 
 #define FATAL_ERROR_MSG(str, ...) do { \
-	LPVOID lpErrBuffer; \
-	DWORD dwErrCode; \
 	ERROR_MSG(str, ##__VA_ARGS__); \
-   	dwErrCode = GetLastError(); \
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, \
-	              NULL, \
-	              dwErrCode, \
-                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), \
-	              (LPSTR) &lpErrBuffer, \
-	              0, NULL); \
-	fprintf(stderr, TEXT("Windows Error: %s\n"), lpErrBuffer); \
 	ERROR_EXIT(); \
 } while( 0 )
 
@@ -234,7 +217,6 @@ void kill_all() {
 
 /** Our parent was interrupted, dump data for debugging and release all */
 void release_all_resources() {
-	GameData* data = get_data();
 	int ret;
 
 	/** When game is over... */
@@ -256,7 +238,7 @@ DWORD child_proc(void* my_status_ptr_) {
 	char target;
 	int ret;
 	bool im_coordinator;
-    size_t this_round_alive_count;
+    size_t this_round_alive_count = 0;
 
 	/** We update our status */
 	data->statuses[my_index] = PID_STATUS_READY;
@@ -275,9 +257,7 @@ DWORD child_proc(void* my_status_ptr_) {
 	LOG("Ready to roll");
 
 	/** S1 = 0; S2 = 0; */
-	int internal_rounds = 0; // A counter to ensure consistency
 	while ( 1 ) {
-        internal_rounds++;
 		im_coordinator = is_current_proc_coordinator(my_index);
 
 		if ( im_coordinator ) {
@@ -299,7 +279,7 @@ DWORD child_proc(void* my_status_ptr_) {
 		if ( lib.shoot(target) == -1 )
 			ERROR_MSG("PIST_disparar");
 
-		LOG("(%d) Shot to %c, waiting for second part", internal_rounds, target);
+		LOG("Shot to %c, waiting for second part", target);
 
         // We set the ready event and wait for the coordinator
         // to give us pass
@@ -315,8 +295,6 @@ DWORD child_proc(void* my_status_ptr_) {
             ReleaseSemaphore(data->semaphores[1], this_round_alive_count, NULL);
 		}
         WaitForSingleObject(data->semaphores[1], INFINITE);
-
-        LOG("Second part access granted");
 
 		// If we have received a shot, mark as dead, else... we're ready
         // for the next round
@@ -427,7 +405,6 @@ int main(int argc, char **argv) {
         WaitForSingleObject(data->semaphores[0], INFINITE);
     }
     LOG("All should be ready now");
-    // This is reused
     ReleaseSemaphore(data->semaphores[2], count, NULL);
 
     LOG("Waiting for all threads to exit");
@@ -440,3 +417,4 @@ int main(int argc, char **argv) {
 #ifdef __cplusplus
 } // Extern "C"
 #endif
+
