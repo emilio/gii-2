@@ -92,9 +92,11 @@ typedef struct GameData {
 	long alive_count; /** Current round alive pids count */
 	HANDLE threads[MAX_CHILDREN];
 	int statuses[MAX_CHILDREN];
-	HANDLE log_mutex;
 	HANDLE semaphores[SEMAPHORE_COUNT];
+#ifdef DEBUG
+	HANDLE log_mutex;
     FILE* log;
+#endif
 } GameData;
 
 /** Get the main game data struct, create if non-zero value is passed as a second argument */
@@ -192,9 +194,11 @@ GameData* manage_data(DataActionType action, size_t count) {
 		data->rounds = 0;
 		for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
 		    data->semaphores[i] = NULL;
+#ifdef DEBUG
 		data->log = fopen(LOG_PATH, "w+");
 		if ( !data->log )
 			data->log = stderr;
+#endif
 	}
 
 	/** Release data */
@@ -204,12 +208,14 @@ GameData* manage_data(DataActionType action, size_t count) {
                 if ( !CloseHandle(data->semaphores[i]) )
                     LOG("Release semaphore failed: %s\n", GetLastError());
 
+#ifdef DEBUG
         if ( data->log_mutex )
             if ( !CloseHandle(data->log_mutex) )
                 LOG("Release mutex failed: %s\n", GetLastError());
 
 		if ( data->log )
 			fclose(data->log);
+#endif
 
 		free( (void *) data);
 		data = NULL;
@@ -397,9 +403,11 @@ int main(int argc, char **argv) {
         if ( !(data->semaphores[i] = CreateSemaphore(NULL, 0, count, NULL)) )
             FATAL_ERROR_MSG("Semaphore creation failed: %s\n", GetLastError());
 
+#ifdef DEBUG
     data->log_mutex = CreateMutex(NULL, FALSE, TEXT("LogMutex"));
     if ( !data->log_mutex )
        FATAL_ERROR_MSG("Log mutex initialization failed: %s\n", GetLastError());
+#endif
 
 	for ( i = 0; i < count; ++i ) {
 		data->statuses[i] = PID_STATUS_DEAD;
