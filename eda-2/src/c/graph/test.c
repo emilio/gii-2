@@ -29,12 +29,30 @@ void graph_debug_path_info(graph_t* graph, vertex_id_t initial_vertex_id) {
     }
 }
 
+void graph_debug(graph_t* graph) {
+    size_t i;
+    adjacent_t* current_adjacent;
+
+    for ( i = 0; i < graph->size; ++i ) {
+        printf("%zu:\n", i);
+        current_adjacent = graph->v[i]->adjacents_head;
+        while ( current_adjacent ) {
+            printf("\t->%zu (%zu)\n", current_adjacent->id, current_adjacent->weight);
+            current_adjacent = current_adjacent->next;
+        }
+    }
+}
+
 int main() {
     graph_t* graph = graph_new_with_count(5);
 
     printf("graph created: %p\n", graph);
 
     vertex_adjacent_add_weighted(graph->v[0], 2, 3);
+    vertex_adjacent_add_weighted(graph->v[0], 3, 2);
+    vertex_adjacent_add_weighted(graph->v[4], 3, 3);
+    vertex_adjacent_add_weighted(graph->v[2], 4, 5);
+
 
     printf("added adjacent from 0 to 2\n");
 
@@ -51,11 +69,18 @@ int main() {
 
     free(ordered);
 
+    graph_debug(graph);
+
     if ( graph_shortest_path_from(graph, 0) == 0 )
         graph_debug_path_info(graph, 0);
     else
         printf("Shortest path not calculated... :/\n");
 
+    graph_t* minimum_spanning_tree = graph_minimum_spanning_tree_prim(graph);
+
+    graph_debug(minimum_spanning_tree);
+
+    graph_destroy(minimum_spanning_tree);
     graph_destroy(graph);
 
     return 0;

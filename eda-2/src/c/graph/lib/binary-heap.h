@@ -5,8 +5,10 @@
 #include <string.h>
 #include <assert.h>
 
+// This wont work if you don't compile your
+// *.o separately
 #ifndef BINARY_HEAP_VALUE_TYPE
-#define BINARY_HEAP_VALUE_TYPE int
+#define BINARY_HEAP_VALUE_TYPE void*
 #endif
 
 #define BINARY_HEAP_INITIAL_CAPACITY 8

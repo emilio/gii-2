@@ -1,6 +1,7 @@
 #include "graph.h"
 #include "queue.h"
 #include "binary-heap.h"
+#include "disjoint-sets.h"
 
 /** Create a new representation for an adjacent vertex */
 adjacent_t* adjacent_new_weighted(vertex_id_t id, size_t weight) {
@@ -210,10 +211,14 @@ int graph_shortest_path_from(graph_t* self, vertex_id_t from) {
     self->v[from]->distance = 0;
 
     // The heap initially contains just the first vertex, with a distance 0
-    b_heap_insert(heap, from, 0);
+    // NOTE: The &from is because we must store pointers
+    printf("Pre-insert\n");
+    b_heap_insert(heap, &from, 0);
 
     while ( ! b_heap_empty(heap) ) {
-        current_id = b_heap_front(heap);
+        printf("Pre-scan\n");
+        current_id = *((vertex_id_t*)b_heap_front(heap));
+        printf("Scanning: %zu\n", current_id);
         b_heap_pop(heap);
 
         current_vertex = self->v[current_id];
@@ -235,7 +240,7 @@ int graph_shortest_path_from(graph_t* self, vertex_id_t from) {
             if ( self->v[current_adjacent->id]->distance > distance ) {
                 self->v[current_adjacent->id]->distance = distance;
                 self->v[current_adjacent->id]->reached_from = current_id;
-                b_heap_insert(heap, current_adjacent->id, distance);
+                b_heap_insert(heap, &(current_adjacent->id), distance);
             }
             current_adjacent = current_adjacent->next;
         }
@@ -244,4 +249,101 @@ int graph_shortest_path_from(graph_t* self, vertex_id_t from) {
     b_heap_destroy(heap);
 
     return 0;
+}
+
+// Returns the minimum spanning tree
+graph_t* graph_minimum_spanning_tree_prim(graph_t* self) {
+    graph_t* ret = graph_new_with_count(self->size);
+    size_t i;
+    size_t min_weight;
+    vertex_t* current_vertex;
+    adjacent_t* current_adjacent;
+    adjacent_t* min_weight_adjacent;
+
+    graph_recompute(self, GRAPH_RECOMPUTE_REACHED_BIT);
+
+    for ( i = 0; i < self->size; ++i ) {
+        current_vertex = self->v[i];
+        current_adjacent = current_vertex->adjacents_head;
+
+        min_weight_adjacent = NULL;
+        // Pick an unreached adjacent to calculate the minimum
+        while ( current_adjacent ) {
+            if ( ! ret->v[current_adjacent->id]->reached ) {
+                if ( !min_weight_adjacent || current_adjacent->weight > min_weight ) {
+                    min_weight_adjacent = current_adjacent;
+                    min_weight = current_adjacent->weight;
+                }
+            }
+            current_adjacent = current_adjacent->next;
+        }
+
+        ret->v[i]->reached = 1;
+
+        // If we find one, add to the corresponding vertex
+        if ( min_weight_adjacent ) {
+            vertex_adjacent_add_weighted(ret->v[i], min_weight_adjacent->id, min_weight_adjacent->weight);
+            ret->v[min_weight_adjacent->id]->reached = 1;
+        }
+    }
+
+    return ret;
+}
+
+// This is not performant at all, but it's just a
+// proof of concept: Generic programming would be so
+// great here
+typedef struct adjacent_auxiliar {
+    vertex_id_t from;
+    vertex_id_t to;
+    size_t weight;
+} adjacent_auxiliar_t;
+
+adjacent_auxiliar_t* adjacent_auxiliar_new(vertex_id_t from, vertex_id_t to, size_t weight) {
+    adjacent_auxiliar_t* ret = (adjacent_auxiliar_t*) malloc(sizeof(adjacent_auxiliar_t));
+
+    ret->from = from;
+    ret->to = to;
+    ret->weight = weight;
+
+    return ret;
+}
+
+#define adjacent_auxiliar_destroy(adj) free(adj)
+
+b_heap_t* adjacents_binary_heap(graph_t* self) {
+    b_heap_t* ret = b_heap_new();
+    size_t i;
+    adjacent_t* current;
+
+    for ( i = 0; i < self->size; ++i ) {
+        current = self->v[i]->adjacents_head;
+
+        while ( current ) {
+            b_heap_insert(ret, adjacent_auxiliar_new(i, current->id, current->weight), current->weight);
+            current = current->next;
+        }
+    }
+
+    return ret;
+}
+
+graph_t* graph_minimum_spanning_tree(graph_t* self) {
+    graph_t* ret = graph_new_with_count(self->size);
+    // Create a priority queue of adjacents
+    b_heap_t* heap = adjacents_binary_heap(self);
+    adjacent_auxiliar_t* current_auxiliar;
+
+    while ( ! b_heap_empty(heap) ) {
+        current_auxiliar = b_heap_front(heap);
+        b_heap_pop(heap);
+        if ( !ret->v[current_auxiliar->to]->reached ) {
+            vertex_adjacent_add_weighted(ret->v[current_auxiliar->from], current_auxiliar->to, current_auxiliar->weight);
+            ret->v[current_auxiliar->to]->reached = 1;
+        }
+        adjacent_auxiliar_destroy(current_auxiliar);
+    }
+
+    b_heap_destroy(heap);
+    return ret;
 }

@@ -57,4 +57,6 @@ vertex_id_t* graph_topological_sort(graph_t*);
 
 int graph_shortest_path_from(graph_t*, vertex_id_t from);
 
+graph_t* graph_minimum_spanning_tree_prim(graph_t*);
+
 #endif
