@@ -52,14 +52,21 @@ void b_heap_insert(b_heap_t* heap, b_heap_value_t value, b_heap_priority_t prior
 	b_heap_heapify_to(heap, heap->size++);
 }
 
+// Ensure child i is in a correct position, via bubbling it up
 void b_heap_heapify_to(b_heap_t* heap, size_t i) {
 	b_heap_tuple_t temp;
 	size_t parent_index;
 	b_heap_tuple_t* elements = heap->elements;
 
 	/** (i + 1) /2 = parent index */
-	while ( i != 0 && elements[(parent_index = B_HEAP_PARENT_INDEX(i))].priority > elements[i].priority ) {
-		/** TODO: Swapping by value, try to optimize */
+	while ( i != 0 ) {
+        parent_index = B_HEAP_PARENT_INDEX(i);
+
+        // we're done
+        if ( elements[parent_index].priority < elements[i].priority )
+            break;
+
+        // Else swap and continue
 		temp = elements[parent_index];
 		elements[parent_index] = elements[i];
 		elements[i] = temp;
@@ -67,6 +74,8 @@ void b_heap_heapify_to(b_heap_t* heap, size_t i) {
 	}
 }
 
+// Ensure element i ends up in a correct position,
+// via bubbling it down to the bottom
 void b_heap_heapify_from(b_heap_t* heap, size_t i) {
 	size_t child_index;
 	b_heap_tuple_t temp;
@@ -80,17 +89,20 @@ void b_heap_heapify_from(b_heap_t* heap, size_t i) {
 		if ( child_index >= heap->size )
 			break;
 
-		/** There are two children */
+		/** There are two children, pick the one with less priority and bubble it up */
 		if ( child_index + 1 < heap->size )
 			if ( elements[child_index].priority > elements[child_index + 1].priority )
 				child_index++;
 
-		if ( elements[child_index].priority < elements[i].priority ) {
-			/** swap(elements[child_index], elements[i] ) */
-			temp = elements[child_index];
-			elements[child_index] = elements[i];
-			elements[i] = temp;
-		}
+        // If we don't have to swap, we're done
+		if ( elements[child_index].priority > elements[i].priority )
+            break;
+
+        // else swap and continue iterating
+        /** swap(elements[child_index], elements[i] ) */
+        temp = elements[child_index];
+        elements[child_index] = elements[i];
+        elements[i] = temp;
 
 		i = child_index;
 	}
