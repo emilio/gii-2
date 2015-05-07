@@ -66,6 +66,7 @@ typedef enum DataActionType {
 typedef struct GameData {
 	/* const */ size_t process_count; /** Number of processes playing. This is inmutable */
 	size_t rounds; /** The round count */
+    size_t last_thread;
 	long alive_count; /** Current round alive pids count */
 	HANDLE threads[MAX_CHILDREN];
 	int statuses[MAX_CHILDREN];
@@ -162,6 +163,7 @@ GameData* manage_data(DataActionType action, size_t count) {
 		data->process_count = count;
 		data->alive_count = count;
 		data->rounds = 0;
+        data->last_thread = 0;
 		for ( size_t i = 0; i < SEMAPHORE_COUNT; ++i )
 		    data->semaphores[i] = NULL;
 #ifdef DEBUG
@@ -242,8 +244,10 @@ DWORD child_proc(void* my_status_ptr_) {
 
 		if ( im_coordinator ) {
             this_round_alive_count = data->alive_count;
-			if ( data->alive_count == 1 )
+			if ( data->alive_count == 1 ) {
+                data->last_thread = GetCurrentThreadId();
 				return 0;
+            }
 			data->rounds++;
 			LOG("Round: %d, alive: %d", data->rounds, data->alive_count);
 		}
@@ -386,10 +390,11 @@ int main(int argc, char **argv) {
     ReleaseSemaphore(data->semaphores[2], count, NULL);
 
     LOG("Waiting for all threads to exit");
+
     // Now they take care of the job, we must  wait for them to die
     WaitForMultipleObjects(count, data->threads, TRUE, INFINITE);
 
-	return 0;
+	return data->last_thread;
 }
 
 #ifdef __cplusplus
