@@ -268,7 +268,7 @@ DWORD child_proc(void* my_status_ptr_) {
         // The same idea
         ReleaseSemaphore(data->semaphores[0], 1, NULL);
 
-           if ( im_coordinator ) {
+        if ( im_coordinator ) {
             size_t i = this_round_alive_count;
             LOG("Waiting for everyone to be ready");
             while ( i-- ) {
