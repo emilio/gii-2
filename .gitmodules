@@ -1,0 +1,3 @@
+[submodule "dbs/practica"]
+	path = dbs/practica
+	url = git@github.com:ecoal95/dbs-2015
