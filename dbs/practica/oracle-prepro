@@ -1,0 +1,3 @@
+#!/bin/bash
+cd $(dirname $2)
+proc CODE=KR_C CLOSE_ON_COMMIT=YES DYNAMIC=ORACLE DEF_SQLCODE=YES iname=$(basename $2)

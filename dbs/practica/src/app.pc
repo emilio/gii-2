@@ -1,52 +1,22 @@
-// vim:set syntax=c:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "question.h"
 #include "answer.h"
 #include "exam.h"
+#include "questions_themes.h"
 #include "interactive.h"
 #include "common.h"
 
-#include <commands.h>
+#include "../lib/commands.h"
 
-int create_question(int argc, char** argv) {
-    char buffer[255];
-    char is_correct;
+#ifndef POSTGRES
+char SQLSTATE[6];
+#define SQLCODE sqlca.sqlcode
+#endif
 
-    printf("Give me the statement:");
-    get_str(buffer, sizeof(buffer));
-
-    char* args[] = { "-a", buffer, NULL };
-    question(2, args);
-
-    char* id_str = NULL;
-
-    while ( 1 ) {
-        printf("Give me one answer (empty to stop):");
-        get_str(buffer, sizeof(buffer));
-
-        if ( ! *buffer )
-            break;
-
-        printf("Is correct? (Y/n):");
-        do {
-            is_correct = getchar();
-        } while ( is_correct != 'n' && is_correct != 'Y' );
-
-        if ( is_correct == 'Y' ) {
-            char* args[] = { "-a", id_str, buffer, "--correct", NULL };
-            answer(4, args);
-        } else {
-            char* args[] = { "-a", id_str, buffer, NULL };
-            answer(3, args);
-        }
-    }
-
-    return 1;
-}
-
-// The list of our supported commands
+/* The list of our supported commands */
 struct command commands[] = {
     { "question",  question, "manages questions",
         "Usage: question [args...]\n"
@@ -59,32 +29,41 @@ struct command commands[] = {
         "Prints the question id on success to stdout." },
     { "answer", answer, "manages answers",
         "Usage: answer [args...]\n"
-        "\t-a\tcreates an answer\t-a <question_id> <statement> [--correct]\n"
+        "\t-a\tcreates an answer\t-a <question_id> <statement> [priority] [--correct]\n"
         "\t-l\tlist answers for a question\t-l <question_id>\n"
         "\t-d\tdeletes a question\t-d <id>" },
     { "exam", exam, "manages exams",
         "Usage: answer [args...]\n"
         "\t-l\tlist exams for a question\t-l <question_id>\n" },
+    { "questions_themes", questions_themes, "Relation between questions and themes",
+        "\t-a\tads a new relationship\t-a <question_id> <theme_id>\n" },
     { "interactive", interactive, "Open an interactive session" },
-    { NULL, NULL, NULL, NULL } // End of the list
+    { NULL, NULL, NULL, NULL }
 };
 
 
-// TODO: Recover graciously
 void handle_error() {
-    fprintf(stderr, "[ERROR] %s | SQLSTATE(%s), SQLCODE(%ld)\n", sqlca.sqlerrm.sqlerrmc, SQLSTATE, SQLCODE);
+    fprintf(stderr, "[ERROR] %s | SQLSTATE(%s), SQLCODE(%ld)\n", sqlca.sqlerrm.sqlerrmc,
+                                                                 SQLSTATE,
+                                                                 SQLCODE);
     exit(1);
 }
 
-
-
-
-/// Comentario de prueba
 int main(int argc, char** argv) {
     EXEC SQL WHENEVER SQLERROR DO handle_error();
+#ifndef POSTGRES
+    EXEC SQL BEGIN DECLARE SECTION;
+    char oracle_id[] = "/";
+    EXEC SQL END DECLARE SECTION;
+    EXEC SQL CONNECT :oracle_id;
+#else
     EXEC SQL CONNECT TO exams;
+#endif
 
     int ret = command_exec(commands, argc, argv);
+
+    if ( appcom.ret.int_value )
+        printf("%d\n", appcom.ret.int_value);
 
     EXEC SQL COMMIT;
 

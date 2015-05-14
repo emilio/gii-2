@@ -1,4 +1,3 @@
-// vim: set syntax=c:
 #include "common.h"
 #include "question.h"
 #include "answer.h"
@@ -8,7 +7,6 @@ int list_questions(int, char**);
 int show_question(int argc, char** argv);
 int list_questions_by_theme(int argc, char** argv);
 
-/// Manages questions
 int question(int argc, char** argv) {
     EXEC SQL WHENEVER SQLERROR DO handle_error();
     EXEC SQL BEGIN DECLARE SECTION;
@@ -19,7 +17,7 @@ int question(int argc, char** argv) {
     if ( argc < 1 || argc > 4 )
         ARGUMENT_ERROR();
 
-    /// Add a new question
+    /* Add a new question */
     if ( strcmp(argv[0], "-a") == 0 ) {
         argc--; argv++;
 
@@ -32,10 +30,8 @@ int question(int argc, char** argv) {
 
         APPCOM_RET_INT(id);
 
-        // We return the id printing it
-        printf("%d\n", id);
         return 0;
-    // Delete
+    /* Delete it */
     } else if ( strcmp(argv[0], "-d") == 0 ) {
         argc--; argv++;
 
@@ -46,7 +42,7 @@ int question(int argc, char** argv) {
 
         EXEC SQL DELETE FROM questions WHERE id = :id;
         return 0;
-    // Update
+    /* Update */
     } else if ( strcmp(argv[0], "-e") == 0 ) {
         argc--; argv++;
 
@@ -59,12 +55,12 @@ int question(int argc, char** argv) {
         EXEC SQL UPDATE questions SET statement = :statement WHERE id = :id;
 
         return 0;
-    // List
+    /* List */
     } else if ( strcmp(argv[0], "-l") == 0 ) {
         argc--; argv++;
 
         return list_questions(argc, argv);
-    // List by theme
+    /* List by theme */
     } else if ( strcmp(argv[0], "-t") == 0 ) {
         argc--; argv++;
 
@@ -102,13 +98,14 @@ int list_questions(int argc, char** argv) {
     else if ( argc == 2 )
         ARGUMENT_ERROR();
 
-    DEBUG("list_questions");
-
     EXEC SQL DECLARE questions_cursor CURSOR FOR
         SELECT id, statement FROM questions;
 
     EXEC SQL DECLARE questions_themes_cursor CURSOR FOR
-        SELECT questions.id, questions.statement FROM questions, questions_themes WHERE questions_themes.question_id = questions.id AND questions_themes.theme_id = :theme_id;
+        SELECT questions.id, questions.statement
+        FROM questions, questions_themes
+        WHERE questions_themes.question_id = questions.id AND
+              questions_themes.theme_id = :theme_id;
 
     if ( argc == 0 || (argc == 1 && detailed_mode) ) {
         EXEC SQL OPEN questions_cursor;
@@ -130,7 +127,7 @@ int list_questions(int argc, char** argv) {
             snprintf(question_id_str, sizeof(question_id_str), "%d", id);
             CALL(question, "-s", question_id_str);
         } else {
-            printf("%d\t%s\n", id, statement);
+            printf("%d\t%s\n", id, str_trim_right(statement));
         }
     }
     if ( argc == 0 || (argc == 1 && detailed_mode) )
@@ -158,15 +155,24 @@ int list_questions_by_theme(int argc, char** argv) {
         ARGUMENT_ERROR();
 
     EXEC SQL DECLARE themes_cursor CURSOR FOR
-        SELECT themes.id, themes.priority, themes.name, subjects.id, subjects.name FROM themes, subjects WHERE themes.subject_id = subjects.id ORDER BY subjects.id, themes.priority;
+        SELECT themes.id, themes.priority, themes.name, subjects.id, subjects.name
+        FROM themes, subjects
+        WHERE themes.subject_id = subjects.id
+        ORDER BY subjects.id, themes.priority;
 
     EXEC SQL OPEN themes_cursor;
     while ( 1 ) {
-        EXEC SQL FETCH themes_cursor INTO :theme_id, :theme_priority, :theme_name, :subject_id, :subject_name;
+        EXEC SQL FETCH themes_cursor
+            INTO :theme_id, :theme_priority,
+                 :theme_name, :subject_id, :subject_name;
+
         if ( SQLCODE == NOT_FOUND )
             break;
 
-        printf("#%d - %d: %s (%s)\n", theme_id, theme_priority, theme_name, subject_name);
+        printf("#%d - %d: %s (%s)\n", theme_id,
+                                      theme_priority,
+                                      str_trim_right(theme_name),
+                                      str_trim_right(subject_name));
 
         snprintf(theme_id_str, sizeof(theme_id_str), "%d", theme_id);
         // argv[argc - 1] is required to be null
@@ -197,7 +203,7 @@ int show_question(int argc, char** argv) {
         return 1;
     }
 
-    printf("%s\n", statement);
+    printf("%s\n", str_trim_right(statement));
     printf("-----------------------------------\n");
     printf("Options:\n");
 

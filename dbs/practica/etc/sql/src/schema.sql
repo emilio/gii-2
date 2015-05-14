@@ -26,11 +26,10 @@ CREATE TABLE subjects (
 
 CREATE TABLE themes (
 	id INTEGER NOT NULL,
-	-- since "order" is reserved...
-	-- Also this way is more flexible
 	priority INTEGER DEFAULT 1,
 	name VARCHAR(255) NOT NULL,
-	description TEXT NOT NULL,
+    -- VARCHAR below should be TEXT, but it's not supported in oracle
+	description VARCHAR(255) NOT NULL,
 	subject_id INTEGER NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE

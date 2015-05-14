@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "$ORACLE_HOME" != "" ];then
+    env=oracle
+else
+    env=local
+fi
+
+cp $env.mk Makefile
+cp etc/sql/$env.mk etc/sql/Makefile
