@@ -9,6 +9,9 @@
 // We're forced to compile with Dev-CPP :/
 #ifdef __cplusplus
 extern "C" {
+typedef unsigned char bool;
+#define true 1
+#define false 0
 #endif
 
 #define ERROR_MSG(str, ...) do { \
@@ -392,6 +395,8 @@ int main(int argc, char **argv) {
 
     // Now they take care of the job, we must  wait for them to die
     WaitForMultipleObjects(count, data->threads, TRUE, INFINITE);
+
+    LOG("All threads exited successfully, alive_count: %ld", data->alive_count);
 
     return data->last_thread;
 }
