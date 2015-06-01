@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #define BINARY_TREE_VALUE_TYPE char
+#define INDENT_GAP 4
 #include "lib/binary-tree.h"
 
 #define NPOS ((size_t) -1)
@@ -134,6 +135,17 @@ void print_element(b_tree_node_t* node, void* data) {
 	printf("%c\t", node->value);
 }
 
+void debug_tree(b_tree_t* head, int depth) {
+    if ( ! head ) {
+        printf("%*c<nil>\n", depth * INDENT_GAP, ' ');
+        return;
+    }
+
+    printf("%*c%c\n", depth * INDENT_GAP, ' ', head->value);
+    debug_tree(head->left, depth + 1);
+    debug_tree(head->right, depth + 1);
+}
+
 void print_usage(int argc, char** argv) {
 	printf("Usage:\n");
 	printf("\t%s <preorder> <order>\n", argv[0]);
@@ -169,6 +181,10 @@ int main(int argc, char** argv) {
 
 	b_tree_order(tree, print_element, NULL);
 	printf("\n");
+
+    printf("Tree debugging:\n");
+    debug_tree(tree, 0);
+    printf("\n");
 
 	b_tree_destroy(tree);
 
