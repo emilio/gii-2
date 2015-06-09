@@ -1,3 +1,7 @@
 [submodule "dbs/practica"]
 	path = dbs/practica
 	url = git@github.com:ecoal95/dbs-2015
+
+[submodule "softeng/final"]
+    path = softeng/final
+	url = git@github.com:ecoal95/softeng-2015
