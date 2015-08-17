@@ -15,57 +15,60 @@
 #define DEFAULT_FACTOR_1 15543
 #define DEFAULT_FACTOR_2 54393
 
-#define TESTER_FN(name, fn) void name(size_t size, AlgorithmTesterBenchmark * benchmark, void * data) { \
-	long * factors = (long *) data; \
-	long result; \
-	ALGORITHM_TESTER_TEST(result = fn(factors[0], factors[1]), benchmark); \
-	if ( benchmark->repetitions == 0 ) { \
-		printf("Result: %ld\n", result); \
-	}\
-}
+#define TESTER_FN(name, fn)                                                    \
+    void name(size_t size, AlgorithmTesterBenchmark* benchmark, void* data) {  \
+        long* factors = (long*)data;                                           \
+        long result;                                                           \
+        ALGORITHM_TESTER_TEST(result = fn(factors[0], factors[1]), benchmark); \
+        if (benchmark->repetitions == 0) {                                     \
+            printf("Result: %ld\n", result);                                   \
+        }                                                                      \
+    }
 
 TESTER_FN(testClassicMultiplication, classicMultiplication)
 TESTER_FN(testRussianMultiplication, russianMultiplication)
 TESTER_FN(testDivideMultiplication, divideMultiplication)
 TESTER_FN(testIterativeMultiplication, iterativeMultiplication)
 
+int main(int argc, char** argv) {
+    AlgorithmTester* tester =
+        newAlgorithmTester(NULL); // Algorithm changing on runtime
+    AlgorithmTesterConfig* config =
+        AlgorithmTesterConfig__fromShellArgs(argc, argv);
+    AlgorithmTesterBenchmark* benchmark;
 
-int main(int argc, char ** argv) {
-	AlgorithmTester * tester = newAlgorithmTester(NULL); // Algorithm changing on runtime
-	AlgorithmTesterConfig * config = AlgorithmTesterConfig__fromShellArgs(argc, argv);
-	AlgorithmTesterBenchmark * benchmark;
+    // factors passed as data to the test function
+    long factors[2];
 
-	// factors passed as data to the test function
-	long factors[2];
+    // Use fourth and fifth parameters if found as factors
+    factors[0] = (argc > 4) ? strtol(argv[4], NULL, 10) : DEFAULT_FACTOR_1;
+    factors[1] = (argc > 5) ? strtol(argv[5], NULL, 10) : DEFAULT_FACTOR_2;
 
-	// Use fourth and fifth parameters if found as factors
-	factors[0] = (argc > 4) ? strtol(argv[4], NULL, 10) : DEFAULT_FACTOR_1;
-	factors[1] = (argc > 5) ? strtol(argv[5], NULL, 10) : DEFAULT_FACTOR_2;
+// Helper macro to avoid code repetition
+#define TEST(testerFunc)                                                       \
+    do {                                                                       \
+        printf("Testing: " #testerFunc "\n");                                  \
+        tester->algorithm = testerFunc;                                        \
+        benchmark = AlgorithmTester_test(tester, config, factors);             \
+        AlgorithmTesterBenchmark_toConsole(benchmark);                         \
+        free(benchmark);                                                       \
+    } while (0)
 
-	// Helper macro to avoid code repetition
-	#define TEST(testerFunc) do { \
-		printf("Testing: "#testerFunc"\n"); \
-		tester->algorithm = testerFunc; \
-		benchmark = AlgorithmTester_test(tester, config, factors); \
-		AlgorithmTesterBenchmark_toConsole(benchmark); \
-		free(benchmark); \
-	} while(0)
+    // Classic
+    TEST(testClassicMultiplication);
 
-	// Classic
-	TEST(testClassicMultiplication);
+    // Russian
+    TEST(testRussianMultiplication);
 
-	// Russian
-	TEST(testRussianMultiplication);
+    // Divide
+    TEST(testDivideMultiplication);
 
-	// Divide
-	TEST(testDivideMultiplication);
+    // Iterative
+    TEST(testIterativeMultiplication);
 
-	// Iterative
-	TEST(testIterativeMultiplication);
+    // free(benchmark); already free'd
+    free(config);
+    free(tester);
 
-	// free(benchmark); already free'd
-	free(config);
-	free(tester);
-
-	return 0;
+    return 0;
 }

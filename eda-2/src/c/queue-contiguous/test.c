@@ -3,25 +3,25 @@
 #include "lib/queue.h"
 
 int main() {
-	queue_t* queue = queue_new(int);
-	int i;
+    queue_t* queue = queue_new(int);
+    int i;
 
-	printf("Testing queue...\n");
+    printf("Testing queue...\n");
 
-	for ( i = 0; i < 100; ++i )
-		queue_push(queue, i);
+    for (i = 0; i < 100; ++i)
+        queue_push(queue, i);
 
-	printf("Queue filled...\n");
+    printf("Queue filled...\n");
 
-	while ( ! queue_empty(queue) ) {
-		queue_front(queue, &i);
-		printf(" %d", i);
-		queue_pop(queue);
-	}
+    while (!queue_empty(queue)) {
+        queue_front(queue, &i);
+        printf(" %d", i);
+        queue_pop(queue);
+    }
 
-	printf("\n");
+    printf("\n");
 
-	queue_destroy(queue);
+    queue_destroy(queue);
 
-	return 0;
+    return 0;
 }

@@ -14,9 +14,9 @@ typedef VECTOR_ITEM_TYPE VectorItem;
 
 /** Vector structure */
 typedef struct Vector {
-	size_t length;
-	size_t size;
-	VectorItem * values;
+    size_t length;
+    size_t size;
+    VectorItem* values;
 } Vector;
 
 /**
@@ -24,25 +24,26 @@ typedef struct Vector {
  *
  * @return Vector *
  */
-Vector * newVector();
+Vector* newVector();
 
 /**
  * Create a Vector from array of values
  *
  * @param VectorItem * values
  * @param size_t length
- * @param size_t size, if passed 0 or number below length, assumes length * sizeof(VectorItem)
+ * @param size_t size, if passed 0 or number below length, assumes length *
+ *sizeof(VectorItem)
  *
  * @return Vector *
  */
-Vector * Vector__from(VectorItem * values, size_t length, size_t size);
+Vector* Vector__from(VectorItem* values, size_t length, size_t size);
 
 /**
  * Destroy a Vector's allocated memory
  *
  * @param Vector * v
  */
-void Vector_destroy(Vector *v);
+void Vector_destroy(Vector* v);
 
 /**
  * Set a value in a vector by index
@@ -50,7 +51,7 @@ void Vector_destroy(Vector *v);
  * @param Vector * v
  * TODO: Review return value
  */
-void Vector_set(Vector *v, size_t index, VectorItem value);
+void Vector_set(Vector* v, size_t index, VectorItem value);
 
 /**
  * Get value of a vector
@@ -60,7 +61,7 @@ void Vector_set(Vector *v, size_t index, VectorItem value);
  *
  * @return VectorItem
  */
-VectorItem Vector_get(Vector *v, size_t index);
+VectorItem Vector_get(Vector* v, size_t index);
 
 /**
  * Push a value to the back of the vector
@@ -68,7 +69,7 @@ VectorItem Vector_get(Vector *v, size_t index);
  * @param Vector *v
  * @param VectorItem value
  */
-void Vector_push(Vector *v, VectorItem value);
+void Vector_push(Vector* v, VectorItem value);
 
 /**
  * Swap two values
@@ -77,7 +78,7 @@ void Vector_push(Vector *v, VectorItem value);
  * @param size_t i1
  * @param size_t i2
  */
-void Vector_swap(Vector *v, size_t i1, size_t i2);
+void Vector_swap(Vector* v, size_t i1, size_t i2);
 
 /**
  * Copy values from a vector to another one
@@ -88,6 +89,7 @@ void Vector_swap(Vector *v, size_t i1, size_t i2);
  * @param fromSrcIndex index of the src vector to start copying
  * TODO: Allow from - to
  */
-void Vector_copyFrom(Vector *dest, Vector *src, size_t fromIndex, size_t fromSrcIndex);
+void Vector_copyFrom(Vector* dest, Vector* src, size_t fromIndex,
+                     size_t fromSrcIndex);
 
 #endif

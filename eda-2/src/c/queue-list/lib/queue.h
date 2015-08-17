@@ -18,14 +18,14 @@
 typedef QUEUE_VALUE_TYPE queue_value_t;
 
 typedef struct queue_item {
-	queue_value_t value;
-	struct queue_item* next;
+    queue_value_t value;
+    struct queue_item* next;
 } queue_item_t;
 
 typedef struct queue {
-	queue_item_t* first;
-	queue_item_t* last;
-	size_t size;
+    queue_item_t* first;
+    queue_item_t* last;
+    size_t size;
 } queue_t;
 
 queue_t* queue_new();

@@ -12,13 +12,13 @@
 typedef STACK_VALUE_TYPE stack_value_t;
 
 typedef struct stack_item {
-	stack_value_t value;
-	struct stack_item* prev;
+    stack_value_t value;
+    struct stack_item* prev;
 } stack_item_t;
 
 typedef struct stack {
-	stack_item_t* last;
-	size_t size;
+    stack_item_t* last;
+    size_t size;
 } stack_t;
 
 stack_t* stack_new();

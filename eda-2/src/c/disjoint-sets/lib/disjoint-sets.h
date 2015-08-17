@@ -11,11 +11,10 @@ typedef size_t disjoint_set_t;
 
 /** Disjoint sets data structure */
 typedef struct disjoint_sets {
-	disjoint_set_t* sets;
-	size_t capacity;
-	size_t size;
+    disjoint_set_t* sets;
+    size_t capacity;
+    size_t size;
 } disjoint_sets_t;
-
 
 /** Create a new, empty set of disjoint sets */
 disjoint_sets_t* disjoint_sets_new();
@@ -39,10 +38,12 @@ disjoint_set_t disjoint_sets_add_set(disjoint_sets_t* self);
 disjoint_set_t disjoint_sets_root_of(disjoint_sets_t* self, disjoint_set_t set);
 
 /** Check if two sets are the same */
-int disjoint_sets_are_same_set(disjoint_sets_t* self, disjoint_set_t set_1, disjoint_set_t set_2);
+int disjoint_sets_are_same_set(disjoint_sets_t* self, disjoint_set_t set_1,
+                               disjoint_set_t set_2);
 
 /** Join two sets */
-void disjoint_sets_join(disjoint_sets_t* self, disjoint_set_t set_1, disjoint_set_t set_2);
+void disjoint_sets_join(disjoint_sets_t* self, disjoint_set_t set_1,
+                        disjoint_set_t set_2);
 
 /** Destroy the sets and free memory */
 void disjoint_sets_destroy(disjoint_sets_t* self);

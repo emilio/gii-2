@@ -3,22 +3,22 @@
 #include "lib/stack.h"
 
 int main() {
-	stack_t* stack = stack_new();
-	int i;
+    stack_t* stack = stack_new();
+    int i;
 
-	printf("Testing stack...\n");
+    printf("Testing stack...\n");
 
-	for ( i = 0; i < 10; ++i )
-		stack_push(stack, i);
+    for (i = 0; i < 10; ++i)
+        stack_push(stack, i);
 
-	printf("Stack filled...\n");
+    printf("Stack filled...\n");
 
-	while ( ! stack_empty(stack) )
-		printf(" %d", stack_pop(stack));
+    while (!stack_empty(stack))
+        printf(" %d", stack_pop(stack));
 
-	printf("\n");
+    printf("\n");
 
-	stack_destroy(stack);
+    stack_destroy(stack);
 
-	return 0;
+    return 0;
 }

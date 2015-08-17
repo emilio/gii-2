@@ -8,7 +8,7 @@
 // This wont work if you don't compile your
 // *.o separately
 #ifndef BINARY_HEAP_VALUE_TYPE
-#define BINARY_HEAP_VALUE_TYPE void*
+#define BINARY_HEAP_VALUE_TYPE void *
 #endif
 
 #define BINARY_HEAP_INITIAL_CAPACITY 8
@@ -21,14 +21,14 @@ typedef size_t b_heap_priority_t;
 #define B_HEAP_RIGHT_INDEX ((i + 1) * 2)
 
 typedef struct b_heap_tuple {
-	b_heap_value_t value;
-	b_heap_priority_t priority;
+    b_heap_value_t value;
+    b_heap_priority_t priority;
 } b_heap_tuple_t;
 
 typedef struct b_heap {
-	b_heap_tuple_t* elements;
-	size_t size;
-	size_t capacity;
+    b_heap_tuple_t* elements;
+    size_t size;
+    size_t capacity;
 } b_heap_t;
 
 /** Construct a new binary heap */
@@ -45,7 +45,8 @@ void b_heap_destroy(b_heap_t*);
 /** Insert a new element in the binary tree. -1 on error. */
 void b_heap_insert(b_heap_t*, b_heap_value_t, b_heap_priority_t);
 
-/** Get the higher priority element (which is the head, aka the field with lower priority) */
+/** Get the higher priority element (which is the head, aka the field with lower
+ * priority) */
 #define b_heap_front_tuple(h) (h->elements[0])
 #define b_heap_front(h) (b_heap_front_tuple(h).value)
 
@@ -75,7 +76,8 @@ b_heap_value_t* b_heap_sort(b_heap_t*);
 /** Apply a heapsort and return the heap */
 void b_heap_heapsorted(b_heap_t*);
 
-/** Checks if element at the given index meets the condition with their childs */
+/** Checks if element at the given index meets the condition with their childs
+ */
 int b_heap_has_valid_direct_desdendants(b_heap_t* heap, size_t index);
 
 /** Check if binary heap is valid */

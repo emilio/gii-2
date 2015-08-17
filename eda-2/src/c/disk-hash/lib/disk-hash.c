@@ -1,8 +1,6 @@
 #include "disk-hash.h"
 
-disk_hasher_t* disk_hasher_new(FILE* f,
-                               size_t bucket_count,
-                               size_t key_size,
+disk_hasher_t* disk_hasher_new(FILE* f, size_t bucket_count, size_t key_size,
                                size_t element_size,
                                disk_hasher_comparer_fn_t key_cmp,
                                disk_hasher_hasher_fn_t key_hasher,
@@ -10,10 +8,10 @@ disk_hasher_t* disk_hasher_new(FILE* f,
                                disk_hasher_hasher_fn_t hasher) {
     disk_hasher_t* ret;
 
-    if ( f == NULL )
+    if (f == NULL)
         return NULL;
 
-    ret = (disk_hasher_t*) malloc(sizeof(disk_hasher_t));
+    ret = (disk_hasher_t*)malloc(sizeof(disk_hasher_t));
 
     ret->bucket_count = BUCKET_COUNT;
     ret->key_size = key_size;
@@ -26,16 +24,16 @@ disk_hasher_t* disk_hasher_new(FILE* f,
     /// TODO update when bucket count is dynamic
     ret->index_size = sizeof(disk_hasher_indexer_t);
 
-    if ( ! key_cmp )
+    if (!key_cmp)
         key_cmp = disk_hasher_default_comparer;
 
-    if ( ! key_hasher )
+    if (!key_hasher)
         key_hasher = disk_hasher_default_hasher;
 
-    if ( ! cmp )
+    if (!cmp)
         cmp = disk_hasher_default_comparer;
 
-    if ( ! hasher )
+    if (!hasher)
         hasher = disk_hasher_default_hasher;
 
     ret->indexer = NULL;
@@ -56,14 +54,15 @@ void disk_hasher_init(disk_hasher_t* self) {
 
     /// If there's more data than what we expect, assume is fine,
     /// If not, truncate
-    if ( size < self->index_size )
+    if (size < self->index_size)
         disk_hasher_truncate(self);
 
     self->indexer = disk_hasher_read_indexer(self);
 }
 
 disk_hasher_indexer_t* disk_hasher_read_indexer(disk_hasher_t* self) {
-    disk_hasher_indexer_t* ret = (disk_hasher_indexer_t*) malloc(sizeof(disk_hasher_indexer_t));
+    disk_hasher_indexer_t* ret =
+        (disk_hasher_indexer_t*)malloc(sizeof(disk_hasher_indexer_t));
 
     assert(ret);
 
@@ -74,7 +73,8 @@ disk_hasher_indexer_t* disk_hasher_read_indexer(disk_hasher_t* self) {
 
 /// Position the file pointer in the beginning of the bucket
 void disk_hasher_to_bucket(disk_hasher_t* self, size_t bucket_index) {
-    fseek(self->file, self->index_size + self->bucket_size * bucket_index, SEEK_SET);
+    fseek(self->file, self->index_size + self->bucket_size * bucket_index,
+          SEEK_SET);
 }
 
 /// Gets the continuation bucket for a given bucket
@@ -103,7 +103,8 @@ void disk_hasher_write_value(disk_hasher_t* self, const void* val_buff) {
 }
 
 /// Reads the next key and value and stores it inside key_buff and val_buff
-void disk_hasher_read_next_tuple(disk_hasher_t* self, void* key_buff, void* val_buff) {
+void disk_hasher_read_next_tuple(disk_hasher_t* self, void* key_buff,
+                                 void* val_buff) {
     disk_hasher_read_next_key(self, key_buff);
     disk_hasher_read_next_value(self, val_buff);
 }
@@ -115,17 +116,17 @@ int disk_hasher_retrieve(disk_hasher_t* self, const void* key, void* buffer) {
 
     index = self->indexer->indices[index].bucket_index;
 
-    if ( index == NO_BUCKET )
+    if (index == NO_BUCKET)
         return -1;
 
     key_buff = malloc(self->key_size);
 
     assert(key_buff);
 
-    while ( index != NO_BUCKET ) {
+    while (index != NO_BUCKET) {
         disk_hasher_to_bucket(self, index);
         disk_hasher_read_next_tuple(self, key_buff, buffer);
-        if ( self->fn.key_comparer(key_buff, key, self->key_size) == 0 ) {
+        if (self->fn.key_comparer(key_buff, key, self->key_size) == 0) {
             free(key_buff);
             return 0;
         }
@@ -138,7 +139,8 @@ int disk_hasher_retrieve(disk_hasher_t* self, const void* key, void* buffer) {
     return -1;
 }
 
-void disk_hasher_insert(disk_hasher_t* self, const void* key, const void* value) {
+void disk_hasher_insert(disk_hasher_t* self, const void* key,
+                        const void* value) {
     size_t index = disk_hasher_bucket_index(self, key);
     size_t bucket_index;
     size_t elements;
@@ -147,7 +149,7 @@ void disk_hasher_insert(disk_hasher_t* self, const void* key, const void* value)
     bucket_index = self->indexer->indices[index].bucket_index;
     key_buff = malloc(self->key_size);
 
-    if ( bucket_index == NO_BUCKET ) {
+    if (bucket_index == NO_BUCKET) {
         bucket_index = disk_hasher_create_bucket(self);
         disk_hasher_write_key(self, value);
         disk_hasher_write_value(self, value);
@@ -156,9 +158,9 @@ void disk_hasher_insert(disk_hasher_t* self, const void* key, const void* value)
         return;
     }
 
-    while ( bucket_index != NO_BUCKET ) {
+    while (bucket_index != NO_BUCKET) {
         disk_hasher_read_next_key(self, key_buff);
-        if ( self->fn.key_comparer(key, key_buff, self->key_size) == 0 ) {
+        if (self->fn.key_comparer(key, key_buff, self->key_size) == 0) {
             disk_hasher_write_value(self, value);
             free(key_buff);
             return;
@@ -168,11 +170,10 @@ void disk_hasher_insert(disk_hasher_t* self, const void* key, const void* value)
         }
     }
 
-    /// If we're here we must create a new bucket, and we're at the end of the last one
+    /// If we're here we must create a new bucket, and we're at the end of the
+    /// last one
     /// TODO
-
 }
-
 
 /// Truncate the file if necessary, filling it with zeros
 void disk_hasher_truncate(disk_hasher_t* self) {
@@ -181,7 +182,7 @@ void disk_hasher_truncate(disk_hasher_t* self) {
 
     indexer.first_free_bucket = NO_BUCKET;
 
-    for ( i = 0; i < self->bucket_count; ++i )
+    for (i = 0; i < self->bucket_count; ++i)
         indexer.indices[i].bucket_index = NO_BUCKET;
 
     fseek(self->file, 0, SEEK_SET);
@@ -205,7 +206,7 @@ size_t disk_hasher_create_bucket(disk_hasher_t* self) {
 
     disk_hasher_to_bucket(self, index); // should go to the end
     fwrite(bucket, self->bucket_size, 1, self->file);
-    fseek(self->file, - self->bucket_size, SEEK_CUR);
+    fseek(self->file, -self->bucket_size, SEEK_CUR);
 
     return index;
 }

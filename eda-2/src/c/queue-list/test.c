@@ -5,26 +5,26 @@
 #include "lib/queue.h"
 
 int main() {
-	int i;
-	queue_t* q = queue_new();
+    int i;
+    queue_t* q = queue_new();
 
-	assert(queue_empty(q));
+    assert(queue_empty(q));
 
-	for ( i = 0; i < 10; ++i )
-		queue_push(q, i);
+    for (i = 0; i < 10; ++i)
+        queue_push(q, i);
 
-	assert(!queue_empty(q));
+    assert(!queue_empty(q));
 
-	assert(queue_front(q) == 0);
+    assert(queue_front(q) == 0);
 
-	while ( ! queue_empty(q) ) {
-		printf(" %d", queue_front(q));
-		queue_pop(q);
-	}
+    while (!queue_empty(q)) {
+        printf(" %d", queue_front(q));
+        queue_pop(q);
+    }
 
-	printf("\n");
+    printf("\n");
 
-	queue_destroy(q);
+    queue_destroy(q);
 
-	return 0;
+    return 0;
 }

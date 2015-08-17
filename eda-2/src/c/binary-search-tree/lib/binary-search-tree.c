@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 bst_t* bst_new() {
-    bst_t* ret = (bst_t*) malloc(sizeof(bst_t));
+    bst_t* ret = (bst_t*)malloc(sizeof(bst_t));
 
     assert(ret);
 
@@ -13,7 +13,7 @@ bst_t* bst_new() {
 }
 
 bst_node_t* bst_node_new(bst_value_t val) {
-    bst_node_t* ret = (bst_node_t*) malloc(sizeof(bst_node_t));
+    bst_node_t* ret = (bst_node_t*)malloc(sizeof(bst_node_t));
 
     assert(ret);
 
@@ -27,24 +27,23 @@ bst_node_t* bst_node_new(bst_value_t val) {
 void bst_insert(bst_t* self, bst_value_t val) {
     unsigned char changed = 0;
     bst_node_t* node = bst_node_new(val);
-    if ( ! self->head )
+    if (!self->head)
         self->head = node;
     else
         bst_node_insert(self->head, &changed, node);
     bst_debug(self);
 }
 
-void bst_debug(bst_t* self) {
-    bst_node_debug(self->head, 0);
-}
+void bst_debug(bst_t* self) { bst_node_debug(self->head, 0); }
 
 void bst_node_debug(bst_node_t* self, int depth) {
-    if ( self == NULL ) {
+    if (self == NULL) {
         printf("%*c<nil>\n", depth * BST_DEBUG_INDENT_LEVEL, ' ');
         return;
     }
 
-    printf("%*c%d (bf: %hd)\n", depth * BST_DEBUG_INDENT_LEVEL, ' ', self->value, self->balance_factor);
+    printf("%*c%d (bf: %hd)\n", depth * BST_DEBUG_INDENT_LEVEL, ' ',
+           self->value, self->balance_factor);
     bst_node_debug(self->left, depth + 1);
     bst_node_debug(self->right, depth + 1);
 }
@@ -75,7 +74,7 @@ void bst_node_rotate_right(bst_node_t* self) {
 }
 
 // The same thing, but to the left
-void bst_node_rotate_left(bst_node_t*self) {
+void bst_node_rotate_left(bst_node_t* self) {
     bst_value_t temp_value;
     bst_node_t* old_left;
 
@@ -99,15 +98,15 @@ void bst_node_rotate_left(bst_node_t*self) {
 
 // We lost balance, reestructure our children
 void bst_node_reestructure(bst_node_t* self) {
-    if ( self->balance_factor == -1 ) { // The left child has increased
-        if ( self->left->balance_factor == -1 ) { // left-left -> rotate_right()
+    if (self->balance_factor == -1) {           // The left child has increased
+        if (self->left->balance_factor == -1) { // left-left -> rotate_right()
             bst_node_rotate_right(self);
         } else { // left right, simplify to left-left rotating to the left
             bst_node_rotate_left(self->left);
             bst_node_rotate_right(self);
         }
-    } else if ( self->balance_factor == 1 ) { // It's the right child
-        if ( self->right->balance_factor == 1 ) { // right-right -> rotate_left()
+    } else if (self->balance_factor == 1) {     // It's the right child
+        if (self->right->balance_factor == 1) { // right-right -> rotate_left()
             bst_node_rotate_left(self);
         } else { // right-left, simplify to right-right rotating to the left
             bst_node_rotate_right(self->right);
@@ -116,64 +115,66 @@ void bst_node_reestructure(bst_node_t* self) {
     }
 }
 
-void bst_node_insert(bst_node_t* self, unsigned char* height_changed, bst_node_t* node) {
+void bst_node_insert(bst_node_t* self, unsigned char* height_changed,
+                     bst_node_t* node) {
     // We must insert it in the left
     // of the tree
-    if ( node->value < self->value ) {
-        if ( ! self->left ) {
+    if (node->value < self->value) {
+        if (!self->left) {
             self->left = node;
             self->balance_factor--;
 
             // If the height has_changed
-            if ( ! self->right )
+            if (!self->right)
                 *height_changed = 1;
         } else {
             bst_node_insert(self->left, height_changed, node);
             // The height of our left child has changed, so our balance factor
             // and posibly our height too
-            if ( *height_changed ) {
-                switch ( self->balance_factor ) {
-                    case 1: // Our height wont change
-                        self->balance_factor--;
-                        *height_changed = 0;
-                        break;
-                    case 0: // our height will change, but it won't affect the balance factor
-                        self->balance_factor--;
-                        break;
-                    case -1: // Our height would change, and we have lost balance
-                        bst_node_reestructure(self);
-                        *height_changed = 0;
-                        // reestructure takes care of the balance_factor value
-                        break;
+            if (*height_changed) {
+                switch (self->balance_factor) {
+                case 1: // Our height wont change
+                    self->balance_factor--;
+                    *height_changed = 0;
+                    break;
+                case 0: // our height will change, but it won't affect the
+                    // balance factor
+                    self->balance_factor--;
+                    break;
+                case -1: // Our height would change, and we have lost balance
+                    bst_node_reestructure(self);
+                    *height_changed = 0;
+                    // reestructure takes care of the balance_factor value
+                    break;
                 }
             }
         }
-    // Else... on the right
+        // Else... on the right
     } else {
-        if ( ! self->right ) {
+        if (!self->right) {
             self->right = node;
             self->balance_factor++;
 
-            if ( ! self->left )
+            if (!self->left)
                 *height_changed = 1;
         } else {
             bst_node_insert(self->right, height_changed, node);
-            if ( *height_changed ) {
-                switch ( self->balance_factor ) {
-                    case -1: // Our height wont change
-                        self->balance_factor++;
-                        *height_changed = 0;
-                        break;
-                    case 0: // our height will change, but it won't affect the balance factor
-                        self->balance_factor++;
-                        break;
-                    case 1: // Our height would change, and we have lost balance
-                        bst_node_reestructure(self);
-                        *height_changed = 0;
-                        break;
+            if (*height_changed) {
+                switch (self->balance_factor) {
+                case -1: // Our height wont change
+                    self->balance_factor++;
+                    *height_changed = 0;
+                    break;
+                case 0: // our height will change, but it won't affect the
+                    // balance factor
+                    self->balance_factor++;
+                    break;
+                case 1: // Our height would change, and we have lost balance
+                    bst_node_reestructure(self);
+                    *height_changed = 0;
+                    break;
                 }
             }
         }
     }
 }
-

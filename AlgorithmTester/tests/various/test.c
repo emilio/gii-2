@@ -19,11 +19,12 @@ size_t H(size_t);
 size_t I(size_t);
 size_t J(size_t);
 
-#include "implementation.c" 
+#include "implementation.c"
 
-#define TESTER(algo, name) void name(size_t n, AlgorithmTesterBenchmark * benchmark, void * data) { \
-	ALGORITHM_TESTER_TEST(algo(n), benchmark); \
-}
+#define TESTER(algo, name)                                                     \
+    void name(size_t n, AlgorithmTesterBenchmark* benchmark, void* data) {     \
+        ALGORITHM_TESTER_TEST(algo(n), benchmark);                             \
+    }
 
 TESTER(A, testA)
 TESTER(B, testB)
@@ -37,93 +38,90 @@ TESTER(I, testI)
 TESTER(J, testJ)
 
 /** Each call to this macro adds two items to the array */
-#define REGISTER_ALGORITHM(fn) { #fn, fn },
+#define REGISTER_ALGORITHM(fn)                                                 \
+    { #fn, fn }                                                                \
+    ,
 typedef struct AvailableAlgorithm {
-	char * name;
-	AlgorithmTesterFunction fn;
+    char* name;
+    AlgorithmTesterFunction fn;
 } AvailableAlgorithm;
 
 const AvailableAlgorithm ALGORITHMS[] = {
-	REGISTER_ALGORITHM(testA)
-	REGISTER_ALGORITHM(testB)
-	REGISTER_ALGORITHM(testC)
-	REGISTER_ALGORITHM(testD)
-	REGISTER_ALGORITHM(testE)
-	REGISTER_ALGORITHM(testF)
-	REGISTER_ALGORITHM(testG)
-	REGISTER_ALGORITHM(testH)
-	REGISTER_ALGORITHM(testI)
-	REGISTER_ALGORITHM(testJ)
-};
+    REGISTER_ALGORITHM(testA) REGISTER_ALGORITHM(testB)
+        REGISTER_ALGORITHM(testC) REGISTER_ALGORITHM(testD)
+            REGISTER_ALGORITHM(testE) REGISTER_ALGORITHM(testF)
+                REGISTER_ALGORITHM(testG) REGISTER_ALGORITHM(testH)
+                    REGISTER_ALGORITHM(testI) REGISTER_ALGORITHM(testJ)};
 
 #define ALGORITHMS_LENGTH (sizeof(ALGORITHMS) / sizeof(AvailableAlgorithm))
 
 void showAvailableAlgorithms() {
-	size_t i = 0;
+    size_t i = 0;
 
-	printf("Available algorithms: \n");
-	for ( ; i < ALGORITHMS_LENGTH; i++ ) {
-		printf(" * %s\n", ALGORITHMS[i].name);
-	}
+    printf("Available algorithms: \n");
+    for (; i < ALGORITHMS_LENGTH; i++) {
+        printf(" * %s\n", ALGORITHMS[i].name);
+    }
 }
 
-AlgorithmTesterFunction getAlgorithm(const char * name) {
-	size_t i = 0;
+AlgorithmTesterFunction getAlgorithm(const char* name) {
+    size_t i = 0;
 
-	for ( ; i < ALGORITHMS_LENGTH; i++ ) {
-		if ( strcmp(ALGORITHMS[i].name, name) == 0 ) {
-			return ALGORITHMS[i].fn;
-		}
-	}
+    for (; i < ALGORITHMS_LENGTH; i++) {
+        if (strcmp(ALGORITHMS[i].name, name) == 0) {
+            return ALGORITHMS[i].fn;
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
-int main(int argc, char ** argv) {
-	AlgorithmTester * tester;
-	AlgorithmTesterFunction algo;
-	AlgorithmTesterConfig * config;
-	AlgorithmTesterBenchmark * benchmark;
-	FILE * results;
-	char * file_name;
-	int i;
+int main(int argc, char** argv) {
+    AlgorithmTester* tester;
+    AlgorithmTesterFunction algo;
+    AlgorithmTesterConfig* config;
+    AlgorithmTesterBenchmark* benchmark;
+    FILE* results;
+    char* file_name;
+    int i;
 
-	if ( argc < 3 ) {
-		printf("Use: %s algorithm_tester_name collection_size_1 [collection_size_2] [collection_size_3] ...\n", argv[0]);
-		showAvailableAlgorithms();		
-		return EXIT_FAILURE;
-	}
+    if (argc < 3) {
+        printf("Use: %s algorithm_tester_name collection_size_1 "
+               "[collection_size_2] [collection_size_3] ...\n",
+               argv[0]);
+        showAvailableAlgorithms();
+        return EXIT_FAILURE;
+    }
 
-	algo = getAlgorithm(argv[1]);
+    algo = getAlgorithm(argv[1]);
 
-	if ( algo == NULL ) {
-		printf("%s: Algorithm tester %s not found\n", argv[0], argv[1]);
-		showAvailableAlgorithms();
-		return EXIT_FAILURE;
-	}
+    if (algo == NULL) {
+        printf("%s: Algorithm tester %s not found\n", argv[0], argv[1]);
+        showAvailableAlgorithms();
+        return EXIT_FAILURE;
+    }
 
-	tester = newAlgorithmTester(algo);
-	config = AlgorithmTesterConfig__default();
+    tester = newAlgorithmTester(algo);
+    config = AlgorithmTesterConfig__default();
 
-	file_name = (char *) malloc(strlen(argv[1]) + 1 + 4);
-	strcpy(file_name, argv[1]);
-	strcat(file_name, ".txt");
+    file_name = (char*)malloc(strlen(argv[1]) + 1 + 4);
+    strcpy(file_name, argv[1]);
+    strcat(file_name, ".txt");
 
-	results = fopen(file_name, "w");
+    results = fopen(file_name, "w");
 
-	for ( i = 2; i < argc; i++ ) {
-		config->collection_size = strtoul(argv[i], NULL, 10);
-		benchmark = AlgorithmTester_test(tester, config, NULL);
-		AlgorithmTesterBenchmark_toConsole(benchmark);
-		AlgorithmTesterBenchmark_toStreamDelimited(benchmark, results, ';');
-		free(benchmark);
-	}
+    for (i = 2; i < argc; i++) {
+        config->collection_size = strtoul(argv[i], NULL, 10);
+        benchmark = AlgorithmTester_test(tester, config, NULL);
+        AlgorithmTesterBenchmark_toConsole(benchmark);
+        AlgorithmTesterBenchmark_toStreamDelimited(benchmark, results, ';');
+        free(benchmark);
+    }
 
-	fclose(results);
-	free(file_name);
-	free(config);
-	free(tester);
+    fclose(results);
+    free(file_name);
+    free(config);
+    free(tester);
 
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

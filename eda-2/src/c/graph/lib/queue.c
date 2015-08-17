@@ -2,32 +2,32 @@
 
 /** Move to the left or grow space in the queue */
 void queue_grow(queue_t* queue) {
-	size_t dest_size;
+    size_t dest_size;
 
-	/** Before growing we check if we have space in the left */
-	if ( queue->first_index > QUEUE_MAX_ITEMS_UNUSED ) {
-		/** Move everything to the front */
-		memcpy(queue->data, queue->data + (queue->first_index * queue->item_size), queue->size * queue->item_size);
-		queue->first_index = 0;
-		return;
-	}
+    /** Before growing we check if we have space in the left */
+    if (queue->first_index > QUEUE_MAX_ITEMS_UNUSED) {
+        /** Move everything to the front */
+        memcpy(queue->data,
+               queue->data + (queue->first_index * queue->item_size),
+               queue->size * queue->item_size);
+        queue->first_index = 0;
+        return;
+    }
 
-	dest_size = queue->capacity * 2;
+    dest_size = queue->capacity * 2;
 
-	if ( dest_size == 0 )
-		dest_size = QUEUE_INITIAL_SIZE;
+    if (dest_size == 0)
+        dest_size = QUEUE_INITIAL_SIZE;
 
-	if ( queue->data == NULL )
-		queue->data = (char*) malloc(dest_size * queue->item_size);
-	else
-		queue->data = (char*) realloc(queue->data, dest_size * queue->item_size);
+    if (queue->data == NULL)
+        queue->data = (char*)malloc(dest_size * queue->item_size);
+    else
+        queue->data = (char*)realloc(queue->data, dest_size * queue->item_size);
 
-	queue->capacity = dest_size;
+    queue->capacity = dest_size;
 
-	assert(queue->data != NULL);
-
+    assert(queue->data != NULL);
 }
-
 
 /**
  * Our "constructor" gets a type as parameter
@@ -36,15 +36,15 @@ void queue_grow(queue_t* queue) {
  * Such as: queue_new(int);
  */
 queue_t* queue_new_(size_t item_size) {
-	queue_t* ret = (queue_t*) malloc(sizeof(queue_t));
+    queue_t* ret = (queue_t*)malloc(sizeof(queue_t));
 
-	assert(ret != NULL);
+    assert(ret != NULL);
 
-	ret->data = NULL;
-	ret->first_index = ret->size = ret->capacity = 0;
-	ret->item_size = item_size;
+    ret->data = NULL;
+    ret->first_index = ret->size = ret->capacity = 0;
+    ret->item_size = item_size;
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -57,14 +57,15 @@ queue_t* queue_new_(size_t item_size) {
  */
 void queue_push_(queue_t* queue, void* val) {
 
-	assert(val != NULL);
+    assert(val != NULL);
 
-	if ( (queue->first_index + queue->size) == queue->capacity )
-		queue_grow(queue);
+    if ((queue->first_index + queue->size) == queue->capacity)
+        queue_grow(queue);
 
-	memcpy(queue->data + ((queue->first_index + queue->size++) * queue->item_size), val, queue->item_size);
+    memcpy(queue->data +
+               ((queue->first_index + queue->size++) * queue->item_size),
+           val, queue->item_size);
 }
-
 
 /**
  * Our pop() operation is void
@@ -72,9 +73,9 @@ void queue_push_(queue_t* queue, void* val) {
  * It's perfectly reasonable using just front+top.
  */
 void queue_pop(queue_t* queue) {
-	assert(! queue_empty(queue));
-	queue->first_index++;
-	queue->size--;
+    assert(!queue_empty(queue));
+    queue->first_index++;
+    queue->size--;
 }
 
 /**
@@ -82,14 +83,15 @@ void queue_pop(queue_t* queue) {
  * That's again a tradeoff for flexibility in the queue type.
  */
 void queue_front(queue_t* queue, void* val) {
-	assert(val != NULL);
-	assert(queue->size != 0);
-	memcpy(val, queue->data + ((queue->first_index) * queue->item_size), queue->item_size);
+    assert(val != NULL);
+    assert(queue->size != 0);
+    memcpy(val, queue->data + ((queue->first_index) * queue->item_size),
+           queue->item_size);
 }
 
 /** To destroy or queue we just have to destroy the `data` field */
 void queue_destroy(queue_t* queue) {
-	if ( queue->data )
-		free(queue->data);
-	free(queue);
+    if (queue->data)
+        free(queue->data);
+    free(queue);
 }

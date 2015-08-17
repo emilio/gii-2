@@ -3,7 +3,6 @@
 
 typedef int tipoElemento;
 
-
 char compara(tipoElemento a, tipoElemento b);
 
 #endif

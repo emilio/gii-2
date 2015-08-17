@@ -5,13 +5,13 @@
  * @return IntVector
  */
 IntVector newIntVector(size_t length) {
-	IntVector ret;
+    IntVector ret;
 
-	ret = (IntVector) malloc(length * sizeof(int));
+    ret = (IntVector)malloc(length * sizeof(int));
 
-	// return_null_if(ret == NULL);
+    // return_null_if(ret == NULL);
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -24,17 +24,17 @@ IntVector newIntVector(size_t length) {
  * @return IntVector
  */
 IntVector IntVector__generateInRange(size_t length, int min, int max) {
-	IntVector ret = newIntVector(length);
-	int range = max - min;
-	size_t i = 0;
+    IntVector ret = newIntVector(length);
+    int range = max - min;
+    size_t i = 0;
 
-	// return_null_if(range < 0);
+    // return_null_if(range < 0);
 
-	for ( ; i < length; i++) {
-		ret[i] = min + (rand() % range);
-	}
+    for (; i < length; i++) {
+        ret[i] = min + (rand() % range);
+    }
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -46,9 +46,9 @@ IntVector IntVector__generateInRange(size_t length, int min, int max) {
  * @return IntVector
  */
 IntVector IntVector_clone(IntVector vector, size_t length) {
-	IntVector ret = newIntVector(length);
+    IntVector ret = newIntVector(length);
 
-	memcpy(ret, vector, length * sizeof(int));
+    memcpy(ret, vector, length * sizeof(int));
 
-	return ret;
+    return ret;
 }

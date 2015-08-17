@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-typedef int * IntVector;
+typedef int* IntVector;
 
 /**
  * Allocate a new int vector

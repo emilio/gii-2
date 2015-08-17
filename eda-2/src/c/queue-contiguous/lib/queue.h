@@ -31,12 +31,13 @@
 
 /** Base struct */
 typedef struct queue {
-	char* data; /** Our data, generic so we can store any type of element */
-	size_t first_index; /** Index to the first element in the queue */
-	size_t size; /** Number of elements used in the queue */
-	size_t capacity; /** Capacity of the queue: space allocated / item_size
-					      first_index + size <= capacity, always */
-	size_t item_size; /** Size (in bytes) of the item we're storing */
+    char* data; /** Our data, generic so we can store any type of element */
+    size_t first_index; /** Index to the first element in the queue */
+    size_t size;        /** Number of elements used in the queue */
+    size_t
+        capacity;     /** Capacity of the queue: space allocated / item_size
+                                           first_index + size <= capacity, always */
+    size_t item_size; /** Size (in bytes) of the item we're storing */
 } queue_t;
 
 /** Know if a queue is empty */
@@ -44,7 +45,6 @@ typedef struct queue {
 
 /** Move to the left or grow space in the queue */
 void queue_grow(queue_t* queue);
-
 
 /**
  * Our "constructor" gets a type as parameter
@@ -63,7 +63,7 @@ queue_t* queue_new_(size_t item_size);
  *
  * That's the tradeoff for flexibility
  */
-#define queue_push(q, val) queue_push_(q, (void*) &val)
+#define queue_push(q, val) queue_push_(q, (void*)&val)
 void queue_push_(queue_t* queue, void* val);
 
 /**

@@ -11,7 +11,7 @@
 #endif
 
 #ifndef DIGITS
-#define DIGITS(num) ((num == 0) ? (1) : (((int) log10(ABS(num))) + 1))
+#define DIGITS(num) ((num == 0) ? (1) : (((int)log10(ABS(num))) + 1))
 #endif
 
 /**

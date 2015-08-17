@@ -3,28 +3,26 @@
 #include <time.h>
 #include "list.h"
 
-
 int main(void) {
-	int i;
-	list_t *list = list_alloc();
+    int i;
+    list_t* list = list_alloc();
 
-	srand(time(NULL));
+    srand(time(NULL));
 
+    for (i = 0; i < 10; i++)
+        push(list, rand() % 10);
+    print(list);
 
-	for (i = 0; i < 10; i++)
-		push(list, rand() % 10);
-	print(list);
+    insert(list, begin(list), 7);
+    print(list);
 
-	insert(list, begin(list), 7);
-	print(list);
+    delete (list, begin(list));
+    print(list);
 
-	delete(list, begin(list));
-	print(list);
+    delete (list, last(list));
+    print(list);
 
-	delete(list, last(list));
-	print(list);
+    list_destroy(list);
 
-	list_destroy(list);
-
-	return 0;
+    return 0;
 }
